@@ -90,3 +90,62 @@ against the linked source; dates are publication dates.
 firmgap run --preset right-sized --json | jq .kpis
 node scripts/golden.mjs --check
 ```
+
+
+## Models 0.3 and 0.4: compliance sources (checked 22 Nov 2026)
+
+| Claim used in a rule | Source | Status |
+|---|---|---|
+| 75 MW large-load threshold; study fee of at least $100,000 | Tex. SB 6 enrolled, PURA §37.0561(c), (f) | Statute |
+| Reliability service excludes price-responsive loads and loads in other reliability or ancillary services | SB 6, PURA §39.170(b)(3) | Statute |
+| Firm-load-shed curtailment equipment before interconnection (loads interconnected after 2025-12-31) | SB 6, PURA §39.170(a) | Statute |
+| Backup generation that can serve ≥ 50% of demand: disclosure and directed deployment | SB 6, PURA §37.0561 | Statute |
+| $50,000/MW security; 20% retained on post-allocation withdrawal; 20% returned at energization, then 20% per SLLIA milestone; T-bill interest floor | PUCT Project 58481, order adopting 16 TAC §25.194 (filed 2026-09-18) | Adopted rule (the proposal had $100,000/MW) |
+| Requested peak demand is not netted for co-located generation | Same order | Adopted rule |
+| No codified 30-minute curtailment window | Same order | Hence `SB6_DISCONNECT_30M` is a Warning-level planning test |
+| NOGRR 282 ride-through | ERCOT NOGRR 282 (PUCT approved 2026-07-09, effective 2026-08-01); NPRR 1308 definition | Approved protocol |
+| FERC large-load interconnection | Docket RM26-4 (DOE ANOPR); show-cause orders of 2026-06-18 | **No final rule** |
+| Virginia SB 253: SCC may assign capacity-auction and distribution/substation financing costs to high-load customers | Virginia Mercury (2026-03-17, 2026-04-22, 2026-04-23); bill summaries (25 MW threshold, SCC staff estimate +15.8% for data centers) | Statute; threshold and estimate *reported* |
+| Virginia HB 507: Tier IV or equivalent for data-center generator permits after July 2026 | Virginia Mercury (2026-03-17); Governor's release (2026-06-30) on stricter backup-generator standards | Passed; confirm the signed text |
+| Virginia HB 284 / SB 371 voluntary demand-flexibility programs | Governor's release, 2026-06-30 | Signed |
+| GB Gate 2 readiness; Ofgem data-centre commitment fee and queue milestones | NESO connections-reform documents; Ofgem consultation 2026-07-29 to 2026-09-17 (awaiting decision); Ofgem call for input 2026-02-12 (Curate, Plan, Connect) | Gate 2 approved; fee and milestones **proposed** |
+| Ireland: dispatchable capacity matching MIC (≥ 10 MVA) or autoproducer (1–10 MVA), de-rated on CRM T-4, no run-hour limits, ≥ 80% additional renewables with six-year glide path | CRU/2025/236 (Arthur Cox, 2025-12-16; William Fry; DLA Piper); EirGrid process v3 (May 2026) | Adopted |
+| Spain RD 1032/2026: ≥ 10 MW, PUE ≤ 1.25, WUE ≤ 0.1, 80% hourly new renewables, interruptible path, sanctions, MITECO reporting | ecoticias (2026-11-22, citing BOE and MITECO); El Confidencial, La Vanguardia, okdiario (2026-11-20) | In force 2026-11-22; figures *reported*, check the BOE text |
+| Singapore: PUE 1.3 roadmap target; DC-CFA2 ≥ 200 MW, ≥ 50% green energy, closed 2026-03-31 | IMDA Green Data Centre Roadmap (2024-05-30); Morgan Lewis (2026-03-03) | Adopted policy; 1.25 award bar *reported* |
+| EED data-centre reporting ≥ 500 kW IT | Directive (EU) 2023/1791 Art. 12 and Annex VII; Delegated Regulation (EU) 2024/1364 | Reporting obligation |
+| GPU power-capping workload allocation | arXiv:2611.19073 (Mishra, Omidi, Almassalkhi, 2026-11-14) | Preprint |
+| Storage and compute co-optimisation | arXiv:2605.16190 v2 (Liu, Shin, Deka, 2026-08-17) | Preprint |
+
+**Assumptions, not sourced:** the reliability-service value ($40k/MW-yr), withdrawal probability (10%), collateral
+yield (4%), months to energization (24), milestone spacing (12 months), the SLA liquidated-damages rate, workload
+values, directed-backup hours, the Virginia uplift (15.8% as reported), the GB commitment fee ($20k/MW), the Irish
+de-rating factors and the 8,000 h/yr run-hour threshold. All are flagged `ASSUMPTION` in the site specs and the web inputs.
+
+### Evidence for 0.4 (release package, 22 Nov 2026)
+
+Run in the packaging environment against the exact files in the release zip:
+
+| Check | Result |
+|---|---|
+| `scripts/golden.mjs` logic: golden.json, golden_v2.json, golden_audit.json | All three reproduce. 19 dossiers (every rulepack has passing and failing cases), 2 bankability matrices and 3 proof-link tokens byte-identical |
+| Browser SHA-256 vs `node:crypto` | Identical on the NIST vectors and UTF-8 input; all dossiers and matrices re-verify with an independent Node verifier |
+| Proof-link round trip | 3/3 tokens decode and reproduce the sender's dossier hash; 12 hostile tokens rejected (bad charset, wrong type, unknown keys, `__proto__`, `../` paths, > 16 KiB, unknown jurisdiction) |
+| Remediations | 14/14 resolving remediations turn their rule green when applied |
+| Web war-room functional suite (DOM emulation) | 35/35: every zone, role lens, captions + live line on all 17 rail controls, Apply remediation, curve sliders, Explain this screen, matrix navigation, proof link round trip, hostile link, dossier verify (intact, 1-byte tamper, > 1 MB, markup in a dossier), print memo |
+| v0.2 regression suite | 20/20 (Base Case NPV $66.6M unchanged) |
+| Built-in self-test | 28/28 |
+| JSON Schemas | 22/22 dossiers and 2/2 matrices valid |
+| Rust ↔ JS rule text | All 139 message literals of the international rulepacks and all 40 citations identical |
+| Hygiene | `scripts/hygiene.sh` uses portable `grep -w` (BSD and GNU). No to-do markers, no HTML sinks in the compliance UI block, every action pinned to a 40-character SHA, top-level `permissions` in all 6 workflows, plain `pull_request` events only |
+
+| Static Rust review (no compiler) | Every new Rust file read against the borrow checker, type inference and current clippy defaults. Fixed: 1 compile error (`&str == &String`), 2 closure-pattern inference failures, 3 clippy risks (redundant closure, `map().unwrap_or(false)`, clone-assign), 1 test `is_err() \|\| unwrap()` pattern. Bracket balance clean in all 16 touched files; MSRV 1.74 features only (`let-else`, `is_some_and`, `is_ok_and`, `div_ceil`) |
+| Release workflow review | Fixed: the GitHub Pages archive (`github-pages` artifact) would have been published as a release download; release assets are now limited to `bin-*` artifacts |
+
+**Not run here (no Rust toolchain in the packaging sandbox):** `cargo fmt --check`, `cargo clippy`, `cargo test`,
+`cargo build --release`, the `/tmp` smoke tests and `scripts/bench.sh`. They are all in `scripts/verify.sh` and CI.
+The Rust test suite requires the Rust dossiers, matrices and proof-link tokens to equal the browser's byte for byte
+and prints the first differing byte on a mismatch. The release performance targets (single-site audit < 10 ms,
+100-site sweep across 8 rulepacks < 1 s) are enforced by `scripts/bench.sh` on the maintainer's machine; the
+browser engine, for reference, builds one dossier in about 60 ms and a full 8-corridor matrix in about 66 ms.
+
+Reference hash: `ercot-sb6-100mw-compliant` → `dossier_sha256 = ec6bf71a694acbd4e75a1022c5ff052558ab41fa2231bd39107466c0f6c1662e`.

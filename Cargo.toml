@@ -1,6 +1,6 @@
 [package]
 name = "firmgap"
-version = "0.2.0"
+version = "0.4.0"
 edition = "2021"
 rust-version = "1.74"
 description = "Interim non-firm grid energization and curtailment economics simulator for AI data centers: BESS sizing, workload throttling, SLA risk and interconnection-queue delay cost."

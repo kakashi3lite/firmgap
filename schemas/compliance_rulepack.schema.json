@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kakashi3lite/firmgap/schemas/compliance_rulepack.schema.json",
+  "title": "firmgap compliance rulepack (declarative description)",
+  "description": "One entry of `firmgap rulepacks --json`: a rulepack's versioned id, legal status and the rules it evaluates with their citations. The executable logic is src/compliance.rs and src/rulepacks_intl.rs (golden-tested against web/index.html).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "jurisdiction",
+    "name",
+    "status",
+    "rules"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}-[A-Z0-9.-]+-\\d{4}\\.\\d{2}$"
+    },
+    "jurisdiction": {
+      "enum": [
+        "ercot-sb6",
+        "ferc-rm26-4",
+        "va-sb253",
+        "uk-neso",
+        "ie-cru",
+        "es-rd",
+        "sg-gdc",
+        "eu-eed"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "status": {
+      "enum": [
+        "statute-and-rule",
+        "adopted-policy",
+        "anticipated-no-final-rule",
+        "reporting-obligation"
+      ]
+    },
+    "verified_on": {
+      "type": "string",
+      "format": "date"
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rule_id",
+          "citation"
+        ],
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_]{3,40}$"
+          },
+          "severity": {
+            "enum": [
+              "Blocker",
+              "Warning",
+              "Info"
+            ]
+          },
+          "citation": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "basis": {
+            "enum": [
+              "statute",
+              "rule",
+              "protocol",
+              "permit",
+              "contract",
+              "planning-assumption",
+              "reporting"
+            ]
+          },
+          "remediation": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "kind"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,64}$"
+          },
+          "kind": {
+            "enum": [
+              "number",
+              "boolean"
+            ]
+          },
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          },
+          "default": {
+            "type": [
+              "number",
+              "boolean",
+              "null"
+            ]
+          },
+          "unit": {
+            "type": "string"
+          },
+          "assumption": {
+            "type": "boolean"
+          },
+          "help": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

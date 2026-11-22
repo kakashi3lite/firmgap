@@ -54,3 +54,11 @@ the first push, and do the ✋ items yourself.
 - Merge Dependabot PRs only after CI passes and you've skimmed the upstream release notes.
 - Watch the OpenSSF Scorecard result (badge in README) and fix new findings.
 - Rotate any credential that might have leaked, then check *Security › Audit log*.
+
+## v0.4 additions
+
+* **Required checks:** add `compliance-gate` (from `firmgap-compliance-gate.yml`) next to `ci` in the `protect-main` ruleset.
+* **Pages:** Settings › Pages › Source: *GitHub Actions*. The `github-pages` environment is created on the first
+  release; restrict it to the `v*` tags (Settings › Environments › github-pages › Deployment branches and tags).
+* **Releases:** only tag pushes run `release.yml`; protect `v*` tags with the `protect-release-tags` ruleset so only
+  maintainers can create them.

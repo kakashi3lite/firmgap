@@ -1,0 +1,37 @@
+# firmgap scenario: 100 MW ERCOT campus that passes every SB 6 check
+# BESS + certified compute shedding + disclosed backup below the 50% trigger, ride-through demonstrated.
+# firmgap audit --scenario scenarios/ercot-sb6-100mw-compliant.toml --jurisdiction ercot-sb6 --out dossier.json
+
+preset = "case"
+
+# metadata (not part of the dossier hash): default rulepack and the verdict CI expects
+jurisdiction = "ercot-sb6"
+expected_verdict = "BankablePass"
+
+# simulation parameters (override the case study)
+target_mw = 100
+interim_mw = 60
+ceiling_mw = 60
+queue_months = 40
+interim_month = 6
+bess_lead = 8
+horizon = 72
+bess_mw = 45
+bess_h = 2
+max_throttle_h = 12
+defer_share = 0.4
+gen_mw = 0
+safety_margin = 0.5
+soc_window = 0.9
+bess_derate = 0.95
+defer_cost = 25
+
+# compliance site profile
+reliability_service_mw = 0
+participates_in_reliability_service = false
+price_responsive_lmp_curtailment = true
+firm_shed_telemetry = true
+ride_through_certified = true
+backup_gen_mw = 40
+backup_disclosed = true
+sla_slack_hours = 3

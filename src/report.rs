@@ -4,7 +4,9 @@
 //! Human-readable and JSON reports. Text output is plain ASCII so it renders in
 //! any terminal, CI log or email.
 
+use crate::audit_bundle::Dossier;
 use crate::calendar::hour_to_date;
+use crate::compliance::ComplianceVerdict;
 use crate::economics::Pathway;
 use crate::guard::{verdict, Finding};
 use crate::invest::Investor;
@@ -903,4 +905,237 @@ pub fn worlds_text() -> String {
         let _ = writeln!(s, "  {:<10} {:<34} {}", d.id, d.label, d.description);
     }
     s
+}
+
+/// Human-readable compliance audit report.
+pub fn audit_text(d: &Dossier) -> String {
+    let rep = &d.report;
+    let mut o = String::new();
+    let _ = writeln!(o, "firmgap {} - compliance audit ({})", crate::VERSION, rep.rulepack.name());
+    let _ = writeln!(o, "rulepack {}   gross peak {:.1} MW   scenario_sha256 {}", rep.rulepack_id, d.site.gross_peak_mw, d.scenario_sha256);
+    let _ = writeln!(
+        o,
+        "\nVERDICT: {}",
+        match rep.verdict {
+            ComplianceVerdict::BankablePass => "BankablePass (no failed blockers or warnings)",
+            ComplianceVerdict::ConditionalWarning => "ConditionalWarning (diligence items open)",
+            ComplianceVerdict::StatutoryBlocker => "StatutoryBlocker (at least one blocking rule fails)",
+        }
+    );
+    let _ = writeln!(o, "\nCHECKS");
+    for c in &rep.checks {
+        let tag = if c.passed { "PASS" } else { "FAIL" };
+        let _ = writeln!(o, "  [{}] {:<26} {:<7} {}", tag, c.rule_id.code(), c.severity.as_str(), c.summary);
+        let _ = writeln!(o, "         cite: {}", c.rule_id.citation());
+    }
+    if !rep.remediations.is_empty() {
+        let _ = writeln!(o, "\nPATH TO COMPLIANCE (counterfactual remediation)");
+        for r in &rep.remediations {
+            let _ = writeln!(o, "  {} {} [{}]", if r.recommended { "*" } else { "-" }, r.title, r.rule_id.code());
+            let _ = writeln!(o, "      {}", r.action);
+            if r.value_usd_per_year != 0.0 || r.delta_vs_other_usd_per_year != 0.0 {
+                let _ = writeln!(
+                    o,
+                    "      value {}/yr (5-yr PV {}), {} {}/yr vs. the other path",
+                    money(r.value_usd_per_year),
+                    money(r.pv_5y_usd),
+                    if r.delta_vs_other_usd_per_year >= 0.0 { "+" } else { "-" },
+                    money(r.delta_vs_other_usd_per_year.abs())
+                );
+            }
+            if r.capex_usd > 0.0 {
+                let _ = writeln!(o, "      additional BESS capex {}", money(r.capex_usd));
+            }
+            if !r.resolves {
+                let _ = writeln!(o, "      (does not resolve the rule on its own)");
+            }
+        }
+    }
+    let fd = &rep.financial_drag;
+    let _ = writeln!(o, "\nFINANCIAL DRAG");
+    let _ = writeln!(
+        o,
+        "  security {} + study fee {}; working-capital carry {} ({:.1} full-balance months); forfeiture exposure {} (expected {}); SLA liquidated damages {}/yr",
+        money(fd.security_locked_usd),
+        money(fd.study_fee_usd),
+        money(fd.working_capital_carry_usd),
+        fd.security_months_equivalent,
+        money(fd.forfeiture_exposure_usd),
+        money(fd.expected_forfeiture_usd),
+        money(fd.sla_ld_exposure_usd_per_year)
+    );
+    let _ = writeln!(
+        o,
+        "  investor NPV {} -> {} after security carry and expected forfeiture",
+        money(d.run.inv.npv),
+        money(crate::invest::npv_net_of_compliance(&d.run.inv, fd))
+    );
+    let c = &d.curve;
+    let _ = writeln!(o, "\nSHEDDING CAPABILITY CURVE (certified MW that keeps every SLA)");
+    for p in &c.points {
+        let _ = writeln!(
+            o,
+            "  {:>4.0} min  {:>8.2} MW certified   shadow price ${:>8.2}/MWh   displaces {:>7.2} MWh of BESS",
+            p.duration_min, p.certified_shed_mw, p.marginal_shadow_price_per_mwh, p.bess_mwh_displaced
+        );
+    }
+    let _ = writeln!(
+        o,
+        "  BESS for {:.1} MW of required shed: {:.1} MW / {:.1} MWh without shedding vs {:.1} MW / {:.1} MWh with it -> capex avoided {}",
+        c.required_shed_mw,
+        c.bess_mw_without_shed,
+        c.bess_mwh_without_shed,
+        c.bess_mw_with_shed,
+        c.bess_mwh_with_shed,
+        money(c.capex_avoided_usd)
+    );
+    let _ = writeln!(o, "\nDOSSIER\n  dossier_sha256 {}", d.sha256);
+    o
+}
+
+/// Markdown audit report (for `$GITHUB_STEP_SUMMARY`, PR comments and filings).
+pub fn audit_markdown(d: &Dossier, scenario_path: &str, expected: Option<ComplianceVerdict>) -> String {
+    let rep = &d.report;
+    let mut o = String::new();
+    let icon = match rep.verdict {
+        ComplianceVerdict::BankablePass => "PASS",
+        ComplianceVerdict::ConditionalWarning => "WARNING",
+        ComplianceVerdict::StatutoryBlocker => "BLOCKER",
+    };
+    let _ = writeln!(o, "## firmgap audit: `{}`\n", crate::scenario::sanitize(scenario_path));
+    let _ = writeln!(o, "**Verdict: {} ({})** under {} (`{}`)", rep.verdict.as_str(), icon, rep.rulepack.name(), rep.rulepack_id);
+    if let Some(e) = expected {
+        let _ = writeln!(
+            o,
+            "\nExpected verdict declared in the scenario: `{}` ({})",
+            e.as_str(),
+            if e == rep.verdict { "matches" } else { "MISMATCH" }
+        );
+    }
+    let _ = writeln!(o, "\n| Rule | Severity | Status | Observed | Limit | Summary |\n|---|---|---|---:|---:|---|");
+    for c in &rep.checks {
+        let f = |v: Option<f64>| v.map_or(String::new(), |x| crate::compliance::fx(x, 2));
+        let _ = writeln!(
+            o,
+            "| `{}` | {} | {} | {} | {} | {} |",
+            c.rule_id.code(),
+            c.severity.as_str(),
+            if c.passed { "pass" } else { "**FAIL**" },
+            f(c.observed),
+            f(c.limit),
+            c.summary.replace('|', "/")
+        );
+    }
+    if !rep.remediations.is_empty() {
+        let _ = writeln!(o, "\n### Path to compliance\n");
+        for r in &rep.remediations {
+            let _ =
+                writeln!(o, "- {}**{}** (`{}`): {}", if r.recommended { "Recommended: " } else { "" }, r.title, r.rule_id.code(), r.action);
+        }
+    }
+    let fd = &rep.financial_drag;
+    let _ = writeln!(
+        o,
+        "\nSecurity posted {}; carry {}; expected forfeiture {}; SLA damages {}/yr",
+        money(fd.security_locked_usd),
+        money(fd.working_capital_carry_usd),
+        money(fd.expected_forfeiture_usd),
+        money(fd.sla_ld_exposure_usd_per_year)
+    );
+    let _ = writeln!(
+        o,
+        "\n`dossier_sha256` {}  \n`scenario_sha256` {}  \nReproduce: `{}`",
+        d.sha256,
+        d.scenario_sha256,
+        d.value.get("repro_command").and_then(crate::canon::Value::as_str).unwrap_or("")
+    );
+    o
+}
+
+/// Plain-text bankability matrix.
+pub fn compare_text(c: &crate::portfolio::Compare, scenario_path: &str) -> String {
+    let mut o = String::new();
+    let _ = writeln!(o, "firmgap {} - global bankability matrix for {}", crate::VERSION, crate::scenario::sanitize(scenario_path));
+    let _ = writeln!(
+        o,
+        "\n{:>4}  {:<12} {:<19} {:>8} {:>8}  {:>10}  failed rules",
+        "rank", "rulepack", "verdict", "blockers", "warnings", "drag"
+    );
+    for r in &c.rows {
+        let _ = writeln!(
+            o,
+            "{:>4}  {:<12} {:<19} {:>8} {:>8}  {:>10}  {}",
+            r.rank,
+            r.rulepack.cli_id(),
+            r.verdict.as_str(),
+            r.blockers,
+            r.warnings,
+            money(r.total_drag_usd),
+            if r.failed_rules.is_empty() { "-".to_string() } else { r.failed_rules.join(", ") }
+        );
+    }
+    let _ = writeln!(o, "\nscenario_sha256 {}\nmatrix_sha256   {}", c.scenario_sha256, c.sha256);
+    o
+}
+
+/// Plain-text batch summary.
+pub fn batch_text(b: &crate::portfolio::Batch) -> String {
+    let mut o = String::new();
+    let _ = writeln!(o, "firmgap {} - batch audit of {} scenario files", crate::VERSION, b.sites.len());
+    for st in &b.sites {
+        match &st.error {
+            Some(e) => {
+                let _ = writeln!(o, "  {:<48} ERROR {}", st.file, crate::scenario::sanitize(e));
+            }
+            None => {
+                for r in &st.results {
+                    let _ = writeln!(
+                        o,
+                        "  {:<48} {:<12} {:<19}{} {}",
+                        st.file,
+                        r.rulepack.cli_id(),
+                        r.verdict.as_str(),
+                        if r.unexpected { " UNEXPECTED" } else { "" },
+                        &r.dossier_sha256[..16.min(r.dossier_sha256.len())]
+                    );
+                }
+            }
+        }
+    }
+    let _ = writeln!(o, "\n{} unexpected, {} errors, batch_sha256 {}", b.unexpected(), b.errors(), b.sha256);
+    o
+}
+
+/// Rulepack registry listing.
+pub fn rulepacks_text() -> String {
+    let mut o = String::new();
+    let _ = writeln!(o, "firmgap {} rulepacks (screening tool, not legal advice; see docs/COMPLIANCE.md)\n", crate::VERSION);
+    for rp in crate::compliance::JurisdictionRulepack::ALL {
+        let _ = writeln!(o, "{:<12} {:<30} {:<26} {}", rp.cli_id(), rp.id(), rp.status().as_str(), rp.name());
+        for r in rp.rules() {
+            let _ = writeln!(o, "    {:<26} {}", r.code(), r.citation());
+        }
+    }
+    o
+}
+
+/// Rulepack registry as canonical JSON (conforms to `schemas/compliance_rulepack.schema.json` per entry).
+pub fn rulepacks_json() -> String {
+    use crate::canon::{canonical, obj, s, Value};
+    let list = crate::compliance::JurisdictionRulepack::ALL
+        .iter()
+        .map(|rp| {
+            obj(vec![
+                ("id", s(rp.id())),
+                ("jurisdiction", s(rp.cli_id())),
+                ("name", s(rp.name())),
+                ("status", s(rp.status().as_str())),
+                (
+                    "rules",
+                    Value::Arr(rp.rules().iter().map(|r| obj(vec![("rule_id", s(r.code())), ("citation", s(r.citation()))])).collect()),
+                ),
+            ])
+        })
+        .collect();
+    canonical(&obj(vec![("engine_version", s(crate::VERSION)), ("rulepacks", Value::Arr(list))])) + "\n"
 }

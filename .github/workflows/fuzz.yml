@@ -22,3 +22,7 @@ jobs:
       - run: rustup toolchain install nightly --profile minimal && cargo install --locked cargo-fuzz
       - name: Fuzz untrusted scenario input for 10 minutes
         run: cargo +nightly fuzz run scenario -- -max_total_time=600 -rss_limit_mb=2048
+      - name: Fuzz untrusted dossier input for 10 minutes
+        run: cargo +nightly fuzz run dossier -- -max_total_time=600 -rss_limit_mb=2048
+      - name: Fuzz untrusted proof-link tokens for 10 minutes
+        run: cargo +nightly fuzz run share -- -max_total_time=600 -rss_limit_mb=2048

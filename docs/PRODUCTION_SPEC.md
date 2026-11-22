@@ -49,6 +49,21 @@ system-of-record number.
 * property-based fuzzing of the input surface;
 * a benchmark gate (runtime regression < 20%).
 
+## 1a. Compliance rulepacks, dossiers and portfolio tools (implemented in v0.3 and v0.4)
+
+| Requirement | Implementation | Remaining for production |
+|---|---|---|
+| Versioned rules | Rulepack ids carry a `YYYY.MM` version (e.g. `TX-SB6-16TAC25.194-2026.10`); every check carries its citation and severity | A rule-change watch (PUCT, ERCOT, FERC, EUR-Lex feeds) that opens an issue when a source changes |
+| Legal basis is explicit | Statute, adopted rule, approved protocol, permit, contract or planning assumption, per check ([COMPLIANCE.md](COMPLIANCE.md)) | Counsel sign-off recorded in the dossier |
+| Reproducible output | Canonical JSON (sorted keys, 1e-4 quantisation, ECMAScript number format), `scenario_sha256`, `repro_command`, engine version | Data snapshot ids once historical data is used |
+| Tamper evidence | `dossier_sha256`; `firmgap audit --verify` exits 1 on any change; `--expect` pins an out-of-band hash | Detached signature (Sigstore cosign or minisign) attached to filings |
+| Browser and CLI agree | `tests/golden_audit.rs` and `scripts/golden.mjs` require byte-identical dossiers, matrices and proof-link tokens | Move the browser to the WASM build of the same kernel |
+| Multi-jurisdiction screening | Eight rulepacks in one registry (`JurisdictionRulepack::ALL`); `compare-jurisdictions` ranks one campus across all of them | Rule-change monitoring per corridor; counsel sign-off per rulepack version |
+| Portfolio scale | `batch-audit`: deterministic, bounded (1,000 files × 64 KiB), one simulation per site reused across rulepacks; performance gate `scripts/bench.sh` (< 10 ms per audit, < 1 s per 100 sites in release) | Parallel execution and a server API for portfolios beyond one directory |
+| Compliance-as-code | `--fail-on-blocker`, `expected_verdict` metadata, Markdown output and the `firmgap-compliance-gate` workflow | Required status check in every customer repository |
+| Distribution | `release.yml`: static binaries for five targets, `SHA256SUMS`, GitHub Pages deployment of the workbench | Signed provenance (Sigstore attestations) and reproducible-build verification |
+| Shareable evidence | Proof links (`#s=`) that recompute the sender's hash in the recipient's browser or CLI | Server-side short links with access control for confidential scenarios |
+
 ## 2. Data contracts and telemetry ingestion
 
 | Contract | Schema | Grain | Key rules |

@@ -3,8 +3,10 @@
 ## Supported versions
 | Version | Supported |
 |---|---|
-| 0.2.x | ✅ |
-| 0.1.x | ⚠️ (security fixes only) |
+| 0.4.x | ✅ |
+| 0.3.x | ⚠️ (security fixes only) |
+| 0.2.x | ❌ |
+| 0.1.x | ❌ |
 
 ## Reporting a vulnerability
 **Do not open a public issue.** Use GitHub's private reporting:

@@ -6,6 +6,10 @@
 // web/index.html and the golden values the Rust tests assert:
 //   tests/golden.json     model 0.1 kernel (case study, v0.1 optimiser)
 //   tests/golden_v2.json  model 0.2 (derates, investor NPV, Monte Carlo, guardrails, robust optimiser, stress)
+//   tests/golden_audit.json  models 0.3/0.4 (eight rulepacks, shedding curve, audit dossier, bankability
+//                         matrix, proof-link tokens): every case
+//                         stores the exact canonical dossier text; Rust must reproduce it byte for byte,
+//                         so dossier_sha256 and shedding_curve_sha256 match across Rust and the browser
 //
 //   node scripts/golden.mjs --check   # CI: fail if the web model drifted from either file
 //   node scripts/golden.mjs --write   # after an intentional model change, then:
@@ -27,8 +31,8 @@ if (!m) {
 }
 const sandbox = Object.create(null);
 vm.createContext(sandbox, { codeGeneration: { strings: false, wasm: false } });
-vm.runInContext(`${m[1]}\n;globalThis.__api = { mulberry32, runAll, optimise, sanitizeParams, CASE_STATED, WORLDS, DESIGNS, worldParams, designParams, guardrails, verdictOf, isCompliant, monteCarlo, seedList, robustOptimise, stressSuite, MODEL_VERSION };`, sandbox, { timeout: 600000 });
-const { mulberry32, runAll, optimise, sanitizeParams, CASE_STATED, WORLDS, DESIGNS, worldParams, designParams, guardrails, verdictOf, isCompliant, monteCarlo, seedList, robustOptimise, stressSuite, MODEL_VERSION } = sandbox.__api;
+vm.runInContext(`${m[1]}\n;globalThis.__api = { mulberry32, runAll, optimise, sanitizeParams, CASE_STATED, WORLDS, DESIGNS, worldParams, designParams, guardrails, verdictOf, isCompliant, monteCarlo, seedList, robustOptimise, stressSuite, MODEL_VERSION, generateAudit, sha256Text, verifyDossierText };`, sandbox, { timeout: 600000 });
+const { mulberry32, runAll, optimise, sanitizeParams, CASE_STATED, WORLDS, DESIGNS, worldParams, designParams, guardrails, verdictOf, isCompliant, monteCarlo, seedList, robustOptimise, stressSuite, MODEL_VERSION, generateAudit, sha256Text, verifyDossierText } = sandbox.__api;
 
 const CASE = {
   queueMonths: 38, interimMW: 22, interimMonth: 4, bessLead: 6, horizon: 60, ceilingMW: 22,
@@ -120,8 +124,36 @@ function generateV2() {
   return out;
 }
 
+// Model 0.3: the pure-JS SHA-256 must match Node's (independent implementation), and every dossier
+// must verify against itself before it is compared with the golden file.
+async function selfCheckAudit() {
+  const { createHash } = await import('node:crypto');
+  for (const v of ['', 'abc', 'abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq', 'a'.repeat(1000), 'firmgap \u00e9\u{1F680}']) {
+    if (sha256Text(v) !== createHash('sha256').update(v, 'utf8').digest('hex')) throw new Error('web SHA-256 disagrees with node:crypto for ' + JSON.stringify(v.slice(0, 20)));
+  }
+  const out = generateAudit();
+  for (const c of out.share) {
+    if (c.roundtrip_sha256 !== c.dossier_sha256) throw new Error(c.id + ': proof-link round trip changed the dossier hash');
+    if (c.token.length > 16384 || !/^[A-Za-z0-9_-]+$/.test(c.token)) throw new Error(c.id + ': token is not bounded base64url');
+  }
+  for (const c of out.compare) {
+    const d = JSON.parse(c.text), h = d.matrix_sha256; delete d.matrix_sha256;
+    const canon = (v) => v === null || typeof v !== 'object' ? JSON.stringify(v) : Array.isArray(v) ? '[' + v.map(canon).join(',') + ']' : '{' + Object.keys(v).sort().map((k) => JSON.stringify(k) + ':' + canon(v[k])).join(',') + '}';
+    if (createHash('sha256').update(canon(d)).digest('hex') !== h) throw new Error(c.id + ': matrix hash does not verify');
+  }
+  for (const c of out.cases) {
+    if (!verifyDossierText(c.text).ok) throw new Error(c.id + ': dossier does not verify');
+    const d = JSON.parse(c.text), h = d.dossier_sha256; delete d.dossier_sha256;
+    const canon = (v) => v === null || typeof v !== 'object' ? JSON.stringify(v) : Array.isArray(v) ? '[' + v.map(canon).join(',') + ']' : '{' + Object.keys(v).sort().map((k) => JSON.stringify(k) + ':' + canon(v[k])).join(',') + '}';
+    if (createHash('sha256').update(canon(d)).digest('hex') !== h) throw new Error(c.id + ': node:crypto verification failed');
+  }
+  return out;
+}
+
 const mode = process.argv[2] || '--check';
-const targets = [['tests/golden.json', generate], ['tests/golden_v2.json', generateV2]];
+const auditOut = await selfCheckAudit();
+console.log(`audit self-check OK: SHA-256 agrees with node:crypto; ${auditOut.cases.length} dossiers, ${auditOut.compare.length} matrices and ${auditOut.share.length} proof-link round trips verify`);
+const targets = [['tests/golden.json', generate], ['tests/golden_v2.json', generateV2], ['tests/golden_audit.json', () => auditOut]];
 let failed = false;
 for (const [file, gen] of targets) {
   const url = new URL(file, root);
@@ -134,6 +166,10 @@ for (const [file, gen] of targets) {
   const golden = JSON.parse(readFileSync(url, 'utf8'));
   const errs = [];
   compare(fresh, golden, file, errs);
+  if (file.endsWith('golden_audit.json') && errs.length === 0) {
+    const n = golden.cases.length;
+    console.log(`  ${n} dossiers, ${golden.compare.length} matrices and ${golden.share.length} proof-link tokens byte-identical (e.g. ${golden.cases[0].id}: ${golden.cases[0].dossier_sha256})`);
+  }
   if (errs.length) {
     failed = true;
     console.error(`web model drifted from ${file} (${errs.length} differences):`);
@@ -142,5 +178,5 @@ for (const [file, gen] of targets) {
     console.log(`parity OK: web/index.html reproduces ${file}`);
   }
 }
-if (mode === '--write') console.log('now run: python3 scripts/gen_golden_v2.py, update tests/golden.rs if golden.json changed, and add a CHANGELOG entry');
+if (mode === '--write') console.log('now run: python3 scripts/gen_golden_v2.py, update tests/golden.rs if golden.json changed, run cargo test --test golden_audit, and add a CHANGELOG entry');
 if (failed) process.exit(1);

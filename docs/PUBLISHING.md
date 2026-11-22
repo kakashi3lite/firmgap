@@ -55,6 +55,42 @@ What happens:
 5. Optional: `cargo publish --dry-run`, then `cargo publish` to reserve the crate name (see
    REPO_HARDENING › Releases).
 
+## 4. Shipping an update (v0.3.0 and later)
+The repository already exists and `main` is protected, so updates go through a pull request:
+```bash
+cd ..   # the folder that contains your firmgap clone
+unzip -o firmgap.zip                 # overwrites files in ./firmgap with the new release
+cd firmgap
+git switch -c release/v0.4.0
+./scripts/verify.sh                  # formats, lints, tests, web parity, audit round-trip
+git add -A
+git commit -s -m "firmgap v0.4.0: eight rulepacks, bankability matrix, batch audit, proof links, war room, release pipeline"
+git push -u origin HEAD
+gh pr create --fill                  # wait for ci / codeql / scorecard, then merge
+```
+After merging, tag the release from `main`:
+```bash
+git switch main && git pull
+git tag -s v0.4.0 -m "firmgap v0.4.0"   # -s needs a signing key; use -a for an unsigned annotated tag
+git push origin v0.4.0                 # triggers the release workflow (section 5)
+```
+If `verify.sh` fails, paste the first error (never credentials) into the chat. For `golden_audit`
+failures the test prints the first differing byte between the Rust and browser dossiers.
+
+## 5. Publishing a release (binaries, checksums, web workbench)
+1. **Settings › Pages › Build and deployment › Source: GitHub Actions** (once).
+2. Merge the release PR, then tag `main`:
+   ```bash
+   git switch main && git pull
+   git tag -s v0.4.0 -m "firmgap v0.4.0"    # or -a for an unsigned annotated tag
+   git push origin v0.4.0
+   ```
+3. The `release` workflow builds Linux x86_64 / aarch64 (static musl), macOS aarch64 / x86_64 and Windows
+   (static CRT) binaries, smoke-tests them, publishes them with `SHA256SUMS`, and deploys `web/index.html` to
+   `https://kakashi3lite.github.io/firmgap/`. Proof links created on that page reproduce with
+   `firmgap audit --share <link>`.
+4. Optional: make `compliance-gate` a required status check (see [CI_COMPLIANCE_GATE.md](CI_COMPLIANCE_GATE.md)).
+
 ## Manual alternative (without the script)
 ```bash
 gh auth login --web

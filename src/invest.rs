@@ -299,3 +299,10 @@ pub fn investor(p: &Params, interim: &SimResult, flex: &SimResult, firm: &SimRes
         cf_fail: fail.cf,
     }
 }
+
+/// Investor NPV net of compliance financing cost: working-capital carry on the posted security and
+/// the expected forfeiture. SLA liquidated damages are excluded because the NPV already prices
+/// SLA-late work through `sla_penalty`.
+pub fn npv_net_of_compliance(inv: &Investor, fin: &crate::compliance::ComplianceFinancials) -> f64 {
+    inv.npv - fin.working_capital_carry_usd - fin.expected_forfeiture_usd
+}

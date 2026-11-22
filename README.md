@@ -1,4 +1,4 @@
-# firmgap — Interim Non-Firm Grid Energization & Curtailment Economics for AI Data Centers
+# firmgap — compliance and bankability engine for AI data-center grid connections
 
 [![ci](https://github.com/kakashi3lite/firmgap/actions/workflows/ci.yml/badge.svg)](https://github.com/kakashi3lite/firmgap/actions/workflows/ci.yml)
 [![codeql](https://github.com/kakashi3lite/firmgap/actions/workflows/codeql.yml/badge.svg)](https://github.com/kakashi3lite/firmgap/actions/workflows/codeql.yml)
@@ -7,37 +7,76 @@
 ![runtime dependencies: 0](https://img.shields.io/badge/runtime%20deps-0-brightgreen.svg)
 ![unsafe: forbidden](https://img.shields.io/badge/unsafe-forbidden-brightgreen.svg)
 
-**firmgap** prices the *firm gap*: the months, sometimes years, between an **interim non-firm
-interconnection** and **firm grid service** for a large flexible load such as an **AI inference /
-GPU data center**. It's an hour-by-hour (8,760 h) **curtailment and demand-response simulator** with a
-**BESS sizing optimizer**. It shows whether a **battery energy storage system**, on-site gensets and
-**deferrable batch compute (workload throttling / load flexibility)** can keep a campus under a
-utility's curtailment ceiling, pass a **sub-5-minute response test**, respect **compute SLAs**, and
-beat the **interconnection-queue delay cost** of waiting.
+**firmgap tells an AI data-center developer, lender or utility, in one command, whether a campus can
+connect to the grid early, under which law it is bankable, and what the cheapest legal fix is — with a
+SHA-256-stamped dossier anyone can re-verify.**
 
-The project ships two front ends:
-* a dependency-free **Rust library + CLI** (`firmgap`);
-* a single-file **interactive web simulator** (`web/index.html`), which is also the numerical
-  reference that the Rust kernel is tested against.
+It is an hour-by-hour (8,760 h) simulator of **interim non-firm interconnection**: BESS sizing,
+deferrable GPU workloads, curtailment ceilings, SLA risk and interconnection-queue carry. On top sit
+**eight versioned regulatory rulepacks** with citations, a **counterfactual path-to-compliance
+solver**, a **certified shedding-capability curve**, and a **tamper-evident audit dossier** that is
+byte-identical between the Rust CLI and the offline web workbench.
 
-> Built from the *KilowattBridge Compute* case study: a 45 MW campus, a 38-month firm queue, and a
-> 22 MW interim non-firm offer. The case numbers are the defaults, so every result in this README is
-> reproducible with `firmgap run`.
+## 30-second quickstart
 
----
+```bash
+cargo install --git https://github.com/kakashi3lite/firmgap --locked     # Rust >= 1.74; zero dependencies
 
-## Why it matters
+firmgap audit --scenario scenarios/ercot-sb6-illegal-stack.toml            # StatutoryBlocker + Path A vs Path B
+firmgap compare-jurisdictions --scenario scenarios/ercot-sb6-100mw-compliant.toml --format markdown
+firmgap batch-audit --dir scenarios --jurisdiction all --format markdown   # portfolio sweep
+firmgap audit --scenario scenarios/ercot-sb6-100mw-compliant.toml --out dossier.json && firmgap audit --verify dossier.json
+```
 
-In some US markets, transmission-constrained zones now quote multi-year cluster studies and network
-upgrades for large loads. Utilities and ISOs are answering with *flexible / non-firm* service:
-interconnect sooner if the load agrees to curtail. Examples include Texas SB 6 curtailment equipment
-for large loads, PJM's non-capacity-backed load discussion, and Google's ML-workload
-demand-response agreements. Research (Duke Nicholas Institute, 2025) estimates **76 GW** of new load
-could fit on the existing US grid if it accepted curtailment for 0.25% of its uptime. Sources and
-caveats are in [docs/VERIFICATION.md](docs/VERIFICATION.md).
+No Rust? Open `web/index.html` (or the GitHub Pages copy published by each release) and click
+**Compliance & Bankability**. It runs offline, loads no third-party code and produces the same dossier
+bytes as the CLI.
 
-Finance and engineering usually model this separately. firmgap puts **queue carry, curtailment
-penalties, BESS CapEx, genset permits and SLA risk in one hourly model**.
+## What you get
+
+| Capability | CLI | Web workbench |
+|---|---|---|
+| Eight rulepacks: ERCOT / Texas SB 6, FERC RM26-4 (anticipated), Virginia SB 253, GB NESO / Ofgem (proposed), Ireland CRU/2025/236, Spain RD 1032/2026, Singapore GDCR / DC-CFA2, EU EED Art. 12 | `audit --jurisdiction <id>`, `rulepacks` | Jurisdiction bar + "More corridors" |
+| Path-to-compliance solver (Path A vs B, minimum BESS vs SLA slack, permit-hour BESS, Tier IV, de-rated storage for Irish MIC, hourly renewables) | `audit` report | Remediation cards with **Apply remediation** |
+| Certified shedding-capability curve (15 min to 4 h) and BESS CapEx it displaces | `audit` report | Live SVG with sliders and a takeaway callout |
+| Global bankability matrix (one campus, every corridor, ranked) | `compare-jurisdictions` | Global site comparison |
+| Portfolio sweeps, deterministic and bounded | `batch-audit --dir` | — |
+| Tamper-evident dossier (pure-std FIPS 180-4 SHA-256) | `audit --out`, `--verify`, `--expect` | Download + verify drop zone (WebCrypto cross-check) |
+| Shareable proof link `#s=<base64url>` that reproduces the sender's hash | `audit --share <url>` | **Copy proof link** |
+| Compliance-as-code CI gate | `--fail-on-blocker`, `--format markdown` | — |
+| Filing memo | — | **Print filing memo** (print stylesheet) |
+| Role lens: CFO, General Counsel, Grid Engineer | — | Every takeaway rephrased; numbers unchanged |
+
+### Example: one 100 MW campus, eight corridors
+
+`firmgap compare-jurisdictions --scenario scenarios/ercot-sb6-100mw-compliant.toml` (golden-tested):
+
+| Rank | Corridor | Verdict | Why |
+|---:|---|---|---|
+| 1 | FERC RM26-4 (anticipated) | BankablePass | POI, ramp, power factor and staged energization all within terms |
+| 2 | EU EED Art. 12 | BankablePass | Reporting-ready; PUE meets the contractual target |
+| 3 | Texas SB 6 | BankablePass | $5.00M security posted on gross MW; disconnect test survived |
+| 4 | Singapore GDCR | ConditionalWarning | PUE 1.30 misses the 1.25 bar reported for capacity awards |
+| 5 | GB NESO / Ofgem | ConditionalWarning | End-user and long-lead milestones open (proposed rules) |
+| 6 | Virginia SB 253 | StatutoryBlocker | Backup is not Tier IV (HB 507 air permits) |
+| 7 | Ireland CRU | StatutoryBlocker | De-rated dispatchable capacity 57.4 MW vs 102.0 MW MIC |
+| 8 | Spain RD 1032/2026 | StatutoryBlocker | PUE 1.30 > 1.25; 60% hourly renewables < 80% |
+
+> Screening tool, not legal advice. Each check names its provision and its legal status (statute,
+> adopted rule, approved protocol, proposed or anticipated term, or planning assumption). Sources were
+> checked on 22 Nov 2026: [docs/COMPLIANCE.md](docs/COMPLIANCE.md), [docs/JURISDICTIONS_2026.md](docs/JURISDICTIONS_2026.md).
+
+## Open core and commercial
+
+| | AGPL-3.0 (free) | Commercial license |
+|---|---|---|
+| Rust engine, CLI, eight rulepacks, web workbench, dossier and proof links | Yes | Yes |
+| Use inside proprietary products, internal SaaS or consulting deliverables without AGPL source obligations | No: network use of a modified version requires offering its source | Yes |
+| Support, custom rulepacks and model extensions (ISO-specific tariffs, historical LMP replay, multi-site portfolios) | Community issues | By agreement |
+| Indemnity | No | By agreement |
+
+Terms are agreed in writing; see [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md). Nothing in this README
+is a license grant.
 
 ## Results on the case study (verified, reproducible)
 
@@ -74,27 +113,20 @@ What the numbers show:
 > wrong in ways an investor would catch: the design is knife-edge, and the value double-counted carry
 > with margin. See [docs/INVESTOR_DILIGENCE.md](docs/INVESTOR_DILIGENCE.md) §0.
 
-## Quick start
+## Investment analysis commands
 
 ```bash
-# install (requires Rust >= 1.74: https://rustup.rs)
-cargo install --git https://github.com/kakashi3lite/firmgap --locked
-
 firmgap diligence --world base --design robust   # IC report: NPV, downside, Monte Carlo, guardrails, verdict
 firmgap robust --world base                      # best design compliant in >= 90% of weather years
 firmgap stress --world base --design robust      # design x world matrix, tornado, break-evens, cliffs
 firmgap montecarlo --world harsh --design eng -n 40
 firmgap run --preset right-sized --events        # v0.1 case view with per-event ledger
-firmgap worlds                                   # world scenarios and bridge designs
 firmgap params                                   # every input, default, range, unit
 ```
 
-**Investment workbench:** open `web/index.html` in a browser. There's no build step, no server and no
-third-party code, and the data stays on your machine. It includes stress presets, break-evens, a
-weather-year Monte Carlo, a robust optimizer, saved scenarios with an audit log, and JSON/CSV export.
-
-> The Rust crate and the web workbench implement the same model (0.2.0). `tests/golden.json` and
-> `tests/golden_v2.json` pin both to identical numbers; CI fails if either drifts.
+> The Rust crate and the web workbench implement the same model (0.4.0). `tests/golden.json`,
+> `tests/golden_v2.json` and `tests/golden_audit.json` pin both to identical numbers and identical
+> dossier, matrix and proof-link bytes; CI fails if either drifts.
 
 ### Library
 
@@ -110,42 +142,24 @@ println!("NPV {:.1}M, downside {:.1}M, compliant {:.0}% of years, verdict {}",
 # Ok::<(), firmgap::Error>(())
 ```
 
-## How it works
 
-```mermaid
-flowchart LR
-  P[Params<br/>validated inputs] --> Y[year::build_year<br/>8,760 h load + signals]
-  Y --> S1[simulate interim]
-  Y --> S2[simulate flex bridge]
-  Y --> S3[simulate firm]
-  Y --> S4[simulate firm + BESS]
-  S1 & S2 & S3 & S4 --> E[economics<br/>A / B / C pathways]
-  E --> R[report<br/>text / JSON]
-  E --> O[optimise<br/>MW x h x hold]
-```
+## Documentation
 
-| Document | Contents |
-|---|---|
-| [docs/MODEL.md](docs/MODEL.md) | Every equation, dispatch rule and assumption |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Module graph, data flow, state machines |
-| [docs/CONTEXT_MAP.md](docs/CONTEXT_MAP.md) | Concept → code → test → doc map, invariants, decision log |
-| [docs/VERIFICATION.md](docs/VERIFICATION.md) | Research check, parity method, known limitations |
-| [docs/INVESTOR_DILIGENCE.md](docs/INVESTOR_DILIGENCE.md) | IC audit: WTP, break-evens, moat, regulatory risk, production gaps |
-| [docs/PRODUCTION_SPEC.md](docs/PRODUCTION_SPEC.md) | Target production architecture, RBAC, telemetry fail-safe |
-| [schemas/](schemas/) | JSON Schemas for load, BESS, SLA tiers, curtailment signals, LMP, scenario snapshots |
-| [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) | Red-team analysis and mitigations |
-| [docs/REPO_HARDENING.md](docs/REPO_HARDENING.md) | GitHub security settings checklist |
-| [docs/PUBLISHING.md](docs/PUBLISHING.md) | Step-by-step publishing guide |
-| [docs/GLOSSARY.md](docs/GLOSSARY.md) | LMP, non-firm, BESS, RTE, CRF, SLA … |
-| [AGENTS.md](AGENTS.md) | Rules for human and AI contributors |
+The index by role is [docs/README.md](docs/README.md). Most used: [USER_GUIDE](docs/USER_GUIDE.md),
+[COMPLIANCE](docs/COMPLIANCE.md), [CI_COMPLIANCE_GATE](docs/CI_COMPLIANCE_GATE.md), [MODEL](docs/MODEL.md),
+[INVESTOR_DILIGENCE](docs/INVESTOR_DILIGENCE.md), [THREAT_MODEL](docs/THREAT_MODEL.md),
+[VERIFICATION](docs/VERIFICATION.md).
 
 ## Security posture
 
 * `#![forbid(unsafe_code)]`, **zero runtime dependencies**, overflow checks in release builds.
 * All input is untrusted. It's size-capped, whitelisted, finiteness- and range-checked, and fuzzed
   weekly. Error messages are sanitized against terminal-escape injection.
-* The binary makes no network calls, spawns no processes, reads no environment variables and writes
-  to stdout only.
+* The binary makes no network calls, spawns no processes, reads no environment variables, reads only
+  the files it is given and writes only to stdout and the `--out` file.
+* The web workbench ships a strict Content-Security-Policy (`default-src 'none'`), treats proof links
+  and dropped dossiers as hostile (size caps, allowlisted keys, no HTML sinks) and never makes a
+  network request.
 * CI uses SHA-pinned actions, read-only tokens, CodeQL (Rust, Actions, JS), OpenSSF Scorecard,
   cargo-deny, cargo-audit and Dependabot.
 * Report vulnerabilities privately: [SECURITY.md](SECURITY.md).

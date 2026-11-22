@@ -19,5 +19,19 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "dossier"
+path = "fuzz_targets/dossier.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "share"
+path = "fuzz_targets/share.rs"
+test = false
+doc = false
+bench = false
+
 # Keep the fuzz crate out of the parent workspace.
 [workspace]
