@@ -1,0 +1,1925 @@
+{
+ "schema": "firmgap.golden.v2",
+ "model": "firmgap-model 0.2.0",
+ "snake": {
+  "queueMonths": "queue_months",
+  "interimMonth": "interim_month",
+  "interimMW": "interim_mw",
+  "ceilingMW": "ceiling_mw",
+  "bessLead": "bess_lead",
+  "horizon": "horizon",
+  "targetMW": "target_mw",
+  "util": "util",
+  "deferShare": "defer_share",
+  "fastCap": "fast_cap",
+  "rampMin": "ramp_min",
+  "slaWindow": "sla_window",
+  "maxThrottleH": "max_throttle_h",
+  "stressHours": "stress_hours",
+  "avgEventH": "avg_event_h",
+  "basePrice": "base_price",
+  "stressPrice": "stress_price",
+  "penalty": "penalty",
+  "bessMW": "bess_mw",
+  "bessH": "bess_h",
+  "bessCost": "bess_cost",
+  "bessPowerCost": "bess_power_cost",
+  "rte": "rte",
+  "genMW": "gen_mw",
+  "genCapH": "gen_cap_h",
+  "genCost": "gen_cost",
+  "genRental": "gen_rental",
+  "carry": "carry",
+  "wacc": "wacc",
+  "life": "life",
+  "slaTarget": "sla_target",
+  "safetyMargin": "safety_margin",
+  "bessDerate": "bess_derate",
+  "socWindow": "soc_window",
+  "deferCost": "defer_cost",
+  "slaPenalty": "sla_penalty",
+  "salvage": "salvage",
+  "marginPreEnergy": "margin_pre_energy",
+  "swSetup": "sw_setup",
+  "swPriceMWMonth": "sw_price_mw_month",
+  "mcSeeds": "mc_seeds",
+  "seed": "seed",
+  "strategy": "strategy"
+ },
+ "worlds_designs": {
+  "base__robust": {
+   "world": "base",
+   "design": "robust",
+   "params": {
+    "queue_months": 38,
+    "interim_month": 4,
+    "interim_mw": 22,
+    "ceiling_mw": 22,
+    "bess_lead": 6,
+    "horizon": 60,
+    "target_mw": 45,
+    "util": 0.78,
+    "defer_share": 0.35,
+    "fast_cap": 0.1,
+    "ramp_min": 4,
+    "sla_window": 4,
+    "max_throttle_h": 12,
+    "stress_hours": 180,
+    "avg_event_h": 3.5,
+    "base_price": 68,
+    "stress_price": 310,
+    "penalty": 450,
+    "bess_mw": 18.5,
+    "bess_h": 2,
+    "bess_cost": 285,
+    "bess_power_cost": 250,
+    "rte": 0.88,
+    "gen_mw": 0,
+    "gen_cap_h": 50,
+    "gen_cost": 290,
+    "gen_rental": 65,
+    "carry": 145000,
+    "wacc": 0.09,
+    "life": 10,
+    "sla_target": 0.015,
+    "safety_margin": 0.5,
+    "bess_derate": 0.95,
+    "soc_window": 0.9,
+    "defer_cost": 25,
+    "sla_penalty": 0,
+    "salvage": 0,
+    "margin_pre_energy": 320,
+    "sw_setup": 250000,
+    "sw_price_mw_month": 1500,
+    "mc_seeds": 24,
+    "seed": 2026,
+    "strategy": "throttle"
+   },
+   "flex": {
+    "shortE": 0,
+    "breachPct": 0.0030510420703473394,
+    "failed5": 0,
+    "thrE": 2279.1276111602783,
+    "energyCost": 21849186.210006095,
+    "genHrs": 0
+   },
+   "econ": {
+    "certified": true,
+    "F": 10,
+    "capex": 12857500,
+    "reduction": 0.053427502804098914,
+    "Ctotal": 106530266.96486253
+   },
+   "inv": {
+    "npv": 66649148.34701935,
+    "npvFail": -11113119.915360477,
+    "payback": 9,
+    "irr": 3.462558748264504,
+    "bridgeMonthly": 3282267.367078833,
+    "arbMonthly": 26837.333333333645,
+    "disposition": "retain for post-firm arbitrage",
+    "failDisposition": "retain for post-firm arbitrage",
+    "postPV": 1380291.2668965082,
+    "costPerMWMonth": 17431.074697217573,
+    "breakEvenMargin": 105.19007654748921,
+    "breakEvenDeferCost": 14836.950179779935,
+    "breakEvenSlaPenalty": 35984.99664116611,
+    "swPV": 1060281.9714297357,
+    "swShare": 0.015659295410447957,
+    "swPaybackDays": 2.6350077652867436,
+    "capexPV": 12493411.18225699,
+    "pvFactor": 23.69163129193434,
+    "bridgeMonths": 28,
+    "mwMonths": 644
+   },
+   "compliant": true,
+   "guard": [
+    "w:HOLD",
+    "w:DEFER",
+    "i:KPI",
+    "i:MARGIN"
+   ],
+   "verdictNoMc": "PENDING"
+  },
+  "base__edge": {
+   "world": "base",
+   "design": "edge",
+   "params": {
+    "queue_months": 38,
+    "interim_month": 4,
+    "interim_mw": 22,
+    "ceiling_mw": 22,
+    "bess_lead": 6,
+    "horizon": 60,
+    "target_mw": 45,
+    "util": 0.78,
+    "defer_share": 0.35,
+    "fast_cap": 0.1,
+    "ramp_min": 4,
+    "sla_window": 4,
+    "max_throttle_h": 12,
+    "stress_hours": 180,
+    "avg_event_h": 3.5,
+    "base_price": 68,
+    "stress_price": 310,
+    "penalty": 450,
+    "bess_mw": 13.5,
+    "bess_h": 2,
+    "bess_cost": 285,
+    "bess_power_cost": 250,
+    "rte": 0.88,
+    "gen_mw": 0,
+    "gen_cap_h": 50,
+    "gen_cost": 290,
+    "gen_rental": 65,
+    "carry": 145000,
+    "wacc": 0.09,
+    "life": 10,
+    "sla_target": 0.015,
+    "safety_margin": 0.5,
+    "bess_derate": 0.95,
+    "soc_window": 0.9,
+    "defer_cost": 25,
+    "sla_penalty": 0,
+    "salvage": 0,
+    "margin_pre_energy": 320,
+    "sw_setup": 250000,
+    "sw_price_mw_month": 1500,
+    "mc_seeds": 24,
+    "seed": 2026,
+    "strategy": "throttle"
+   },
+   "flex": {
+    "shortE": 11.283367622097334,
+    "breachPct": 0.0030510420703473394,
+    "failed5": 12,
+    "thrE": 2279.1276111602783,
+    "energyCost": 21851812.157379966,
+    "genHrs": 0
+   },
+   "econ": {
+    "certified": false,
+    "F": 38,
+    "capex": 9382500,
+    "reduction": 0.08529630784963094,
+    "Ctotal": 75111698.12162553
+   },
+   "inv": {
+    "npv": -8109573.992290086,
+    "npvFail": -8109573.992290086,
+    "payback": null,
+    "irr": null,
+    "bridgeMonthly": 3281625.4118451816,
+    "arbMonthly": 19584.00000000031,
+    "disposition": "retain for post-firm arbitrage",
+    "failDisposition": "retain for post-firm arbitrage",
+    "postPV": 1007239.5731406995,
+    "costPerMWMonth": null,
+    "breakEvenMargin": null,
+    "breakEvenDeferCost": null,
+    "breakEvenSlaPenalty": null,
+    "swPV": 0,
+    "swShare": null,
+    "swPaybackDays": 2.635523228453116,
+    "capexPV": 9116813.565430777,
+    "pvFactor": 0,
+    "bridgeMonths": 0,
+    "mwMonths": 0
+   },
+   "compliant": false,
+   "guard": [
+    "v:CERT",
+    "v:NPV",
+    "w:HOLD",
+    "w:DEFER",
+    "i:KPI",
+    "i:MARGIN"
+   ],
+   "verdictNoMc": "NOT INVESTABLE"
+  },
+  "base__eng": {
+   "world": "base",
+   "design": "eng",
+   "params": {
+    "queue_months": 38,
+    "interim_month": 4,
+    "interim_mw": 22,
+    "ceiling_mw": 22,
+    "bess_lead": 6,
+    "horizon": 60,
+    "target_mw": 45,
+    "util": 0.78,
+    "defer_share": 0.35,
+    "fast_cap": 0.1,
+    "ramp_min": 4,
+    "sla_window": 4,
+    "max_throttle_h": 4,
+    "stress_hours": 180,
+    "avg_event_h": 3.5,
+    "base_price": 68,
+    "stress_price": 310,
+    "penalty": 450,
+    "bess_mw": 23,
+    "bess_h": 4,
+    "bess_cost": 285,
+    "bess_power_cost": 250,
+    "rte": 0.88,
+    "gen_mw": 0,
+    "gen_cap_h": 50,
+    "gen_cost": 290,
+    "gen_rental": 65,
+    "carry": 145000,
+    "wacc": 0.09,
+    "life": 10,
+    "sla_target": 0.015,
+    "safety_margin": 0.5,
+    "bess_derate": 0.95,
+    "soc_window": 0.9,
+    "defer_cost": 25,
+    "sla_penalty": 0,
+    "salvage": 0,
+    "margin_pre_energy": 320,
+    "sw_setup": 250000,
+    "sw_price_mw_month": 1500,
+    "mc_seeds": 24,
+    "seed": 2026,
+    "strategy": "throttle"
+   },
+   "flex": {
+    "shortE": 154.70910623669624,
+    "breachPct": 0.0020799347700613136,
+    "failed5": 0,
+    "thrE": 1559.7767682820559,
+    "energyCost": 21891861.58254605,
+    "genHrs": 0
+   },
+   "econ": {
+    "certified": true,
+    "F": 10,
+    "capex": 26220000,
+    "reduction": -0.021455852826879562,
+    "Ctotal": 114957876.98968866
+   },
+   "inv": {
+    "npv": 54671164.53498632,
+    "npvFail": -22904905.867885508,
+    "payback": 14,
+    "irr": 1.3989072338516855,
+    "bridgeMonthly": 3274408.14213929,
+    "arbMonthly": 50019.99409947358,
+    "disposition": "retain for post-firm arbitrage",
+    "failDisposition": "retain for post-firm arbitrage",
+    "postPV": 2572616.2941816426,
+    "costPerMWMonth": 35899.59909588913,
+    "breakEvenMargin": 143.7950677528014,
+    "breakEvenDeferCost": 17778.425338725523,
+    "breakEvenSlaPenalty": 43299.578429312416,
+    "swPV": 1060281.9714297357,
+    "swShare": 0.019024842129437124,
+    "swPaybackDays": 2.6413323032935727,
+    "capexPV": 25477522.16206714,
+    "pvFactor": 23.69163129193434,
+    "bridgeMonths": 28,
+    "mwMonths": 644
+   },
+   "compliant": false,
+   "guard": [
+    "v:SHORT",
+    "w:HOLD",
+    "w:DEFER",
+    "i:KPI",
+    "i:MARGIN"
+   ],
+   "verdictNoMc": "NOT INVESTABLE"
+  },
+  "base__sw": {
+   "world": "base",
+   "design": "sw",
+   "params": {
+    "queue_months": 38,
+    "interim_month": 4,
+    "interim_mw": 22,
+    "ceiling_mw": 22,
+    "bess_lead": 6,
+    "horizon": 60,
+    "target_mw": 45,
+    "util": 0.78,
+    "defer_share": 0.35,
+    "fast_cap": 0.1,
+    "ramp_min": 4,
+    "sla_window": 4,
+    "max_throttle_h": 12,
+    "stress_hours": 180,
+    "avg_event_h": 3.5,
+    "base_price": 68,
+    "stress_price": 310,
+    "penalty": 450,
+    "bess_mw": 0,
+    "bess_h": 2,
+    "bess_cost": 285,
+    "bess_power_cost": 250,
+    "rte": 0.88,
+    "gen_mw": 0,
+    "gen_cap_h": 50,
+    "gen_cost": 290,
+    "gen_rental": 65,
+    "carry": 145000,
+    "wacc": 0.09,
+    "life": 10,
+    "sla_target": 0.015,
+    "safety_margin": 0.5,
+    "bess_derate": 0.95,
+    "soc_window": 0.9,
+    "defer_cost": 25,
+    "sla_penalty": 0,
+    "salvage": 0,
+    "margin_pre_energy": 320,
+    "sw_setup": 250000,
+    "sw_price_mw_month": 1500,
+    "mc_seeds": 24,
+    "seed": 2026,
+    "strategy": "throttle"
+   },
+   "flex": {
+    "shortE": 461.37588000297546,
+    "breachPct": 0.0030510420703473394,
+    "failed5": 51,
+    "thrE": 2279.1276111602783,
+    "energyCost": 21956560.960261345,
+    "genHrs": 0
+   },
+   "econ": {
+    "certified": false,
+    "F": 38,
+    "capex": 0,
+    "reduction": 0.08004947857787803,
+    "Ctotal": 75542546.12162553
+   },
+   "inv": {
+    "npv": 0,
+    "npvFail": 0,
+    "payback": null,
+    "irr": null,
+    "bridgeMonthly": 3256017.8757241173,
+    "arbMonthly": 0,
+    "disposition": "none",
+    "failDisposition": "none",
+    "postPV": 0,
+    "costPerMWMonth": null,
+    "breakEvenMargin": null,
+    "breakEvenDeferCost": null,
+    "breakEvenSlaPenalty": null,
+    "swPV": 0,
+    "swShare": null,
+    "swPaybackDays": 2.656250773216828,
+    "capexPV": 0,
+    "pvFactor": 0,
+    "bridgeMonths": 0,
+    "mwMonths": 0
+   },
+   "compliant": false,
+   "guard": [
+    "v:CERT",
+    "w:HOLD",
+    "w:DEFER",
+    "i:KPI",
+    "i:MARGIN"
+   ],
+   "verdictNoMc": "NOT INVESTABLE"
+  },
+  "base__diesel": {
+   "world": "base",
+   "design": "diesel",
+   "params": {
+    "queue_months": 38,
+    "interim_month": 4,
+    "interim_mw": 22,
+    "ceiling_mw": 22,
+    "bess_lead": 6,
+    "horizon": 60,
+    "target_mw": 45,
+    "util": 0.78,
+    "defer_share": 0.35,
+    "fast_cap": 0.1,
+    "ramp_min": 4,
+    "sla_window": 4,
+    "max_throttle_h": 4,
+    "stress_hours": 180,
+    "avg_event_h": 3.5,
+    "base_price": 68,
+    "stress_price": 310,
+    "penalty": 450,
+    "bess_mw": 0,
+    "bess_h": 2,
+    "bess_cost": 285,
+    "bess_power_cost": 250,
+    "rte": 0.88,
+    "gen_mw": 17,
+    "gen_cap_h": 50,
+    "gen_cost": 290,
+    "gen_rental": 65,
+    "carry": 145000,
+    "wacc": 0.09,
+    "life": 10,
+    "sla_target": 0.015,
+    "safety_margin": 0.5,
+    "bess_derate": 0.95,
+    "soc_window": 0.9,
+    "defer_cost": 25,
+    "sla_penalty": 0,
+    "salvage": 0,
+    "margin_pre_energy": 320,
+    "sw_setup": 250000,
+    "sw_price_mw_month": 1500,
+    "mc_seeds": 24,
+    "seed": 2026,
+    "strategy": "throttle"
+   },
+   "flex": {
+    "shortE": 899.0721456855536,
+    "breachPct": 0.0020799347700613136,
+    "failed5": 37,
+    "thrE": 1559.7767682820559,
+    "energyCost": 22043330.945307225,
+    "genHrs": 50
+   },
+   "econ": {
+    "certified": false,
+    "F": 38,
+    "capex": 0,
+    "reduction": 0.08004947857787803,
+    "Ctotal": 75542546.12162553
+   },
+   "inv": {
+    "npv": 0,
+    "npvFail": 0,
+    "payback": null,
+    "irr": null,
+    "bridgeMonthly": 3134982.095647632,
+    "arbMonthly": 0,
+    "disposition": "none",
+    "failDisposition": "none",
+    "postPV": 0,
+    "costPerMWMonth": null,
+    "breakEvenMargin": null,
+    "breakEvenDeferCost": null,
+    "breakEvenSlaPenalty": null,
+    "swPV": 0,
+    "swShare": null,
+    "swPaybackDays": 2.75880363463872,
+    "capexPV": 0,
+    "pvFactor": 0,
+    "bridgeMonths": 0,
+    "mwMonths": 0
+   },
+   "compliant": false,
+   "guard": [
+    "v:CERT",
+    "w:HOLD",
+    "w:DEFER",
+    "w:PERMIT",
+    "i:KPI",
+    "i:MARGIN"
+   ],
+   "verdictNoMc": "NOT INVESTABLE"
+  },
+  "harsh__robust": {
+   "world": "harsh",
+   "design": "robust",
+   "params": {
+    "queue_months": 38,
+    "interim_month": 4,
+    "interim_mw": 22,
+    "ceiling_mw": 22,
+    "bess_lead": 6,
+    "horizon": 60,
+    "target_mw": 45,
+    "util": 0.78,
+    "defer_share": 0.35,
+    "fast_cap": 0.1,
+    "ramp_min": 4,
+    "sla_window": 4,
+    "max_throttle_h": 12,
+    "stress_hours": 360,
+    "avg_event_h": 5,
+    "base_price": 68,
+    "stress_price": 600,
+    "penalty": 900,
+    "bess_mw": 18.5,
+    "bess_h": 2,
+    "bess_cost": 285,
+    "bess_power_cost": 250,
+    "rte": 0.88,
+    "gen_mw": 0,
+    "gen_cap_h": 50,
+    "gen_cost": 290,
+    "gen_rental": 65,
+    "carry": 145000,
+    "wacc": 0.09,
+    "life": 10,
+    "sla_target": 0.015,
+    "safety_margin": 0.5,
+    "bess_derate": 0.95,
+    "soc_window": 0.9,
+    "defer_cost": 25,
+    "sla_penalty": 0,
+    "salvage": 0,
+    "margin_pre_energy": 320,
+    "sw_setup": 250000,
+    "sw_price_mw_month": 1500,
+    "mc_seeds": 24,
+    "seed": 2026,
+    "strategy": "throttle"
+   },
+   "flex": {
+    "shortE": 0,
+    "breachPct": 0.007259051984689873,
+    "failed5": 0,
+    "thrE": 4548.134711876512,
+    "energyCost": 25033982.47634914,
+    "genHrs": 0
+   },
+   "econ": {
+    "certified": true,
+    "F": 10,
+    "capex": 12857500,
+    "reduction": 0.0929809019709108,
+    "Ctotal": 123655058.53991169
+   },
+   "inv": {
+    "npv": 68987876.64146836,
+    "npvFail": -7579824.974657457,
+    "payback": 9,
+    "irr": 3.400563172951723,
+    "bridgeMonthly": 3231845.9067946444,
+    "arbMonthly": 95536.03219696849,
+    "disposition": "retain for post-firm arbitrage",
+    "failDisposition": "retain for post-firm arbitrage",
+    "postPV": 4913586.207599528,
+    "costPerMWMonth": 12118.493525153477,
+    "breakEvenMargin": 97.65236513831888,
+    "breakEvenDeferCost": 7707.909886628711,
+    "breakEvenSlaPenalty": 15655.535591530373,
+    "swPV": 1060281.9714297357,
+    "swShare": 0.015136471713540576,
+    "swPaybackDays": 2.6761176892180196,
+    "capexPV": 12493411.18225699,
+    "pvFactor": 23.69163129193434,
+    "bridgeMonths": 28,
+    "mwMonths": 644
+   },
+   "compliant": true,
+   "guard": [
+    "w:HOLD",
+    "w:DEFER",
+    "i:KPI",
+    "i:MARGIN"
+   ],
+   "verdictNoMc": "PENDING"
+  },
+  "fasttrack__robust": {
+   "world": "fasttrack",
+   "design": "robust",
+   "params": {
+    "queue_months": 18,
+    "interim_month": 4,
+    "interim_mw": 22,
+    "ceiling_mw": 22,
+    "bess_lead": 6,
+    "horizon": 60,
+    "target_mw": 45,
+    "util": 0.78,
+    "defer_share": 0.35,
+    "fast_cap": 0.1,
+    "ramp_min": 4,
+    "sla_window": 4,
+    "max_throttle_h": 12,
+    "stress_hours": 180,
+    "avg_event_h": 3.5,
+    "base_price": 68,
+    "stress_price": 310,
+    "penalty": 450,
+    "bess_mw": 18.5,
+    "bess_h": 2,
+    "bess_cost": 285,
+    "bess_power_cost": 250,
+    "rte": 0.88,
+    "gen_mw": 0,
+    "gen_cap_h": 50,
+    "gen_cost": 290,
+    "gen_rental": 65,
+    "carry": 145000,
+    "wacc": 0.09,
+    "life": 10,
+    "sla_target": 0.015,
+    "safety_margin": 0.5,
+    "bess_derate": 0.95,
+    "soc_window": 0.9,
+    "defer_cost": 25,
+    "sla_penalty": 0,
+    "salvage": 0,
+    "margin_pre_energy": 320,
+    "sw_setup": 250000,
+    "sw_price_mw_month": 1500,
+    "mc_seeds": 24,
+    "seed": 2026,
+    "strategy": "throttle"
+   },
+   "flex": {
+    "shortE": 0,
+    "breachPct": 0.0030510420703473394,
+    "failed5": 0,
+    "thrE": 2279.1276111602783,
+    "energyCost": 21849186.210006095,
+    "genHrs": 0
+   },
+   "econ": {
+    "certified": true,
+    "F": 10,
+    "capex": 12857500,
+    "reduction": -0.044031347518995956,
+    "Ctotal": 107091726.35178927
+   },
+   "inv": {
+    "npv": 13162965.048237225,
+    "npvFail": -10672186.915714443,
+    "payback": 9,
+    "irr": 1.544341344227841,
+    "bridgeMonthly": 3282267.367078833,
+    "arbMonthly": 26837.333333333645,
+    "disposition": "retain for post-firm arbitrage",
+    "failDisposition": "retain for post-firm arbitrage",
+    "postPV": 1821224.2665425432,
+    "costPerMWMonth": 58188.40892759048,
+    "breakEvenMargin": 181.59095913966624,
+    "breakEvenDeferCost": 9568.822672175653,
+    "breakEvenSlaPenalty": 23186.307179925196,
+    "swPV": 493452.6110441513,
+    "swShare": 0.0361333860281275,
+    "swPaybackDays": 2.6350077652867436,
+    "capexPV": 12493411.18225699,
+    "pvFactor": 7.261794759018849,
+    "bridgeMonths": 8,
+    "mwMonths": 184
+   },
+   "compliant": true,
+   "guard": [
+    "w:HOLD",
+    "w:DEFER",
+    "i:KPI",
+    "i:MARGIN"
+   ],
+   "verdictNoMc": "PENDING"
+  },
+  "crunch__robust": {
+   "world": "crunch",
+   "design": "robust",
+   "params": {
+    "queue_months": 38,
+    "interim_month": 4,
+    "interim_mw": 22,
+    "ceiling_mw": 22,
+    "bess_lead": 9,
+    "horizon": 60,
+    "target_mw": 45,
+    "util": 0.78,
+    "defer_share": 0.35,
+    "fast_cap": 0.1,
+    "ramp_min": 4,
+    "sla_window": 4,
+    "max_throttle_h": 12,
+    "stress_hours": 180,
+    "avg_event_h": 3.5,
+    "base_price": 68,
+    "stress_price": 310,
+    "penalty": 450,
+    "bess_mw": 18.5,
+    "bess_h": 2,
+    "bess_cost": 400,
+    "bess_power_cost": 250,
+    "rte": 0.88,
+    "gen_mw": 0,
+    "gen_cap_h": 50,
+    "gen_cost": 290,
+    "gen_rental": 65,
+    "carry": 145000,
+    "wacc": 0.14,
+    "life": 10,
+    "sla_target": 0.015,
+    "safety_margin": 0.5,
+    "bess_derate": 0.95,
+    "soc_window": 0.9,
+    "defer_cost": 25,
+    "sla_penalty": 0,
+    "salvage": 0,
+    "margin_pre_energy": 240,
+    "sw_setup": 250000,
+    "sw_price_mw_month": 1500,
+    "mc_seeds": 24,
+    "seed": 2026,
+    "strategy": "throttle"
+   },
+   "flex": {
+    "shortE": 0,
+    "breachPct": 0.0030510420703473394,
+    "failed5": 0,
+    "thrE": 2279.1276111602783,
+    "energyCost": 21849186.210006095,
+    "genHrs": 0
+   },
+   "econ": {
+    "certified": true,
+    "F": 13,
+    "capex": 17112500,
+    "reduction": 0.0067727046348864395,
+    "Ctotal": 108542958.63036503
+   },
+   "inv": {
+    "npv": 27323308.63505175,
+    "npvFail": -15327559.60924633,
+    "payback": 16,
+    "irr": 1.0797540351675319,
+    "bridgeMonthly": 2234571.3672140953,
+    "arbMonthly": 26837.333333333645,
+    "disposition": "retain for post-firm arbitrage",
+    "failDisposition": "retain for post-firm arbitrage",
+    "postPV": 1053620.198168222,
+    "costPerMWMonth": 26814.238832702285,
+    "breakEvenMargin": 130.6913974546885,
+    "breakEvenDeferCost": 7562.238266743563,
+    "breakEvenSlaPenalty": 18311.396569689616,
+    "swPV": 897811.3889598593,
+    "swShare": 0.031813457020698224,
+    "swPaybackDays": 3.8704514552080336,
+    "capexPV": 16381179.807414547,
+    "pvFactor": 19.08682303464407,
+    "bridgeMonths": 25,
+    "mwMonths": 575
+   },
+   "compliant": true,
+   "guard": [
+    "w:HOLD",
+    "w:DEFER",
+    "i:KPI",
+    "i:MARGIN"
+   ],
+   "verdictNoMc": "PENDING"
+  },
+  "tariff__robust": {
+   "world": "tariff",
+   "design": "robust",
+   "params": {
+    "queue_months": 38,
+    "interim_month": 4,
+    "interim_mw": 22,
+    "ceiling_mw": 18,
+    "bess_lead": 6,
+    "horizon": 60,
+    "target_mw": 45,
+    "util": 0.78,
+    "defer_share": 0.35,
+    "fast_cap": 0.1,
+    "ramp_min": 4,
+    "sla_window": 4,
+    "max_throttle_h": 12,
+    "stress_hours": 180,
+    "avg_event_h": 3.5,
+    "base_price": 68,
+    "stress_price": 310,
+    "penalty": 450,
+    "bess_mw": 18.5,
+    "bess_h": 2,
+    "bess_cost": 285,
+    "bess_power_cost": 250,
+    "rte": 0.88,
+    "gen_mw": 0,
+    "gen_cap_h": 50,
+    "gen_cost": 290,
+    "gen_rental": 65,
+    "carry": 145000,
+    "wacc": 0.09,
+    "life": 10,
+    "sla_target": 0.015,
+    "safety_margin": 1,
+    "bess_derate": 0.95,
+    "soc_window": 0.9,
+    "defer_cost": 25,
+    "sla_penalty": 0,
+    "salvage": 0,
+    "margin_pre_energy": 320,
+    "sw_setup": 250000,
+    "sw_price_mw_month": 1500,
+    "mc_seeds": 24,
+    "seed": 2026,
+    "strategy": "throttle"
+   },
+   "flex": {
+    "shortE": 309.0970895320176,
+    "breachPct": 0.0030521019776394483,
+    "failed5": 0,
+    "thrE": 2281.9398070424795,
+    "energyCost": 21732586.365026288,
+    "genHrs": 0
+   },
+   "econ": {
+    "certified": true,
+    "F": 10,
+    "capex": 12857500,
+    "reduction": 0.053154536485503834,
+    "Ctotal": 106560987.45893826
+   },
+   "inv": {
+    "npv": 66518657.921446115,
+    "npvFail": -11113119.915360477,
+    "payback": 9,
+    "irr": 3.4554635321900014,
+    "bridgeMonthly": 3276759.4970649327,
+    "arbMonthly": 26837.333333333645,
+    "disposition": "retain for post-firm arbitrage",
+    "failDisposition": "retain for post-firm arbitrage",
+    "postPV": 1380291.2668965082,
+    "costPerMWMonth": 17857.707986952355,
+    "breakEvenMargin": 105.61064663763841,
+    "breakEvenDeferCost": 14789.73221849225,
+    "breakEvenSlaPenalty": 35902.07057635013,
+    "swPV": 1060281.9714297357,
+    "swShare": 0.015689532465446535,
+    "swPaybackDays": 2.639436921674271,
+    "capexPV": 12493411.18225699,
+    "pvFactor": 23.69163129193434,
+    "bridgeMonths": 28,
+    "mwMonths": 644
+   },
+   "compliant": false,
+   "guard": [
+    "v:SHORT",
+    "w:HOLD",
+    "w:DEFER",
+    "i:KPI",
+    "i:MARGIN"
+   ],
+   "verdictNoMc": "NOT INVESTABLE"
+  },
+  "workload__robust": {
+   "world": "workload",
+   "design": "robust",
+   "params": {
+    "queue_months": 38,
+    "interim_month": 4,
+    "interim_mw": 22,
+    "ceiling_mw": 22,
+    "bess_lead": 6,
+    "horizon": 60,
+    "target_mw": 45,
+    "util": 0.78,
+    "defer_share": 0.25,
+    "fast_cap": 0.05,
+    "ramp_min": 4,
+    "sla_window": 4,
+    "max_throttle_h": 4,
+    "stress_hours": 180,
+    "avg_event_h": 3.5,
+    "base_price": 68,
+    "stress_price": 310,
+    "penalty": 450,
+    "bess_mw": 18.5,
+    "bess_h": 2,
+    "bess_cost": 285,
+    "bess_power_cost": 250,
+    "rte": 0.88,
+    "gen_mw": 0,
+    "gen_cap_h": 50,
+    "gen_cost": 290,
+    "gen_rental": 65,
+    "carry": 145000,
+    "wacc": 0.09,
+    "life": 10,
+    "sla_target": 0.015,
+    "safety_margin": 0.5,
+    "bess_derate": 0.95,
+    "soc_window": 0.9,
+    "defer_cost": 100,
+    "sla_penalty": 0,
+    "salvage": 0,
+    "margin_pre_energy": 320,
+    "sw_setup": 250000,
+    "sw_price_mw_month": 1500,
+    "mc_seeds": 24,
+    "seed": 2026,
+    "strategy": "throttle"
+   },
+   "flex": {
+    "shortE": 722.4336778044702,
+    "breachPct": 0.0012427921474644668,
+    "failed5": 0,
+    "thrE": 1111.405998927355,
+    "energyCost": 22028144.193608586,
+    "genHrs": 0
+   },
+   "econ": {
+    "certified": true,
+    "F": 10,
+    "capex": 12857500,
+    "reduction": 0.04297707726739508,
+    "Ctotal": 107706390.95496307
+   },
+   "inv": {
+    "npv": 65547061.93451532,
+    "npvFail": -11113119.915360477,
+    "payback": 9,
+    "irr": 3.4027065595038497,
+    "bridgeMonthly": 3235749.4047264806,
+    "arbMonthly": 26837.333333333645,
+    "disposition": "retain for post-firm arbitrage",
+    "failDisposition": "retain for post-firm arbitrage",
+    "postPV": 1380291.2668965082,
+    "costPerMWMonth": 18593.759788546537,
+    "breakEvenMargin": 108.74209639739672,
+    "breakEvenDeferCost": 29972.170128360736,
+    "breakEvenSlaPenalty": 86881.99556267133,
+    "swPV": 1060281.9714297357,
+    "swShare": 0.015918394417992997,
+    "swPaybackDays": 2.6728893119370243,
+    "capexPV": 12493411.18225699,
+    "pvFactor": 23.69163129193434,
+    "bridgeMonths": 28,
+    "mwMonths": 644
+   },
+   "compliant": false,
+   "guard": [
+    "v:SHORT",
+    "w:HOLD",
+    "i:KPI",
+    "i:MARGIN"
+   ],
+   "verdictNoMc": "NOT INVESTABLE"
+  },
+  "stated__eng": {
+   "world": "stated",
+   "design": "eng",
+   "params": {
+    "queue_months": 38,
+    "interim_month": 4,
+    "interim_mw": 22,
+    "ceiling_mw": 22,
+    "bess_lead": 6,
+    "horizon": 60,
+    "target_mw": 45,
+    "util": 0.78,
+    "defer_share": 0.35,
+    "fast_cap": 0.1,
+    "ramp_min": 4,
+    "sla_window": 4,
+    "max_throttle_h": 4,
+    "stress_hours": 180,
+    "avg_event_h": 3.5,
+    "base_price": 68,
+    "stress_price": 310,
+    "penalty": 450,
+    "bess_mw": 23,
+    "bess_h": 4,
+    "bess_cost": 285,
+    "bess_power_cost": 250,
+    "rte": 0.88,
+    "gen_mw": 0,
+    "gen_cap_h": 50,
+    "gen_cost": 290,
+    "gen_rental": 65,
+    "carry": 145000,
+    "wacc": 0.09,
+    "life": 10,
+    "sla_target": 0.015,
+    "safety_margin": 0,
+    "bess_derate": 1,
+    "soc_window": 1,
+    "defer_cost": 0,
+    "sla_penalty": 0,
+    "salvage": 0,
+    "margin_pre_energy": 320,
+    "sw_setup": 250000,
+    "sw_price_mw_month": 1500,
+    "mc_seeds": 24,
+    "seed": 2026,
+    "strategy": "throttle"
+   },
+   "flex": {
+    "shortE": 91.95314557850361,
+    "breachPct": 0.0020799347700613136,
+    "failed5": 0,
+    "thrE": 1559.7767682820559,
+    "energyCost": 21898202.013520163,
+    "genHrs": 0
+   },
+   "econ": {
+    "certified": true,
+    "F": 10,
+    "capex": 26220000,
+    "reduction": -0.020160366927152618,
+    "Ctotal": 114812078.90327059
+   },
+   "inv": {
+    "npv": 55012775.28307322,
+    "npvFail": -22683518.63946559,
+    "payback": 13,
+    "irr": 1.4022227601864587,
+    "bridgeMonthly": 3279482.6563500506,
+    "arbMonthly": 54324.4789479555,
+    "disposition": "retain for post-firm arbitrage",
+    "failDisposition": "retain for post-firm arbitrage",
+    "postPV": 2794003.522601549,
+    "costPerMWMonth": 35349.709845123965,
+    "breakEvenMargin": 142.69405775541884,
+    "breakEvenDeferCost": 17864.35695985801,
+    "breakEvenSlaPenalty": 43570.13424250748,
+    "swPV": 1060281.9714297357,
+    "swShare": 0.018908938148625553,
+    "swPaybackDays": 2.6372452323397284,
+    "capexPV": 25477522.16206714,
+    "pvFactor": 23.69163129193434,
+    "bridgeMonths": 28,
+    "mwMonths": 644
+   },
+   "compliant": false,
+   "guard": [
+    "v:SHORT",
+    "w:HOLD",
+    "w:DEFER",
+    "w:FREE",
+    "w:DEADBAND",
+    "w:SOC",
+    "w:AVAIL",
+    "i:KPI",
+    "i:MARGIN"
+   ],
+   "verdictNoMc": "NOT INVESTABLE"
+  },
+  "stated__edge": {
+   "world": "stated",
+   "design": "edge",
+   "params": {
+    "queue_months": 38,
+    "interim_month": 4,
+    "interim_mw": 22,
+    "ceiling_mw": 22,
+    "bess_lead": 6,
+    "horizon": 60,
+    "target_mw": 45,
+    "util": 0.78,
+    "defer_share": 0.35,
+    "fast_cap": 0.1,
+    "ramp_min": 4,
+    "sla_window": 4,
+    "max_throttle_h": 12,
+    "stress_hours": 180,
+    "avg_event_h": 3.5,
+    "base_price": 68,
+    "stress_price": 310,
+    "penalty": 450,
+    "bess_mw": 13.5,
+    "bess_h": 2,
+    "bess_cost": 285,
+    "bess_power_cost": 250,
+    "rte": 0.88,
+    "gen_mw": 0,
+    "gen_cap_h": 50,
+    "gen_cost": 290,
+    "gen_rental": 65,
+    "carry": 145000,
+    "wacc": 0.09,
+    "life": 10,
+    "sla_target": 0.015,
+    "safety_margin": 0,
+    "bess_derate": 1,
+    "soc_window": 1,
+    "defer_cost": 0,
+    "sla_penalty": 0,
+    "salvage": 0,
+    "margin_pre_energy": 320,
+    "sw_setup": 250000,
+    "sw_price_mw_month": 1500,
+    "mc_seeds": 24,
+    "seed": 2026,
+    "strategy": "throttle"
+   },
+   "flex": {
+    "shortE": 0.18643172085285187,
+    "breachPct": 0.0030463907063872893,
+    "failed5": 0,
+    "thrE": 2275.6974283754826,
+    "energyCost": 21870206.859446965,
+    "genHrs": 0
+   },
+   "econ": {
+    "certified": true,
+    "F": 10,
+    "capex": 9382500,
+    "reduction": 0.07198749033816132,
+    "Ctotal": 104441467.18172349
+   },
+   "inv": {
+    "npv": 69820473.24584651,
+    "npvFail": -8012620.450490419,
+    "payback": 8,
+    "irr": 5.091642580916755,
+    "bridgeMonthly": 3285256.8376258123,
+    "arbMonthly": 21469.090909091447,
+    "disposition": "retain for post-firm arbitrage",
+    "failDisposition": "retain for post-firm arbitrage",
+    "postPV": 1104193.1149403488,
+    "costPerMWMonth": 12442.214414868204,
+    "breakEvenMargin": 94.96890980109418,
+    "breakEvenDeferCost": 15540.12651947073,
+    "breakEvenSlaPenalty": 37754.806139920445,
+    "swPV": 1060281.9714297357,
+    "swShare": 0.01495867204263797,
+    "swPaybackDays": 2.632609998994876,
+    "capexPV": 9116813.565430777,
+    "pvFactor": 23.69163129193434,
+    "bridgeMonths": 28,
+    "mwMonths": 644
+   },
+   "compliant": true,
+   "guard": [
+    "w:HOLD",
+    "w:DEFER",
+    "w:FREE",
+    "w:DEADBAND",
+    "w:SOC",
+    "w:AVAIL",
+    "i:KPI",
+    "i:MARGIN"
+   ],
+   "verdictNoMc": "PENDING"
+  }
+ },
+ "seeds": [
+  2026,
+  2654437787,
+  1013906252,
+  3668342013,
+  2027810478
+ ],
+ "mc__base__robust": {
+  "n": 24,
+  "pCompliant": 1,
+  "pCertified": 1,
+  "npvP10": 66595505.48160707,
+  "npvP50": 66694853.04467521,
+  "npvP90": 66772119.845648125,
+  "shortP50": 0,
+  "shortP90": 0,
+  "penaltyMean": 0,
+  "guard": [
+   "w:HOLD",
+   "w:DEFER",
+   "i:KPI",
+   "i:MARGIN"
+  ],
+  "verdict": "CONDITIONAL"
+ },
+ "mc__base__eng": {
+  "n": 24,
+  "pCompliant": 0,
+  "pCertified": 1,
+  "npvP10": 54651540.47143313,
+  "npvP50": 54999315.18998807,
+  "npvP90": 55240404.58178729,
+  "shortP50": 84.34919819831849,
+  "shortP90": 145.06971478164198,
+  "penaltyMean": 35178.76625256613,
+  "guard": [
+   "v:SHORT",
+   "v:MC",
+   "w:HOLD",
+   "w:DEFER",
+   "i:KPI",
+   "i:MARGIN"
+  ],
+  "verdict": "NOT INVESTABLE"
+ },
+ "mc__base__edge": {
+  "n": 24,
+  "pCompliant": 0,
+  "pCertified": 0,
+  "npvP10": -8143911.705010783,
+  "npvP50": -8075236.279569351,
+  "npvP90": -8029452.662608372,
+  "shortP50": 5.546553958654403,
+  "shortP90": 13.756643955707544,
+  "penaltyMean": 2848.578975141048,
+  "guard": [
+   "v:CERT",
+   "v:NPV",
+   "v:MC",
+   "v:P10",
+   "w:HOLD",
+   "w:DEFER",
+   "i:KPI",
+   "i:MARGIN"
+  ],
+  "verdict": "NOT INVESTABLE"
+ },
+ "robust": {
+  "verified": {
+   "mw": 18.5,
+   "h": 2,
+   "mt": 12,
+   "npv": 66649148.34701935,
+   "capex": 12857500,
+   "pOk": 1,
+   "n": 16,
+   "bumps": 0
+  },
+  "best": {
+   "mw": 18.5,
+   "h": 2,
+   "mt": 12,
+   "ok": true,
+   "npv": 65268857.08012283,
+   "capex": 12857500
+  },
+  "evals": 351,
+  "holds": [
+   3,
+   4,
+   6,
+   8,
+   12
+  ]
+ },
+ "stress": {
+  "matrix": [
+   {
+    "design": "current",
+    "cells": [
+     {
+      "world": "stated",
+      "npv": 66852694.280095115,
+      "compliant": true,
+      "certified": true,
+      "short": 0,
+      "capex": 12857500
+     },
+     {
+      "world": "base",
+      "npv": 66649148.34701935,
+      "compliant": true,
+      "certified": true,
+      "short": 0,
+      "capex": 12857500
+     },
+     {
+      "world": "harsh",
+      "npv": 68987876.64146836,
+      "compliant": true,
+      "certified": true,
+      "short": 0,
+      "capex": 12857500
+     },
+     {
+      "world": "fasttrack",
+      "npv": 13162965.048237225,
+      "compliant": true,
+      "certified": true,
+      "short": 0,
+      "capex": 12857500
+     },
+     {
+      "world": "crunch",
+      "npv": 27323308.63505175,
+      "compliant": true,
+      "certified": true,
+      "short": 0,
+      "capex": 17112500
+     },
+     {
+      "world": "tariff",
+      "npv": 66518657.921446115,
+      "compliant": false,
+      "certified": true,
+      "short": 309.0970895320176,
+      "capex": 12857500
+     },
+     {
+      "world": "workload",
+      "npv": 65547061.93451532,
+      "compliant": false,
+      "certified": true,
+      "short": 722.4336778044702,
+      "capex": 12857500
+     }
+    ]
+   },
+   {
+    "design": "robust",
+    "cells": [
+     {
+      "world": "stated",
+      "npv": 66852694.280095115,
+      "compliant": true,
+      "certified": true,
+      "short": 0,
+      "capex": 12857500
+     },
+     {
+      "world": "base",
+      "npv": 66649148.34701935,
+      "compliant": true,
+      "certified": true,
+      "short": 0,
+      "capex": 12857500
+     },
+     {
+      "world": "harsh",
+      "npv": 68987876.64146836,
+      "compliant": true,
+      "certified": true,
+      "short": 0,
+      "capex": 12857500
+     },
+     {
+      "world": "fasttrack",
+      "npv": 13162965.048237225,
+      "compliant": true,
+      "certified": true,
+      "short": 0,
+      "capex": 12857500
+     },
+     {
+      "world": "crunch",
+      "npv": 27323308.63505175,
+      "compliant": true,
+      "certified": true,
+      "short": 0,
+      "capex": 17112500
+     },
+     {
+      "world": "tariff",
+      "npv": 66518657.921446115,
+      "compliant": false,
+      "certified": true,
+      "short": 309.0970895320176,
+      "capex": 12857500
+     },
+     {
+      "world": "workload",
+      "npv": 65547061.93451532,
+      "compliant": false,
+      "certified": true,
+      "short": 722.4336778044702,
+      "capex": 12857500
+     }
+    ]
+   },
+   {
+    "design": "edge",
+    "cells": [
+     {
+      "world": "stated",
+      "npv": 69820473.24584651,
+      "compliant": true,
+      "certified": true,
+      "short": 0.18643172085285187,
+      "capex": 9382500
+     },
+     {
+      "world": "base",
+      "npv": -8109573.992290086,
+      "compliant": false,
+      "certified": false,
+      "short": 11.283367622097334,
+      "capex": 9382500
+     },
+     {
+      "world": "harsh",
+      "npv": -5531223.630155316,
+      "compliant": false,
+      "certified": false,
+      "short": 42.3897903861602,
+      "capex": 9382500
+     },
+     {
+      "world": "fasttrack",
+      "npv": -7787812.073629463,
+      "compliant": false,
+      "certified": false,
+      "short": 11.283367622097334,
+      "capex": 9382500
+     },
+     {
+      "world": "crunch",
+      "npv": -11184975.931071643,
+      "compliant": false,
+      "certified": false,
+      "short": 11.283367622097334,
+      "capex": 12487500
+     },
+     {
+      "world": "tariff",
+      "npv": -8109573.992290086,
+      "compliant": false,
+      "certified": false,
+      "short": 465.3433115756512,
+      "capex": 9382500
+     },
+     {
+      "world": "workload",
+      "npv": -8109573.992290086,
+      "compliant": false,
+      "certified": false,
+      "short": 867.1456521469354,
+      "capex": 9382500
+     }
+    ]
+   },
+   {
+    "design": "eng",
+    "cells": [
+     {
+      "world": "stated",
+      "npv": 55012775.28307322,
+      "compliant": false,
+      "certified": true,
+      "short": 91.95314557850361,
+      "capex": 26220000
+     },
+     {
+      "world": "base",
+      "npv": 54671164.53498632,
+      "compliant": false,
+      "certified": true,
+      "short": 154.70910623669624,
+      "capex": 26220000
+     },
+     {
+      "world": "harsh",
+      "npv": 59920780.87590205,
+      "compliant": false,
+      "certified": true,
+      "short": 449.03460409343234,
+      "capex": 26220000
+     },
+     {
+      "world": "fasttrack",
+      "npv": 1694994.3440219949,
+      "compliant": false,
+      "certified": true,
+      "short": 154.70910623669624,
+      "capex": 26220000
+     },
+     {
+      "world": "crunch",
+      "npv": 9237306.043850562,
+      "compliant": false,
+      "certified": true,
+      "short": 154.70910623669624,
+      "capex": 36800000
+     },
+     {
+      "world": "tariff",
+      "npv": 54548850.1443979,
+      "compliant": false,
+      "certified": true,
+      "short": 490.75414007306097,
+      "capex": 26220000
+     },
+     {
+      "world": "workload",
+      "npv": 54382550.508921765,
+      "compliant": false,
+      "certified": true,
+      "short": 257.0655021607876,
+      "capex": 26220000
+     }
+    ]
+   },
+   {
+    "design": "sw",
+    "cells": [
+     {
+      "world": "stated",
+      "npv": 0,
+      "compliant": false,
+      "certified": false,
+      "short": 374.8060627877712,
+      "capex": 0
+     },
+     {
+      "world": "base",
+      "npv": 0,
+      "compliant": false,
+      "certified": false,
+      "short": 461.37588000297546,
+      "capex": 0
+     },
+     {
+      "world": "harsh",
+      "npv": 0,
+      "compliant": false,
+      "certified": false,
+      "short": 855.6791130751371,
+      "capex": 0
+     },
+     {
+      "world": "fasttrack",
+      "npv": 0,
+      "compliant": false,
+      "certified": false,
+      "short": 461.37588000297546,
+      "capex": 0
+     },
+     {
+      "world": "crunch",
+      "npv": 0,
+      "compliant": false,
+      "certified": false,
+      "short": 461.37588000297546,
+      "capex": 0
+     },
+     {
+      "world": "tariff",
+      "npv": 0,
+      "compliant": false,
+      "certified": false,
+      "short": 1268.5636841207743,
+      "capex": 0
+     },
+     {
+      "world": "workload",
+      "npv": 0,
+      "compliant": false,
+      "certified": false,
+      "short": 1629.0974922358985,
+      "capex": 0
+     }
+    ]
+   },
+   {
+    "design": "diesel",
+    "cells": [
+     {
+      "world": "stated",
+      "npv": 0,
+      "compliant": false,
+      "certified": false,
+      "short": 834.0721456855536,
+      "capex": 0
+     },
+     {
+      "world": "base",
+      "npv": 0,
+      "compliant": false,
+      "certified": false,
+      "short": 899.0721456855536,
+      "capex": 0
+     },
+     {
+      "world": "harsh",
+      "npv": 0,
+      "compliant": false,
+      "certified": false,
+      "short": 2485.4211582243443,
+      "capex": 0
+     },
+     {
+      "world": "fasttrack",
+      "npv": 0,
+      "compliant": false,
+      "certified": false,
+      "short": 899.0721456855536,
+      "capex": 0
+     },
+     {
+      "world": "crunch",
+      "npv": 0,
+      "compliant": false,
+      "certified": false,
+      "short": 899.0721456855536,
+      "capex": 0
+     },
+     {
+      "world": "tariff",
+      "npv": 0,
+      "compliant": false,
+      "certified": false,
+      "short": 1494.4642038275797,
+      "capex": 0
+     },
+     {
+      "world": "workload",
+      "npv": 0,
+      "compliant": false,
+      "certified": false,
+      "short": 1230.6126474529503,
+      "capex": 0
+     }
+    ]
+   }
+  ],
+  "tornado": [
+   {
+    "k": "margin_pre_energy",
+    "lo": {
+     "v": 160,
+     "npv": 17005893.677359626,
+     "ok": true
+    },
+    "hi": {
+     "v": 480,
+     "npv": 116292403.016679,
+     "ok": true
+    },
+    "swing": 99286509.33931938
+   },
+   {
+    "k": "queue_months",
+    "lo": {
+     "v": 24,
+     "npv": 30022878.68487737,
+     "ok": true
+    },
+    "hi": {
+     "v": 48,
+     "npv": 90645685.4447102,
+     "ok": true
+    },
+    "swing": 60622806.75983283
+   },
+   {
+    "k": "bess_lead",
+    "lo": {
+     "v": 3,
+     "npv": 75914226.84586431,
+     "ok": true
+    },
+    "hi": {
+     "v": 12,
+     "npv": 48707210.01697548,
+     "ok": true
+    },
+    "swing": 27207016.828888834
+   },
+   {
+    "k": "wacc",
+    "lo": {
+     "v": 0.06,
+     "npv": 71105269.73544265,
+     "ok": true
+    },
+    "hi": {
+     "v": 0.14,
+     "npv": 60107117.625322334,
+     "ok": true
+    },
+    "swing": 10998152.110120319
+   },
+   {
+    "k": "bess_cost",
+    "lo": {
+     "v": 228,
+     "npv": 68698427.30353343,
+     "ok": true
+    },
+    "hi": {
+     "v": 399,
+     "npv": 62550590.43399116,
+     "ok": true
+    },
+    "swing": 6147836.869542278
+   },
+   {
+    "k": "stress_hours",
+    "lo": {
+     "v": 121,
+     "npv": 66377803.169844925,
+     "ok": true
+    },
+    "hi": {
+     "v": 360,
+     "npv": 67487976.31370278,
+     "ok": true
+    },
+    "swing": 1110173.1438578516
+   },
+   {
+    "k": "defer_cost",
+    "lo": {
+     "v": 0,
+     "npv": 66761640.53666698,
+     "ok": true
+    },
+    "hi": {
+     "v": 225,
+     "npv": 65749210.82983806,
+     "ok": true
+    },
+    "swing": 1012429.706828922
+   },
+   {
+    "k": "ceiling_mw",
+    "lo": {
+     "v": 20,
+     "npv": 66710267.458241634,
+     "ok": false
+    },
+    "hi": {
+     "v": 24,
+     "npv": 66485158.60374321,
+     "ok": true
+    },
+    "swing": 225108.85449842364
+   },
+   {
+    "k": "max_throttle_h",
+    "lo": {
+     "v": 8,
+     "npv": 66454838.45667844,
+     "ok": false
+    },
+    "hi": {
+     "v": 16,
+     "npv": 66649148.34701935,
+     "ok": true
+    },
+    "swing": 194309.89034090936
+   },
+   {
+    "k": "soc_window",
+    "lo": {
+     "v": 0.9500000000000001,
+     "npv": 66706352.931609906,
+     "ok": true
+    },
+    "hi": {
+     "v": 0.8,
+     "npv": 66529904.9898148,
+     "ok": false
+    },
+    "swing": 176447.94179510325
+   },
+   {
+    "k": "safety_margin",
+    "lo": {
+     "v": 0,
+     "npv": 66607902.19002388,
+     "ok": true
+    },
+    "hi": {
+     "v": 1.5,
+     "npv": 66705824.5202671,
+     "ok": false
+    },
+    "swing": 97922.33024322242
+   },
+   {
+    "k": "defer_share",
+    "lo": {
+     "v": 0.3,
+     "npv": 66570739.274783224,
+     "ok": false
+    },
+    "hi": {
+     "v": 0.39999999999999997,
+     "npv": 66640064.81623823,
+     "ok": true
+    },
+    "swing": 69325.54145500809
+   }
+  ],
+  "be": [
+   {
+    "id": "margin",
+    "value": 105.19007654748921,
+    "cur": 320
+   },
+   {
+    "id": "defer",
+    "value": 14836.950179779935,
+    "cur": 25
+   },
+   {
+    "id": "sla",
+    "value": 35984.99664116611,
+    "cur": 0
+   },
+   {
+    "id": "bessCost",
+    "value": 2138.8234844524686,
+    "cur": 285
+   },
+   {
+    "id": "wacc",
+    "value": null,
+    "cur": 0.09
+   },
+   {
+    "id": "queue",
+    "value": 14,
+    "cur": 38
+   },
+   {
+    "id": "lead",
+    "value": 30,
+    "cur": 6
+   },
+   {
+    "id": "carry",
+    "value": 504686.36637060286,
+    "cur": 145000
+   },
+   {
+    "id": "ceiling",
+    "value": 22,
+    "cur": 22
+   },
+   {
+    "id": "deferShare",
+    "value": 0.35,
+    "cur": 0.35
+   },
+   {
+    "id": "hold",
+    "value": 12,
+    "cur": 12
+   },
+   {
+    "id": "bessMW",
+    "value": 18.5,
+    "cur": 18.5
+   },
+   {
+    "id": "deadband",
+    "value": 0.5,
+    "cur": 0.5
+   }
+  ],
+  "intensity": [
+   {
+    "sh": 180,
+    "p": 1
+   },
+   {
+    "sh": 240,
+    "p": 1
+   },
+   {
+    "sh": 300,
+    "p": 1
+   },
+   {
+    "sh": 360,
+    "p": 1
+   },
+   {
+    "sh": 450,
+    "p": 1
+   },
+   {
+    "sh": 600,
+    "p": 1
+   }
+  ],
+  "baseNpv": 66649148.34701935,
+  "baseOk": true
+ }
+}

@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: AGPL-3.0-only
+  Copyright (C) 2026 Swanand Tanavade
+  firmgap v0.2: investor-grade queue-bridge & curtailment economics workbench.
+  Single file, zero third-party code, works offline. The block between
+  FIRMGAP-CORE-BEGIN/END is the numerical reference model (golden-tested).
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>firmgap · Investor-grade Queue-Bridge &amp; Curtailment Economics</title>
+<style>
+:root {
+  --bg: var(--color-bg, #0a1020);
+  --panel: var(--color-bg-secondary, #10192d);
+  --panel2: var(--color-bg-tertiary, #152038);
+  --hover: var(--color-bg-hover, #1a2742);
+  --text: var(--color-text, #e6eaf2);
+  --muted: var(--color-text-secondary, #9ba7bf);
+  --faint: var(--color-text-tertiary, #66738c);
+  --border: var(--color-border, #24314c);
+  --border2: var(--color-border-strong, #34446a);
+  --accent: var(--color-primary, #35d39a);
+  --on-accent: var(--color-text-on-primary, #04150e);
+  --good: var(--color-success, #22c55e);
+  --warn: var(--color-warning, #f59e0b);
+  --bad: var(--color-error, #ef4444);
+  --info: var(--color-info, #38bdf8);
+  --radius: var(--radius-md, 10px);
+  --font: var(--font-sans, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif);
+  --mono: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 13px; line-height: 1.45; }
+[hidden] { display: none !important; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--accent); }
+.num, .mono { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); }
+.wrap { max-width: 1680px; margin: 0 auto; padding: 16px 18px 40px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.between { justify-content: space-between; }
+.grow { flex: 1 1 auto; min-width: 0; }
+.muted { color: var(--muted); }
+.faint { color: var(--faint); }
+.small { font-size: 11.5px; }
+.tiny { font-size: 10.5px; }
+.bold { font-weight: 650; }
+h1 { font-size: 17px; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 12px; margin: 0 0 2px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 650; }
+h3 { font-size: 13.5px; margin: 0; font-weight: 650; }
+.sub { color: var(--muted); font-size: 12.5px; margin: 0 0 10px; }
+.logo { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, var(--accent), var(--info)); display: grid; place-items: center; flex: 0 0 auto; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px; min-width: 0; }
+.panel.tight { padding: 10px 12px; }
+.grid { display: grid; gap: 12px; }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.g5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.split { display: grid; gap: 12px; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+@media (max-width: 1200px) { .g4, .g5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .split, .g3 { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 700px) { .g2, .g4, .g5 { grid-template-columns: minmax(0, 1fr); } }
+.btn { border: 1px solid var(--border2); background: var(--panel2); border-radius: 8px; padding: 6px 11px; font-size: 12px; color: var(--text); }
+.btn:hover { background: var(--hover); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 650; }
+.btn.danger { border-color: color-mix(in srgb, var(--bad) 55%, transparent); color: var(--bad); }
+.btn.sm { padding: 3px 8px; font-size: 11px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin: 14px 0 14px; overflow-x: auto; }
+.tab { border: 0; background: transparent; padding: 9px 13px; color: var(--muted); border-bottom: 2px solid transparent; font-weight: 600; white-space: nowrap; }
+.tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+.badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 650; border: 1px solid var(--border2); white-space: nowrap; }
+.b-good { color: var(--good); border-color: color-mix(in srgb, var(--good) 45%, transparent); background: color-mix(in srgb, var(--good) 10%, transparent); }
+.b-warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); background: color-mix(in srgb, var(--warn) 10%, transparent); }
+.b-bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, transparent); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+.b-info { color: var(--info); border-color: color-mix(in srgb, var(--info) 45%, transparent); background: color-mix(in srgb, var(--info) 10%, transparent); }
+.b-mute { color: var(--muted); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; }
+.verdict { border-radius: 12px; padding: 14px 16px; border: 1px solid var(--border2); display: flex; gap: 14px; align-items: flex-start; }
+.verdict .tag { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 6px; white-space: nowrap; }
+.v-good { border-color: color-mix(in srgb, var(--good) 50%, transparent); background: color-mix(in srgb, var(--good) 7%, var(--panel)); }
+.v-good .tag { background: var(--good); color: #04150e; }
+.v-warn { border-color: color-mix(in srgb, var(--warn) 50%, transparent); background: color-mix(in srgb, var(--warn) 7%, var(--panel)); }
+.v-warn .tag { background: var(--warn); color: #1d1200; }
+.v-bad { border-color: color-mix(in srgb, var(--bad) 50%, transparent); background: color-mix(in srgb, var(--bad) 7%, var(--panel)); }
+.v-bad .tag { background: var(--bad); color: #fff; }
+.kpi { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px; min-width: 0; }
+.kpi .lab { font-size: 11.5px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; align-items: center; }
+.kpi .val { font-size: 22px; font-weight: 750; letter-spacing: -0.02em; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.kpi .note { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.meter { height: 4px; background: var(--panel2); border-radius: 4px; margin-top: 8px; overflow: hidden; }
+.meter > i { display: block; height: 100%; border-radius: 4px; }
+.gl { display: grid; gap: 6px; }
+.gitem { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); }
+.gitem .t { font-weight: 650; }
+.gitem .d { color: var(--muted); font-size: 12px; }
+.sev-v { border-color: color-mix(in srgb, var(--bad) 45%, transparent); }
+.sev-v .ic { color: var(--bad); }
+.sev-w { border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
+.sev-w .ic { color: var(--warn); }
+.sev-i .ic { color: var(--info); }
+.ic { font-weight: 800; text-align: center; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+th { color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 650; position: sticky; top: 0; background: var(--panel); z-index: 1; }
+td.l, th.l { text-align: left; }
+tbody tr:hover { background: var(--hover); }
+.scroll { overflow: auto; max-height: 460px; border: 1px solid var(--border); border-radius: 8px; }
+.cell-good { color: var(--good); font-weight: 650; }
+.cell-warn { color: var(--warn); font-weight: 650; }
+.cell-bad { color: var(--bad); font-weight: 650; }
+.inputs { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); }
+.grp { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+.grp h3 { margin-bottom: 8px; }
+.field { padding: 6px 0; border-top: 1px dashed var(--border); }
+.field:first-of-type { border-top: 0; }
+.field .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.field label { font-size: 12px; }
+.field .ctl { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 8px; align-items: center; margin-top: 4px; }
+.field input[type=number], .field select, .txt { width: 100%; background: var(--panel2); border: 1px solid var(--border2); border-radius: 6px; padding: 4px 6px; text-align: right; font-variant-numeric: tabular-nums; }
+.txt { text-align: left; }
+.field .meta { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--faint); margin-top: 2px; gap: 6px; }
+.field.flag-clamp input[type=number] { border-color: var(--warn); }
+.field.flag-repair input[type=number] { border-color: var(--info); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.bars { display: grid; gap: 5px; }
+.barrow { display: grid; grid-template-columns: 170px minmax(0, 1fr) 90px; gap: 8px; align-items: center; font-size: 12px; }
+.bartrack { position: relative; height: 18px; background: var(--panel2); border-radius: 4px; overflow: hidden; }
+.bartrack > i { position: absolute; top: 0; bottom: 0; }
+.bartrack .mid { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border2); }
+.stack { display: flex; height: 22px; border-radius: 6px; overflow: hidden; background: var(--panel2); }
+.stack > i { display: block; height: 100%; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--muted); margin-top: 8px; }
+.legend span { display: inline-flex; gap: 5px; align-items: center; }
+.sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+canvas { display: block; width: 100%; }
+.progress { height: 4px; background: var(--panel2); border-radius: 4px; overflow: hidden; }
+.progress > i { display: block; height: 100%; background: var(--accent); width: 0%; transition: width .15s; }
+.toast { position: fixed; right: 16px; bottom: 16px; z-index: 40; display: grid; gap: 6px; max-width: 420px; }
+.toast > div { background: var(--panel2); border: 1px solid var(--border2); border-radius: 10px; padding: 9px 12px; box-shadow: 0 8px 26px rgba(0,0,0,.35); font-size: 12px; }
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 50; display: grid; place-items: center; padding: 20px; }
+.modal { background: var(--panel); border: 1px solid var(--border2); border-radius: 14px; width: min(920px, 100%); max-height: 90vh; display: flex; flex-direction: column; }
+.modal header { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.modal .body { padding: 12px 14px; overflow: auto; }
+.modal textarea { width: 100%; min-height: 320px; background: var(--panel2); border: 1px solid var(--border2); border-radius: 8px; padding: 8px; font-family: var(--mono); font-size: 11.5px; color: var(--text); }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 12px; font-size: 12px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
+.matrix td { text-align: center; }
+.mcell { border-radius: 6px; padding: 5px 4px; font-weight: 650; font-size: 11.5px; }
+.err { border: 1px solid var(--bad); color: var(--bad); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; background: color-mix(in srgb, var(--bad) 8%, transparent); }
+.tt { position: fixed; pointer-events: none; z-index: 60; background: var(--panel2); border: 1px solid var(--border2); border-radius: 8px; padding: 7px 9px; font-size: 11.5px; box-shadow: 0 8px 24px rgba(0,0,0,.4); min-width: 160px; }
+.chip { display: inline-block; padding: 1px 6px; border-radius: 4px; background: var(--panel2); border: 1px solid var(--border); font-size: 11px; }
+ul.clean { margin: 6px 0 0; padding-left: 18px; color: var(--muted); }
+ul.clean li { margin: 3px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="row between">
+    <div class="row" style="gap:12px">
+      <div class="logo" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#04111d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <div>
+        <div class="row" style="gap:8px"><h1>firmgap · Queue-Bridge Investment Workbench</h1><span class="badge b-mute mono" id="verLabel"></span></div>
+        <div class="muted small">Interim non-firm energization, curtailment compliance &amp; bridge-capital diligence · 8,760-hour dispatch · weather-year Monte Carlo · audit trail</div>
+      </div>
+    </div>
+    <div class="row">
+      <span class="badge" id="storeBadge"></span>
+      <span class="badge b-mute mono" id="fpBadge" title="Fingerprint of the current inputs (non-cryptographic; SHA-256 is added to exports when available)"></span>
+      <button class="btn" id="btnExportTop">Export audit bundle</button>
+      <button class="btn primary" id="btnOptimise">Robust optimise</button>
+    </div>
+  </header>
+
+  <div id="errBox" class="err" hidden></div>
+
+  <div class="panel tight" style="margin-top:12px">
+    <div class="row between">
+      <div class="row"><span class="h2 muted small bold" style="text-transform:uppercase;letter-spacing:.07em">World scenario</span><div class="row" id="worldBar"></div></div>
+    </div>
+    <div class="row" style="margin-top:8px"><span class="muted small bold" style="text-transform:uppercase;letter-spacing:.07em">Bridge design</span><div class="row" id="designBar"></div></div>
+    <div class="small muted" id="presetDesc" style="margin-top:6px"></div>
+    <div id="optBox" style="margin-top:8px" hidden></div>
+  </div>
+
+  <nav class="tabs" role="tablist" id="tabs">
+    <button class="tab" role="tab" data-tab="overview" aria-selected="true">IC Overview</button>
+    <button class="tab" role="tab" data-tab="inputs" aria-selected="false">Inputs &amp; Guardrails</button>
+    <button class="tab" role="tab" data-tab="stress" aria-selected="false">Stress &amp; Break-even</button>
+    <button class="tab" role="tab" data-tab="dispatch" aria-selected="false">Dispatch Replay</button>
+    <button class="tab" role="tab" data-tab="audit" aria-selected="false">Scenarios &amp; Audit</button>
+    <button class="tab" role="tab" data-tab="method" aria-selected="false">Method &amp; Self-test</button>
+  </nav>
+
+  <!-- ================= OVERVIEW ================= -->
+  <section data-panel="overview">
+    <div id="verdict"></div>
+    <div class="grid g5" id="kpis" style="margin-top:12px"></div>
+    <div class="split" style="margin-top:12px">
+      <div class="panel">
+        <h2>Guardrails</h2>
+        <p class="sub">Physical, contractual and financial limits evaluated on every run</p>
+        <div class="gl" id="guardList"></div>
+      </div>
+      <div class="panel">
+        <h2>Where the value goes</h2>
+        <p class="sub">PV over the bridge and the BESS life, versus interim-only (pathway B)</p>
+        <div id="valueBridge"></div>
+      </div>
+    </div>
+    <div class="split" style="margin-top:12px">
+      <div class="panel">
+        <div class="row between"><div><h2>Cumulative incremental cash vs. interim-only</h2><p class="sub">Undiscounted; BESS committed at interim energization; success vs. certification-failure paths</p></div></div>
+        <canvas id="cvCash" height="240"></canvas>
+        <div class="legend"><span><i class="sw" style="background:#34d399"></i>Certified bridge</span><span><i class="sw" style="background:#f43f5e"></i>Witness test fails (capital at risk)</span><span><i class="sw" style="background:var(--faint)"></i>Bridge window</span></div>
+      </div>
+      <div class="panel">
+        <h2>Energization phasing</h2>
+        <p class="sub">Usable campus MW by month for the three pathways</p>
+        <canvas id="cvPhase" height="240"></canvas>
+        <div class="legend"><span><i class="sw" style="background:#94a3b8"></i>A · wait for firm</span><span><i class="sw" style="background:#fbbf24"></i>B · interim only</span><span><i class="sw" style="background:#34d399"></i>C · flex bridge</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= INPUTS ================= -->
+  <section data-panel="inputs" hidden>
+    <div class="panel tight" style="margin-bottom:12px">
+      <div class="row between">
+        <div class="small muted">Every input is bounded. Out-of-range or non-numeric entries are clamped (amber), and cross-field inconsistencies are auto-repaired (blue). Both are logged in the audit trail.</div>
+        <div class="row"><span class="badge b-warn" id="clampCount"></span><span class="badge b-info" id="repairCount"></span><button class="btn sm" id="btnResetInputs">Reset to Base Case</button></div>
+      </div>
+    </div>
+    <div class="inputs" id="inputGroups"></div>
+  </section>
+
+  <!-- ================= STRESS ================= -->
+  <section data-panel="stress" hidden>
+    <div class="panel tight" style="margin-bottom:12px">
+      <div class="row between">
+        <div class="small muted" id="stressStatus">Stress analytics are computed on demand for the current inputs.</div>
+        <div class="row"><button class="btn primary" id="btnStress">Run full stress suite</button></div>
+      </div>
+      <div class="progress" style="margin-top:8px"><i id="stressProg"></i></div>
+    </div>
+    <div class="panel" style="margin-bottom:12px">
+      <h2>Design × world resilience matrix</h2>
+      <p class="sub">NPV vs. interim-only ($M) for each bridge design under each world scenario; colour = compliance (certified, ~zero shortfall, SLA under target)</p>
+      <div style="overflow-x:auto"><table class="matrix" id="matrix"></table></div>
+    </div>
+    <div class="split" style="margin-bottom:12px">
+      <div class="panel">
+        <h2>NPV sensitivity (tornado)</h2>
+        <p class="sub">One-at-a-time swings around the current scenario; ⚠ marks a compliance cliff</p>
+        <div class="bars" id="tornado"></div>
+      </div>
+      <div class="panel">
+        <h2>Break-even &amp; cliff thresholds</h2>
+        <p class="sub">The value at which NPV hits zero or compliance is lost, holding everything else</p>
+        <div id="breakevens"></div>
+      </div>
+    </div>
+    <div class="split">
+      <div class="panel">
+        <h2>Weather-year Monte Carlo</h2>
+        <p class="sub" id="mcSub">Same design, independent synthetic congestion years</p>
+        <div id="mcSummary"></div>
+        <canvas id="cvMC" height="190" style="margin-top:8px"></canvas>
+      </div>
+      <div class="panel">
+        <h2>Compliance vs. curtailment intensity</h2>
+        <p class="sub">Share of weather years compliant as signal hours rise (current design)</p>
+        <div id="intensity"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DISPATCH ================= -->
+  <section data-panel="dispatch" hidden>
+    <div class="panel">
+      <div class="row between">
+        <div><h2>Curtailment event replay</h2><p class="sub">Full 45 MW non-firm operation, base weather year; hover for hourly detail</p></div>
+        <div class="row"><button class="btn sm" id="evPrev">‹ Prev</button><select class="txt" id="evSel" style="width:360px"></select><button class="btn sm" id="evNext">Next ›</button></div>
+      </div>
+      <canvas id="cvReplay" height="300"></canvas>
+      <div class="legend"><span><i class="sw" style="background:#60a5fa"></i>Grid-served</span><span><i class="sw" style="background:#34d399"></i>BESS</span><span><i class="sw" style="background:#fb923c"></i>Genset</span><span><i class="sw" style="background:#fbbf24"></i>Throttled</span><span><i class="sw" style="background:#a78bfa"></i>Catch-up</span><span><i class="sw" style="background:#67e8f9"></i>Recharge</span><span><i class="sw" style="background:#f43f5e"></i>Shortfall</span><span><i class="sw" style="border:2px dashed #fb7185"></i>Effective ceiling</span></div>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <div class="row between"><div><h2>Event ledger</h2><p class="sub">All curtailment signals in the base weather year; click a row to replay</p></div><div class="row" id="ledFilters"></div></div>
+      <div class="scroll"><table id="ledger"></table></div>
+    </div>
+  </section>
+
+  <!-- ================= AUDIT ================= -->
+  <section data-panel="audit" hidden>
+    <div class="panel" style="margin-bottom:12px">
+      <div class="row between">
+        <div><h2>Saved scenarios</h2><p class="sub" id="storeNote"></p></div>
+        <div class="row">
+          <input class="txt" id="saveName" maxlength="80" placeholder="Scenario name (e.g. IC v3 base)" style="width:260px">
+          <button class="btn primary" id="btnSave">Save current run</button>
+          <button class="btn" id="btnCompare" disabled>Compare selected</button>
+          <button class="btn" id="btnExportJSON">Export JSON</button>
+          <button class="btn" id="btnExportCSV">Export CSV</button>
+          <button class="btn" id="btnImport">Import</button>
+          <input type="file" id="fileImport" accept="application/json,.json" hidden>
+          <button class="btn danger" id="btnClear">Clear all data</button>
+        </div>
+      </div>
+      <div class="scroll" style="margin-top:10px"><table id="scenTable"></table></div>
+    </div>
+    <div class="panel" id="comparePanel" style="margin-bottom:12px" hidden>
+      <div class="row between"><div><h2>Comparison</h2><p class="sub">Deltas against the first selected scenario; inputs that differ are listed below</p></div><button class="btn sm" id="btnCloseCompare">Close</button></div>
+      <div style="overflow-x:auto"><table id="compareTable"></table></div>
+      <div id="compareDiff" class="small muted" style="margin-top:8px"></div>
+    </div>
+    <div class="panel">
+      <div class="row between"><div><h2>Audit log</h2><p class="sub">Append-only record of scenario actions with input fingerprints and model version</p></div><span class="badge b-mute" id="auditCount"></span></div>
+      <div class="scroll"><table id="auditTable"></table></div>
+    </div>
+  </section>
+
+  <!-- ================= METHOD ================= -->
+  <section data-panel="method" hidden>
+    <div class="grid g2">
+      <div class="panel">
+        <h2>Engine self-test</h2>
+        <p class="sub">Re-runs the golden parity checks (case study, model v0.1 reference values) and the physical invariants on the current scenario</p>
+        <button class="btn primary" id="btnSelfTest">Run self-test</button>
+        <div id="selfTest" style="margin-top:10px"></div>
+      </div>
+      <div class="panel">
+        <h2>Model notes</h2>
+        <ul class="clean">
+          <li><b>Investor NPV</b> = PV of incremental cash vs. interim-only: gross margin before energy on extra compute − extra energy − penalties − genset − deferral fees − SLA penalties − BESS CapEx (committed at interim energization) + max(post-firm arbitrage over BESS life, resale). Discounted monthly at WACC.</li>
+          <li><b>Queue carry is excluded from NPV.</b> It contains delayed revenue, which the margin term already counts, and tied-up capital is sunk in both pathways. Carry stays in the case's all-in $/MWh KPI only.</li>
+          <li><b>Downside NPV</b> assumes the bridge is built but fails its witness test: no bridge months, and the BESS is resold or kept for post-firm arbitrage.</li>
+          <li><b>Engineering derates</b>: the control deadband lowers the effective ceiling, the usable SoC window scales energy, and availability scales BESS power. CapEx stays on nameplate.</li>
+          <li><b>Compliance</b> = certified (every event covered in its first minutes) ∧ shortfall &lt; 0.5 MWh/yr ∧ SLA-late energy &lt; target.</li>
+          <li><b>Monte Carlo</b> re-draws the congestion year (event count, timing, duration); load and tariff stay fixed.</li>
+          <li><b>Not modelled yet</b>: historical nodal LMP replay, ramp-rate limits on shed and rebound, ride-through requirements, battery degradation, demand charges and capacity value, intra-year seasonality in monthly phasing.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <h2>Current parameter set</h2>
+      <p class="sub">Canonical, validated inputs used by the engine (as exported)</p>
+      <div style="overflow-x:auto"><table id="paramTable"></table></div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast" aria-live="polite"></div>
+<div class="modal-bg" id="modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <header class="row between"><h3 id="modalTitle"></h3><button class="btn sm" id="modalClose">Close</button></header>
+    <div class="body">
+      <p class="small muted" id="modalNote"></p>
+      <textarea id="modalText" spellcheck="false"></textarea>
+      <div class="row" style="margin-top:8px" id="modalActions"></div>
+    </div>
+  </div>
+</div>
+<div class="tt" id="tip" hidden></div>
+
+<script>
+'use strict';
+/*FIRMGAP-CORE-BEGIN*/
+// ===== KilowattBridge simulation core (shared by test harness + index.html) =====
+const HRS = 8760;
+const MONTH_HRS = 730;
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function hourToDate(t) {
+  const cum = [31,28,31,30,31,30,31,31,30,31,30,31];
+  let doy = Math.floor(t / 24), m = 0;
+  while (m < 11 && doy >= cum[m]) { doy -= cum[m]; m++; }
+  return { month: m, day: doy + 1, hour: t % 24 };
+}
+
+// Synthetic weather/load year: diurnal + seasonal utilization, clustered transmission-stress events
+function buildYear(p) {
+  const u = new Float32Array(HRS), ev = new Int16Array(HRS).fill(-1), k = new Uint8Array(HRS);
+  for (let t = 0; t < HRS; t++) {
+    const hod = t % 24, doy = Math.floor(t / 24);
+    const d = 1 + 0.06 * Math.cos(2 * Math.PI * (hod - 15) / 24);
+    const s = 1 + 0.03 * Math.cos(2 * Math.PI * (doy - 200) / 365);
+    u[t] = Math.min(1, p.util * d * s);
+  }
+  const rnd = mulberry32(p.seed);
+  const target = Math.max(0, Math.round(p.stressHours));
+  let n = target === 0 ? 0 : Math.max(1, Math.round(target / p.avgEventH));
+  n = Math.min(n, target);
+  const durs = [];
+  for (let i = 0; i < n; i++) {
+    const x = -Math.log(1 - rnd() * 0.999) * p.avgEventH;
+    durs.push(Math.max(1, Math.min(12, Math.round(x))));
+  }
+  let sum = durs.reduce((a, b) => a + b, 0), guard = 0;
+  while (sum < target && guard++ < 20000) { const i = Math.floor(rnd() * n); if (durs[i] < 12) { durs[i]++; sum++; } }
+  while (sum > target && guard++ < 40000) { const i = Math.floor(rnd() * n); if (durs[i] > 1) { durs[i]--; sum--; } }
+  const occ = new Uint8Array(HRS), placed = [];
+  for (let i = 0; i < n; i++) {
+    const dur = durs[i];
+    for (let tries = 0; tries < 400; tries++) {
+      let day, hr;
+      if (rnd() < 0.75) { day = 152 + Math.floor(rnd() * 122); hr = 12 + Math.floor(rnd() * 5); }
+      else { const w = Math.floor(rnd() * 90); day = w < 31 ? 334 + w : w - 31; hr = 16 + Math.floor(rnd() * 3); }
+      const t0 = day * 24 + hr;
+      if (t0 + dur >= HRS) continue;
+      let ok = true;
+      for (let t = Math.max(0, t0 - 3); t < Math.min(HRS, t0 + dur + 3); t++) if (occ[t]) { ok = false; break; }
+      if (!ok) continue;
+      for (let t = t0; t < t0 + dur; t++) occ[t] = 1;
+      placed.push({ start: t0, dur });
+      break;
+    }
+  }
+  placed.sort((a, b) => a.start - b.start);
+  placed.forEach((e, id) => { e.id = id; for (let j = 0; j < e.dur; j++) { ev[e.start + j] = id; k[e.start + j] = j + 1; } });
+  return { u, ev, k, events: placed };
+}
+
+// Hourly dispatch engine. mode: 'comp' (non-firm curtailment compliance), 'arb' (firm, BESS price arbitrage), 'none'
+function simulate(p, Y, c) {
+  let soc = c.bessMWh, energyCost = 0, demand = 0, thrE = 0, besE = 0, genE = 0, shortE = 0, breach = 0;
+  let genHrs = 0, catchE = 0, gapE = 0, maxGap = 0, worstRampGap = 0, worstRampCover = Infinity;
+  const q = []; let qh = 0;
+  const P = c.bessMW, E = c.bessMWh, rte = p.rte;
+  const evs = Y.events.map(e => ({ id: e.id, start: e.start, dur: e.dur, peakGap: 0, gapE: 0, thr: 0, bes: 0, gen: 0, short: 0, breach: 0, pass5: true, rampShort: 0 }));
+  const tr = c.trace ? { dem: new Float32Array(HRS), grid: new Float32Array(HRS), thr: new Float32Array(HRS), bes: new Float32Array(HRS), gen: new Float32Array(HRS), short: new Float32Array(HRS), cu: new Float32Array(HRS), chg: new Float32Array(HRS), soc: new Float32Array(HRS) } : null;
+  for (let t = 0; t < HRS; t++) {
+    const L = c.cap * Y.u[t]; demand += L;
+    const id = Y.ev[t], stress = id >= 0, price = stress ? p.stressPrice : p.basePrice;
+    while (qh < q.length && q[qh].dl <= t) { const it = q[qh++]; breach += it.e; energyCost += it.e * p.basePrice; if (it.ev >= 0) evs[it.ev].breach += it.e; }
+    let grid = L, th = 0, b = 0, g = 0, sh = 0, cu = 0, ch = 0;
+    if (stress && c.mode === 'comp') {
+      const S = evs[id], kk = Y.k[t];
+      const gap = Math.max(0, L - c.ceiling);
+      S.peakGap = Math.max(S.peakGap, gap); S.gapE += gap; gapE += gap; maxGap = Math.max(maxGap, gap);
+      if (gap > 1e-9) {
+        const genP = (c.genMW > 0 && genHrs < p.genCapH) ? c.genMW : 0;
+        const canThr = kk <= p.maxThrottleH;
+        const thrP = canThr ? p.deferShare * L : 0;
+        const fastP = canThr ? Math.min(p.fastCap, p.deferShare) * L : 0;
+        const segs = [];
+        if (kk === 1) { const f = Math.min(1, p.rampMin / 60); segs.push([f, fastP, true]); if (f < 1) segs.push([1 - f, thrP, false]); }
+        else segs.push([1, thrP, false]);
+        for (const [d, tp, isRamp] of segs) {
+          let rem = gap, x = 0, y = 0, z = 0;
+          const bAvail = Math.min(P, soc / d);
+          if (p.strategy === 'bess') { y = Math.min(rem, bAvail); rem -= y; x = Math.min(rem, tp); rem -= x; }
+          else { x = Math.min(rem, tp); rem -= x; y = Math.min(rem, bAvail); rem -= y; }
+          z = Math.min(rem, genP); rem -= z;
+          soc -= y * d; th += x * d; b += y * d; g += z * d; sh += rem * d;
+          if (isRamp) {
+            const cover = Math.min(1, (gap - rem) / gap);
+            if (gap > worstRampGap) worstRampGap = gap;
+            worstRampCover = Math.min(worstRampCover, cover);
+            if (rem > 1e-6) { S.pass5 = false; S.rampShort += rem * d; }
+          }
+        }
+        if (g > 0) genHrs++;
+        grid = L - th - b - g;
+        if (th > 0) q.push({ e: th, dl: t + p.slaWindow + 1, ev: id });
+        S.thr += th; S.bes += b; S.gen += g; S.short += sh;
+      } else {
+        let head = Math.max(0, Math.min(c.cap, c.ceiling) - L);
+        while (head > 1e-9 && qh < q.length) { const it = q[qh]; const take = Math.min(head, it.e); it.e -= take; head -= take; cu += take; if (it.e <= 1e-9) qh++; }
+        grid = L + cu;
+      }
+    } else if (stress && c.mode === 'arb' && P > 0) {
+      b = Math.min(P, soc, L); soc -= b; grid = L - b;
+    } else {
+      let head = Math.max(0, c.cap - L);
+      while (head > 1e-9 && qh < q.length) { const it = q[qh]; const take = Math.min(head, it.e); it.e -= take; head -= take; cu += take; if (it.e <= 1e-9) qh++; }
+      grid = L + cu;
+      if (E > 0 && soc < E && !stress) {
+        const room = c.gridCap - grid;
+        ch = Math.max(0, Math.min(P, room, (E - soc) / rte));
+        soc += ch * rte; grid += ch;
+      }
+    }
+    energyCost += grid * price;
+    thrE += th; besE += b; genE += g; shortE += sh; catchE += cu;
+    if (tr) { tr.dem[t] = L; tr.grid[t] = grid; tr.thr[t] = th; tr.bes[t] = b; tr.gen[t] = g; tr.short[t] = sh; tr.cu[t] = cu; tr.chg[t] = ch; tr.soc[t] = soc; }
+  }
+  const failed5 = evs.filter(e => e.peakGap > 1e-9 && !e.pass5).length;
+  return {
+    demand, energyCost, thrE, besE, genE, genFuel: genE * p.genCost, genHrs, shortE, penaltyCost: shortE * p.penalty,
+    breach, breachPct: demand ? breach / demand : 0, deferPct: demand ? thrE / demand : 0, catchE, gapE, maxGap,
+    worstRampGap, worstRampCover: worstRampCover === Infinity ? 1 : worstRampCover,
+    failed5, pass5All: failed5 === 0, evs, tr
+  };
+}
+
+// Two-part BESS cost: power block ($/kW) + energy block, calibrated so a 4-h system prices at p.bessCost $/kWh
+function bessCapex(p) { const eRate = Math.max(0, p.bessCost - p.bessPowerCost / 4); return p.bessMW * 1000 * p.bessPowerCost + p.bessMW * p.bessH * 1000 * eRate; }
+
+function crf(r, n) { return r === 0 ? 1 / n : r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1); }
+
+// Monthly phasing + horizon economics for three pathways
+function economics(p, Y, sims) {
+  const T = p.targetMW, I = p.interimMonth, Q = p.queueMonths, H = p.horizon;
+  const bessMWh = p.bessMW * p.bessH;
+  const certified = sims.flex.pass5All;
+  const F = certified ? Math.min(Q, I + p.bessLead) : Q;
+  const capex = bessCapex(p);
+  const bessAnn = capex * crf(p.wacc, p.life);
+  const genRentAnn = p.genMW * 1000 * p.genRental;
+  const mk = () => ({ mwh: 0, energy: 0, bess: 0, gen: 0, penalty: 0, carry: 0, series: [], carryCum: [], flexMonths: 0 });
+  const S = { A: mk(), B: mk(), C: mk() };
+  const add = (s, sim, mw) => { s.mwh += sim.demand / 12; s.energy += sim.energyCost / 12; s.gen += sim.genFuel / 12; s.penalty += sim.penaltyCost / 12; };
+  for (let m = 0; m < H; m++) {
+    // A: wait for firm
+    let mwA = m < Q ? 0 : T; if (mwA) add(S.A, sims.firm, mwA);
+    // B: interim 22 MW only
+    let mwB = m < I ? 0 : (m < Q ? p.interimMW : T);
+    if (m >= I && m < Q) add(S.B, sims.interim); else if (m >= Q) add(S.B, sims.firm);
+    // C: interim then non-firm flex bridge
+    let mwC;
+    if (m < I) mwC = 0;
+    else if (m < F) { mwC = p.interimMW; add(S.C, sims.interim); }
+    else if (m < Q) { mwC = T; add(S.C, sims.flex); S.C.gen += genRentAnn / 12; S.C.flexMonths++; }
+    else { mwC = T; add(S.C, bessMWh > 0 ? sims.firmB : sims.firm); }
+    if (certified && bessMWh > 0 && m >= F) S.C.bess += bessAnn / 12;
+    [['A', mwA], ['B', mwB], ['C', mwC]].forEach(([key, mw]) => {
+      S[key].carry += p.carry * (1 - mw / T);
+      S[key].series.push(mw);
+      S[key].carryCum.push(S[key].carry);
+    });
+  }
+  for (const key of ['A', 'B', 'C']) {
+    const s = S[key];
+    s.total = s.energy + s.bess + s.gen + s.penalty + s.carry;
+    s.perMWh = s.mwh ? s.total / s.mwh : Infinity;
+    s.carryMonthsEq = s.carry / (p.carry || 1);
+  }
+  // Breakeven carry rate for a 25% all-in $/MWh reduction (C vs A)
+  const fixed = s => (s.total - s.carry) / s.mwh;
+  const kA = S.A.carryMonthsEq / S.A.mwh, kC = S.C.carryMonthsEq / S.C.mwh;
+  const denom = 0.75 * kA - kC;
+  const breakevenCarry = denom > 0 ? (fixed(S.C) - 0.75 * fixed(S.A)) / denom : Infinity;
+  return { S, F, certified, capex, bessAnn, genRentAnn, bessMWh, pullForward: Q - F, breakevenCarry, reduction: 1 - S.C.perMWh / S.A.perMWh };
+}
+
+
+// ======================= firmgap model v0.2 additions =======================
+const MODEL_VERSION = 'firmgap-model 0.2.0';
+
+// New inputs default to values that reproduce model v0.1 exactly (golden parity).
+const V2_DEFAULTS = {
+  safetyMargin: 0,      // MW control deadband below the ceiling (metering error / telemetry lag)
+  bessDerate: 1,        // fraction of nameplate BESS power available during events
+  socWindow: 1,         // usable fraction of nameplate BESS energy (SoC reserve / warranty window)
+  deferCost: 0,         // $/MWh paid to workload owners for each MWh deferred
+  slaPenalty: 0,        // $/MWh paid for deferred work that misses its SLA window
+  salvage: 0,           // BESS resale value at disposition, fraction of CapEx
+  marginPreEnergy: 320, // $/MWh gross margin before energy on incremental compute (assumption)
+  swSetup: 250000,      // software: one-time onboarding ($)
+  swPriceMWMonth: 1500, // software: $ per unlocked MW per bridge month
+  slaTarget: 0.015,
+  optimisePolicy: false
+};
+function withDefaults(p) {
+  const o = Object.assign({}, V2_DEFAULTS);
+  for (const k in p) if (p[k] !== undefined) o[k] = p[k];
+  return o;
+}
+function effective(p) {
+  return {
+    ceiling: Math.max(0, p.ceilingMW - p.safetyMargin),
+    bessMW: p.bessMW * p.bessDerate,
+    bessMWh: p.bessMW * p.bessH * p.socWindow
+  };
+}
+function finiteOr(v, d) { return Number.isFinite(v) ? v : d; }
+
+// Investor lens: incremental cash flows of the flex bridge versus interim-only (pathway B).
+// Carry is deliberately excluded: it contains "delayed revenue", which the margin term already
+// counts, and tied-up capital is sunk in both pathways.
+function investor(p, sims, econ) {
+  const rm = Math.pow(1 + p.wacc, 1 / 12) - 1;
+  const df = m => Math.pow(1 + rm, -m);
+  const I = Math.round(p.interimMonth), Q = Math.round(p.queueMonths);
+  const lifeM = Math.max(12, Math.round(p.life * 12));
+  const hasBess = p.bessMW * p.bessH > 0;
+  const capex = hasBess ? econ.capex : 0;
+  const certified = econ.certified;
+  const F = certified ? Math.round(econ.F) : Q;
+  const fl = sims.flex, it = sims.interim;
+  const dMWh = (fl.demand - it.demand) / 12;
+  const parts = {
+    margin: p.marginPreEnergy * dMWh,
+    energy: -(fl.energyCost - it.energyCost) / 12,
+    penalty: -(fl.penaltyCost - it.penaltyCost) / 12,
+    genset: -(fl.genFuel + econ.genRentAnn) / 12,
+    deferral: -(p.deferCost * fl.thrE) / 12,
+    sla: -(p.slaPenalty * fl.breach) / 12
+  };
+  const bridgeMonthly = Object.values(parts).reduce((a, b) => a + b, 0);
+  const arbMonthly = hasBess ? Math.max(0, (sims.firm.energyCost - sims.firmB.energyCost) / 12) : 0;
+  const online = I + Math.round(p.bessLead);
+  const endLife = online + lifeM;
+  function flows(success) {
+    const n = Math.max(Math.ceil(p.horizon), endLife + 1, Q + 1) + 1;
+    const cf = new Array(n).fill(0);
+    if (capex > 0) cf[I] -= capex;
+    if (success) for (let m = F; m < Q; m++) cf[m] += bridgeMonthly;
+    let disposition = 'none', post = 0;
+    if (hasBess) {
+      const sellAt = success ? Q : Math.min(online, Q);
+      let retainPV = 0;
+      for (let m = Math.max(Q, online); m < endLife; m++) retainPV += arbMonthly * df(m);
+      const sellPV = p.salvage * capex * df(sellAt);
+      if (retainPV >= sellPV && retainPV > 0) { disposition = 'retain for post-firm arbitrage'; for (let m = Math.max(Q, online); m < endLife; m++) cf[m] += arbMonthly; post = retainPV; }
+      else if (sellPV > 0) { disposition = 'resell at ' + Math.round(p.salvage * 100) + '% of CapEx'; cf[sellAt] += p.salvage * capex; post = sellPV; }
+      else disposition = 'no residual value';
+    }
+    let npv = 0; for (let m = 0; m < n; m++) npv += cf[m] * df(m);
+    return { cf, npv, disposition, postPV: post };
+  }
+  const ok = flows(certified), fail = flows(false);
+  // payback from commitment (undiscounted, months)
+  let payback = null;
+  if (certified && bridgeMonthly > 0) {
+    if (capex <= 0) payback = 0;
+    else { let cum = 0; for (let m = I; m < ok.cf.length; m++) { cum += ok.cf[m]; if (cum >= 0) { payback = m - I; break; } } }
+  }
+  // IRR (annualised) if the stream changes sign
+  let irr = null;
+  const npvAt = r => ok.cf.reduce((a, c, m) => a + c / Math.pow(1 + r, m), 0);
+  if (capex > 0 && certified && ok.cf.some(c => c > 0)) {
+    let lo = -0.99, hi = 5;
+    if (npvAt(lo) * npvAt(hi) < 0) {
+      for (let i = 0; i < 200; i++) { const mid = (lo + hi) / 2; if (npvAt(lo) * npvAt(mid) <= 0) hi = mid; else lo = mid; }
+      irr = Math.pow(1 + (lo + hi) / 2, 12) - 1;
+    } else if (npvAt(hi) > 0) irr = Infinity;
+  }
+  let bMargin = 0, bDefer = 0, bSla = 0, pvEnergy = 0;
+  if (certified) for (let m = F; m < Q; m++) { bMargin += dMWh * df(m); bDefer += fl.thrE / 12 * df(m); bSla += fl.breach / 12 * df(m); pvEnergy += parts.energy * df(m); }
+  const bridgeMonths = certified ? Math.max(0, Q - F) : 0;
+  const dMW = Math.max(0, p.targetMW - p.interimMW);
+  const mwMonths = dMW * bridgeMonths;
+  const pvMargin = p.marginPreEnergy * bMargin;
+  // software economics (value-based pricing hypothesis)
+  let swPV = 0;
+  if (certified && bridgeMonths > 0) { swPV += p.swSetup * df(I); for (let m = F; m < Q; m++) swPV += p.swPriceMWMonth * dMW * df(m); }
+  return {
+    npv: ok.npv, npvFail: fail.npv, disposition: ok.disposition, postPV: ok.postPV, failDisposition: fail.disposition,
+    cf: ok.cf, cfFail: fail.cf, parts, bridgeMonthly, pvFactor: bMargin > 0 ? bMargin / dMWh : 0, capexPV: capex * df(I), arbMonthly, payback, irr, bridgeMonths, mwMonths,
+    // PV of all non-energy bridge costs (BESS net of post-firm value, penalties, genset, deferral, SLA) per MW-month unlocked
+    costPerMWMonth: mwMonths > 0 ? (pvMargin + pvEnergy - ok.npv) / mwMonths : null,
+    breakEvenMargin: bMargin > 0 ? p.marginPreEnergy - ok.npv / bMargin : null,
+    breakEvenDeferCost: bDefer > 0 ? p.deferCost + ok.npv / bDefer : null,
+    breakEvenSlaPenalty: bSla > 0 ? p.slaPenalty + ok.npv / bSla : null,
+    swPV, swShare: ok.npv + swPV > 0 ? swPV / (ok.npv + swPV) : null,
+    swPaybackDays: bridgeMonthly > 0 ? (p.swSetup + p.swPriceMWMonth * dMW) / (bridgeMonthly / 30.4) : null,
+    capexAtRisk: capex
+  };
+}
+
+function runAll(p0, opts) {
+  const p = withDefaults(p0);
+  const Y = (opts && opts.Y) || buildYear(p);
+  const T = p.targetMW, k = effective(p);
+  const sims = {};
+  sims.interim = (opts && opts.interim) || simulate(p, Y, { cap: p.interimMW, gridCap: p.interimMW, ceiling: k.ceiling, bessMW: 0, bessMWh: 0, genMW: 0, mode: 'comp' });
+  sims.flex = simulate(p, Y, { cap: T, gridCap: T, ceiling: k.ceiling, bessMW: k.bessMW, bessMWh: k.bessMWh, genMW: p.genMW, mode: 'comp', trace: !!(opts && opts.trace) });
+  sims.firm = (opts && opts.firm) || simulate(p, Y, { cap: T, gridCap: T, ceiling: T, bessMW: 0, bessMWh: 0, genMW: 0, mode: 'none' });
+  sims.firmB = (opts && opts.skipFirmB) ? sims.firm : (k.bessMWh > 0 ? simulate(p, Y, { cap: T, gridCap: T, ceiling: T, bessMW: k.bessMW, bessMWh: k.bessMWh, genMW: 0, mode: 'arb' }) : sims.firm);
+  const econ = economics(p, Y, sims);
+  const inv = investor(p, sims, econ);
+  return { p, Y, sims, econ, inv };
+}
+
+// Constrained optimiser (unchanged rules from v0.1; feasibility = certified, ~zero shortfall, SLA under target)
+function evalCombo(p, Y, firm, interim, mw, h, mt) {
+  const q = Object.assign({}, p, { bessMW: mw, bessH: h, maxThrottleH: mt });
+  const r = runAll(q, { Y, firm, interim });
+  const fl = r.sims.flex;
+  const feasible = r.econ.certified && fl.shortE < 0.5 && fl.breachPct < r.p.slaTarget;
+  return { mw, h, mt, feasible, total: r.econ.S.C.total, perMWh: r.econ.S.C.perMWh, shortE: fl.shortE, breachPct: fl.breachPct, capex: r.econ.capex, reduction: r.econ.reduction, npv: r.inv.npv };
+}
+function optimisePlan(p) {
+  const pp = withDefaults(p);
+  const policies = pp.optimisePolicy ? [3, 4, 6, 12] : [pp.maxThrottleH];
+  const plan = [];
+  for (const mt of policies) for (const h of [1, 2, 4]) plan.push([h, mt]);
+  return plan;
+}
+function optimisePair(p, Y, firm, interim, h, mt) {
+  let best = null; const rows = [];
+  const consider = r => { rows.push(r); if (r.feasible && (!best || r.total < best.total - 1)) best = r; };
+  for (let mw = 0; mw <= 32; mw += 2) consider(evalCombo(p, Y, firm, interim, mw, h, mt));
+  if (best) { const c = best.mw; for (let mw = Math.max(0, c - 1.5); mw <= c + 1.5; mw += 0.5) if (mw !== c) consider(evalCombo(p, Y, firm, interim, mw, h, mt)); }
+  return { best, rows };
+}
+function optimise(p, Y, firm, interim) {
+  let best = null; const results = [];
+  for (const [h, mt] of optimisePlan(p)) { const r = optimisePair(p, Y, firm, interim, h, mt); results.push(...r.rows); if (r.best && (!best || r.best.total < best.total - 1)) best = r.best; }
+  return { best, results };
+}
+
+// Weather-year robustness: same design, N independent synthetic years.
+function seedList(base, n) { const out = []; for (let i = 0; i < n; i++) out.push(((base >>> 0) + Math.imul(i, 2654435761)) >>> 0); return out; }
+function monteCarlo(p0, n) {
+  const p = withDefaults(p0);
+  const rows = seedList(p.seed, n).map(seed => {
+    const r = runAll(Object.assign({}, p, { seed }));
+    const f = r.sims.flex;
+    return { seed, certified: r.econ.certified, compliant: r.econ.certified && f.shortE < 0.5 && f.breachPct < p.slaTarget, shortE: f.shortE, breachPct: f.breachPct, penalty: f.penaltyCost, npv: r.inv.npv, events: r.Y.events.length, maxEvent: r.Y.events.reduce((a, e) => Math.max(a, e.dur), 0) };
+  });
+  const q = (arr, x) => { const s = arr.slice().sort((a, b) => a - b); if (!s.length) return NaN; const i = Math.min(s.length - 1, Math.max(0, Math.round(x * (s.length - 1)))); return s[i]; };
+  const npvs = rows.map(r => r.npv), sh = rows.map(r => r.shortE);
+  return {
+    n, rows,
+    pCertified: rows.filter(r => r.certified).length / n,
+    pCompliant: rows.filter(r => r.compliant).length / n,
+    npvP10: q(npvs, 0.1), npvP50: q(npvs, 0.5), npvP90: q(npvs, 0.9),
+    shortP50: q(sh, 0.5), shortP90: q(sh, 0.9),
+    penaltyMean: rows.reduce((a, r) => a + r.penalty, 0) / n
+  };
+}
+
+// ===================== firmgap app logic (pure, no DOM) =====================
+const APP_VERSION = 'firmgap-app 0.2.0';
+
+const CASE_STATED = {
+  queueMonths: 38, interimMW: 22, interimMonth: 4, bessLead: 6, horizon: 60, ceilingMW: 22,
+  targetMW: 45, util: 0.78, deferShare: 0.35, fastCap: 0.10, rampMin: 4, slaWindow: 4, maxThrottleH: 4,
+  stressHours: 180, avgEventH: 3.5, basePrice: 68, stressPrice: 310, penalty: 450,
+  bessMW: 23, bessH: 4, bessCost: 285, bessPowerCost: 250, rte: 0.88,
+  genMW: 0, genCapH: 50, genCost: 290, genRental: 65,
+  carry: 145000, wacc: 0.09, life: 10, strategy: 'throttle', seed: 2026, slaTarget: 0.015,
+  safetyMargin: 0, bessDerate: 1, socWindow: 1, deferCost: 0, slaPenalty: 0, salvage: 0,
+  marginPreEnergy: 320, swSetup: 250000, swPriceMWMonth: 1500, mcSeeds: 24
+};
+
+const DERATES = { safetyMargin: 0.5, socWindow: 0.9, bessDerate: 0.95, deferCost: 25 };
+const WORLDS = [
+  { id: 'stated', label: 'Case as stated', desc: 'Exact case-study inputs with no engineering derates. Reproduces model v0.1, so it is an optimistic engineering view.', patch: {} },
+  { id: 'base', label: 'Base Case', desc: 'Case inputs plus realistic derates: 0.5 MW metering/control deadband, 90% usable SoC, 95% BESS power availability, $25/MWh deferral compensation to workload owners.', patch: Object.assign({}, DERATES) },
+  { id: 'harsh', label: 'Harsh Grid Stress', desc: 'Base + 360 curtailment-signal hours/yr, 5-hour mean events, $600/MWh stress LMP, $900/MWh non-compliance penalty.', patch: Object.assign({}, DERATES, { stressHours: 360, avgEventH: 5, stressPrice: 600, penalty: 900 }) },
+  { id: 'fasttrack', label: 'Queue Compression / Fast-Track', desc: 'Base + firm service arrives at month 18 instead of 38, so the bridge asset strands early.', patch: Object.assign({}, DERATES, { queueMonths: 18 }) },
+  { id: 'crunch', label: 'Capital Crunch', desc: 'Base + BESS $400/kWh (+40%), WACC 14%, 9-month delivery & witness test, gross margin $240/MWh, no resale value.', patch: Object.assign({}, DERATES, { bessCost: 400, wacc: 0.14, bessLead: 9, marginPreEnergy: 240, salvage: 0 }) },
+  { id: 'tariff', label: 'Tariff Tightening', desc: 'Base + the utility cuts the signal ceiling to 18 MW and requires a 1 MW control deadband.', patch: Object.assign({}, DERATES, { ceilingMW: 18, safetyMargin: 1 }) },
+  { id: 'workload', label: 'Workload Reality Check', desc: 'Base + workload owners allow 4-hour holds on only 25% of load, 5% instant power-capping, and charge a $100/MWh deferral fee.', patch: Object.assign({}, DERATES, { deferShare: 0.25, fastCap: 0.05, deferCost: 100 }), holdCap: 4 }
+];
+const WORLD_KEYS = Array.from(new Set(WORLDS.flatMap(w => Object.keys(w.patch)).concat(['maxThrottleH'])));
+
+const DESIGN_KEYS = ['bessMW', 'bessH', 'maxThrottleH', 'genMW', 'strategy'];
+const DESIGNS = [
+  { id: 'robust', label: 'Robust hybrid 18.5 MW / 2 h', desc: '18.5 MW / 37 MWh BESS + throttle-through (12 h hold). Least-cost design that stays compliant under Base Case derates in 30 of 30 weather years.', patch: { bessMW: 18.5, bessH: 2, maxThrottleH: 12, genMW: 0, strategy: 'throttle' } },
+  { id: 'edge', label: 'v0.1 optimum 13.5 MW / 2 h', desc: 'The prior model\'s optimum. Optimal only with zero derates; it fails the first-minutes test once realistic derates apply.', patch: { bessMW: 13.5, bessH: 2, maxThrottleH: 12, genMW: 0, strategy: 'throttle' } },
+  { id: 'eng', label: 'Engineering proposal 23 MW / 4 h', desc: 'Battery sized to the full 23 MW increment, 4 h hold. Certifiable, but long events breach the ceiling in most weather years.', patch: { bessMW: 23, bessH: 4, maxThrottleH: 4, genMW: 0, strategy: 'throttle' } },
+  { id: 'sw', label: 'Software-only (no BESS)', desc: 'Batch deferral and GPU power-capping only. Cannot cover the first minutes of an event.', patch: { bessMW: 0, bessH: 2, maxThrottleH: 12, genMW: 0, strategy: 'throttle' } },
+  { id: 'diesel', label: 'Diesel band-aid 17 MW', desc: '17 MW rental gensets, 50 h/yr non-emergency permit, no BESS.', patch: { bessMW: 0, bessH: 2, maxThrottleH: 4, genMW: 17, strategy: 'throttle' } }
+];
+
+const GROUPS = [
+  ['design', 'Bridge design'], ['grid', 'Interconnection & phasing'], ['load', 'Campus load & workload flexibility'],
+  ['stress', 'Grid stress & tariff'], ['eng', 'Engineering derates'], ['cost', 'Asset costs & residual value'],
+  ['fin', 'Finance & commercial'], ['sim', 'Simulation']
+];
+// k, group, label, min, max, step, kind (num|pct|usd|int), unit, help
+const SPEC = [
+  ['bessMW', 'design', 'BESS power (nameplate)', 0, 60, 0.5, 'num', 'MW', 'Inverter rating. Covers the first minutes of each event before scheduler preemption lands.'],
+  ['bessH', 'design', 'BESS duration', 0.5, 8, 0.5, 'num', 'h', 'Energy = power x duration. Durations under 1 h imply > 1C cycling.'],
+  ['maxThrottleH', 'design', 'Throttle hold limit per event', 1, 24, 1, 'int', 'h', 'No new deferrals after this many hours into an event. A contractual limit agreed with workload owners.'],
+  ['genMW', 'design', 'Genset capacity', 0, 40, 0.5, 'num', 'MW', 'On-site generation, limited by the air-permit run hours.'],
+  ['queueMonths', 'grid', 'Firm interconnection month', 6, 120, 1, 'int', 'month', 'Month the full firm service arrives (cluster study + network upgrades).'],
+  ['interimMonth', 'grid', 'Interim energization month', 0, 24, 1, 'int', 'month', 'Interim non-firm service energized. BESS CapEx is committed here.'],
+  ['interimMW', 'grid', 'Interim non-firm capacity', 1, 500, 0.5, 'num', 'MW', 'Capacity under the interim agreement.'],
+  ['ceilingMW', 'grid', 'Grid ceiling during a signal', 0, 500, 0.5, 'num', 'MW', 'Maximum draw during a utility curtailment signal.'],
+  ['bessLead', 'grid', 'Bridge build + witness test', 1, 36, 1, 'int', 'months', 'From interim energization to a commissioned, utility-certified bridge.'],
+  ['horizon', 'grid', 'Reporting horizon (pathway KPIs)', 24, 180, 6, 'int', 'months', 'For the case all-in $/MWh KPI. Investor NPV covers the full BESS life regardless.'],
+  ['targetMW', 'load', 'Target campus load', 5, 1000, 1, 'num', 'MW', 'Full build-out IT load.'],
+  ['util', 'load', 'Blended utilization', 0.3, 0.98, 0.01, 'pct', '', 'Mean of the hourly utilization profile.'],
+  ['deferShare', 'load', 'Deferrable batch / training share', 0, 0.6, 0.01, 'pct', '', 'Share of load with contractual deferral rights.'],
+  ['fastCap', 'load', 'Instant GPU power-cap depth', 0, 0.3, 0.01, 'pct', '', 'Load shed within seconds, before scheduler preemption.'],
+  ['rampMin', 'load', 'Scheduler preemption latency', 0.5, 15, 0.5, 'num', 'min', 'Only fast resources count before this elapses (witness test window).'],
+  ['slaWindow', 'load', 'Batch SLA window', 1, 12, 1, 'int', 'h', 'Deferred work must be replayed within this window.'],
+  ['slaTarget', 'load', 'Max SLA-late compute share', 0.001, 0.05, 0.001, 'pct', '', 'Case KPI: < 1.5% of compute.'],
+  ['stressHours', 'stress', 'Curtailment-signal hours / yr', 0, 600, 10, 'int', 'h/yr', 'Coincident with high-LMP hours.'],
+  ['avgEventH', 'stress', 'Mean event duration', 1, 8, 0.5, 'num', 'h', 'Exponential, clipped to 1-12 h.'],
+  ['basePrice', 'stress', 'Standard energy price', 10, 300, 1, 'usd', '/MWh', ''],
+  ['stressPrice', 'stress', 'Stress-hour LMP', 50, 5000, 10, 'usd', '/MWh', ''],
+  ['penalty', 'stress', 'Non-compliance penalty', 0, 10000, 10, 'usd', '/MWh', 'Per MWh drawn above the ceiling during a signal.'],
+  ['safetyMargin', 'eng', 'Metering / control deadband', 0, 5, 0.1, 'num', 'MW', 'Target draw stays this far below the ceiling (meter error, telemetry lag).'],
+  ['bessDerate', 'eng', 'BESS power availability', 0.5, 1, 0.01, 'pct', '', 'Share of nameplate power available in every event (N-1 inverter, thermal derate).'],
+  ['socWindow', 'eng', 'Usable SoC window', 0.5, 1, 0.01, 'pct', '', 'Usable share of nameplate energy (reserve + warranty window).'],
+  ['rte', 'eng', 'Round-trip efficiency', 0.7, 0.95, 0.01, 'pct', '', ''],
+  ['bessCost', 'cost', 'BESS installed cost (4-h ref.)', 100, 1500, 5, 'usd', '/kWh', 'All-in installed cost of a 4-hour reference system.'],
+  ['bessPowerCost', 'cost', 'BESS power-block share', 0, 1000, 10, 'usd', '/kW', 'Power-related cost. The energy block is calibrated so that 4 h = the reference $/kWh.'],
+  ['salvage', 'cost', 'BESS resale value', 0, 0.6, 0.01, 'pct', 'of CapEx', 'Used if reselling beats keeping the BESS for post-firm arbitrage.'],
+  ['genCapH', 'cost', 'Genset permit run-hour cap', 0, 1000, 10, 'int', 'h/yr', 'Federal emergency-engine rules allow 50 non-emergency h/yr.'],
+  ['genCost', 'cost', 'Genset fuel + O&M', 50, 1500, 10, 'usd', '/MWh', ''],
+  ['genRental', 'cost', 'Genset rental', 0, 400, 5, 'usd', '/kW-yr', ''],
+  ['marginPreEnergy', 'fin', 'Gross margin before energy', 0, 3000, 5, 'usd', '/MWh', 'ASSUMPTION: revenue minus non-energy variable cost per MWh of compute. Replace with contracted figures.'],
+  ['deferCost', 'fin', 'Deferral fee to workload owners', 0, 5000, 5, 'usd', '/MWh', 'Paid per MWh deferred (value leak to tenants / workload owners).'],
+  ['slaPenalty', 'fin', 'SLA penalty on late work', 0, 10000, 10, 'usd', '/MWh', 'Paid per MWh replayed after its SLA window.'],
+  ['wacc', 'fin', 'WACC (discount rate)', 0.01, 0.3, 0.005, 'pct', '', ''],
+  ['life', 'fin', 'BESS economic life', 5, 25, 1, 'int', 'yr', ''],
+  ['carry', 'fin', 'Queue-delay carry (full campus)', 0, 5000000, 5000, 'usd', '/mo', 'Case KPI only. Excluded from NPV to avoid double-counting revenue.'],
+  ['swSetup', 'fin', 'Software onboarding fee', 0, 5000000, 10000, 'usd', '', 'Pricing hypothesis for value-capture analysis.'],
+  ['swPriceMWMonth', 'fin', 'Software fee per unlocked MW-month', 0, 50000, 100, 'usd', '/MW-mo', 'Pricing hypothesis for value-capture analysis.'],
+  ['seed', 'sim', 'Weather-year seed', 1, 4294967295, 1, 'int', '', 'Seed of the base synthetic congestion year.'],
+  ['mcSeeds', 'sim', 'Monte Carlo weather years', 6, 60, 2, 'int', 'years', 'Independent congestion years for robustness statistics.']
+].map(a => ({ k: a[0], g: a[1], label: a[2], min: a[3], max: a[4], step: a[5], kind: a[6], unit: a[7], help: a[8] }));
+const SPEC_BY = Object.fromEntries(SPEC.map(s => [s.k, s]));
+const STRATEGIES = ['throttle', 'bess'];
+const YEAR_KEYS = ['util', 'stressHours', 'avgEventH', 'seed'];
+const REPRICE_KEYS = ['bessCost', 'bessPowerCost', 'marginPreEnergy', 'deferCost', 'slaPenalty', 'salvage', 'wacc', 'carry', 'penalty', 'genCost', 'genRental', 'queueMonths', 'interimMonth', 'bessLead', 'horizon', 'life', 'swSetup', 'swPriceMWMonth', 'slaTarget', 'mcSeeds'];
+
+function cleanText(s, max) {
+  return String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max || 80);
+}
+
+// Validate an untrusted parameter object. Never throws; always returns a complete, safe set.
+function sanitizeParams(raw, fallback) {
+  const base = Object.assign({}, CASE_STATED, fallback || {});
+  const src = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
+  const p = {}, clamps = [], repairs = [], dropped = [];
+  for (const s of SPEC) {
+    let v = src[s.k], note = null;
+    if (v === undefined || v === null || v === '') v = base[s.k];
+    if (typeof v === 'string') v = Number(v.trim());
+    if (typeof v !== 'number' || !Number.isFinite(v)) { note = { k: s.k, kind: 'invalid', from: String(src[s.k]).slice(0, 24), to: base[s.k] }; v = base[s.k]; }
+    if (v < s.min) { note = { k: s.k, kind: 'clamped', from: v, to: s.min }; v = s.min; }
+    if (v > s.max) { note = { k: s.k, kind: 'clamped', from: v, to: s.max }; v = s.max; }
+    if (s.kind === 'int') v = Math.round(v);
+    p[s.k] = v;
+    if (note) clamps.push(note);
+  }
+  const st = typeof src.strategy === 'string' ? src.strategy.trim().toLowerCase() : base.strategy;
+  p.strategy = STRATEGIES.includes(st) ? st : 'throttle';
+  if (src.strategy !== undefined && !STRATEGIES.includes(st)) clamps.push({ k: 'strategy', kind: 'invalid', from: String(src.strategy).slice(0, 24), to: p.strategy });
+  for (const k of Object.keys(src)) if (!SPEC_BY[k] && k !== 'strategy' && k !== 'margin' && k !== 'optimisePolicy') dropped.push(cleanText(k, 40));
+  const fix = (k, to, why) => { repairs.push({ k, from: p[k], to, why }); p[k] = to; };
+  if (p.interimMW > p.targetMW) fix('interimMW', p.targetMW, 'interim capacity cannot exceed the campus target');
+  if (p.ceilingMW > p.targetMW) fix('ceilingMW', p.targetMW, 'the signal ceiling cannot exceed the campus target');
+  if (p.interimMonth >= p.queueMonths) fix('interimMonth', p.queueMonths - 1, 'interim energization must precede firm service');
+  if (p.horizon < p.queueMonths + 12) fix('horizon', Math.min(180, p.queueMonths + 12), 'the horizon must cover at least 12 months of firm service');
+  p.margin = 250; // legacy v0.1 field, unused by v0.2 metrics
+  return { p, clamps, repairs, dropped };
+}
+
+function canonical(obj) {
+  if (Array.isArray(obj)) return '[' + obj.map(canonical).join(',') + ']';
+  if (obj && typeof obj === 'object') return '{' + Object.keys(obj).sort().map(k => JSON.stringify(k) + ':' + canonical(obj[k])).join(',') + '}';
+  return JSON.stringify(obj === undefined ? null : obj);
+}
+function cyrb53(str, seed) {
+  let h1 = 0xdeadbeef ^ (seed || 0), h2 = 0x41c6ce57 ^ (seed || 0);
+  for (let i = 0; i < str.length; i++) { const ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16).padStart(14, '0');
+}
+function fingerprint(p) {
+  const o = {}; for (const s of SPEC) o[s.k] = p[s.k]; o.strategy = p.strategy;
+  return 'fp-' + cyrb53(canonical(o));
+}
+
+// Re-run economics only (valid when just cost/timing inputs changed)
+function reprice(p0, base) {
+  const p = withDefaults(p0);
+  const fix = sim => Object.assign({}, sim, { penaltyCost: sim.shortE * p.penalty, genFuel: sim.genE * p.genCost });
+  const sims = { interim: fix(base.sims.interim), flex: fix(base.sims.flex), firm: base.sims.firm, firmB: base.sims.firmB };
+  const econ = economics(p, base.Y, sims);
+  return { p, Y: base.Y, sims, econ, inv: investor(p, sims, econ) };
+}
+function evaluate(p, base, changedKey) {
+  if (base && REPRICE_KEYS.includes(changedKey)) return reprice(p, base);
+  if (base && !YEAR_KEYS.includes(changedKey)) return runAll(p, { Y: base.Y });
+  return runAll(p);
+}
+function isCompliant(r) { const f = r.sims.flex; return r.econ.certified && f.shortE < 0.5 && f.breachPct < r.p.slaTarget; }
+
+function worldParams(current, world) {
+  const p = Object.assign({}, current);
+  for (const k of WORLD_KEYS) if (k !== 'maxThrottleH') p[k] = CASE_STATED[k];
+  Object.assign(p, world.patch);
+  if (world.holdCap) p.maxThrottleH = Math.min(p.maxThrottleH, world.holdCap);
+  return sanitizeParams(p).p;
+}
+function designParams(current, design) { return sanitizeParams(Object.assign({}, current, design.patch)).p; }
+function matchWorld(p) {
+  for (const w of WORLDS) { const q = worldParams(p, w); if (WORLD_KEYS.every(k => q[k] === p[k])) return w.id; }
+  return null;
+}
+function matchDesign(p) {
+  for (const d of DESIGNS) if (DESIGN_KEYS.every(k => d.patch[k] === p[k])) return d.id;
+  return null;
+}
+
+// Guardrails: violations (block investment), warnings (diligence items), info.
+function guardrails(p, r, mc, fixes) {
+  const out = [], f = r.sims.flex, e = r.econ, i = r.inv;
+  const add = (sev, code, title, detail) => out.push({ sev, code, title, detail });
+  const gapped = f.evs.filter(x => x.peakGap > 1e-9).length;
+  const usd = v => (v < 0 ? '-' : '') + '$' + (Math.abs(v) >= 1e6 ? (Math.abs(v) / 1e6).toFixed(2) + 'M' : Math.round(Math.abs(v)).toLocaleString('en-US'));
+  if (!e.certified) add('v', 'CERT', 'Fails the first-minutes response test',
+    `${f.failed5} of ${gapped} events leave load above the effective ${(Math.max(0, p.ceilingMW - p.safetyMargin)).toFixed(1)} MW ceiling before preemption lands (worst coverage ${(f.worstRampCover * 100).toFixed(0)}%). The utility will not certify the expansion, and BESS capital is at risk (downside NPV ${usd(i.npvFail)}).`);
+  if (e.certified && f.shortE >= 0.5) add('v', 'SHORT', 'Ceiling breached during long events',
+    `${f.shortE.toFixed(1)} MWh/yr above the ceiling: ${usd(f.penaltyCost)}/yr penalties, plus termination risk on the interim agreement. Extend the hold limit or add BESS energy.`);
+  if (f.breachPct >= p.slaTarget) add('v', 'SLA', 'SLA-late compute above target', `${(f.breachPct * 100).toFixed(2)}% of compute misses its ${p.slaWindow}-h window (target < ${(p.slaTarget * 100).toFixed(1)}%).`);
+  if (e.certified && i.bridgeMonths <= 0) add('v', 'WINDOW', 'No bridge window', 'Firm service arrives before the bridge is commissioned, so the BESS earns only post-firm value.');
+  if (i.npv < 0) add('v', 'NPV', 'Negative net value vs. interim-only', `NPV ${usd(i.npv)}. Break-even gross margin ${i.breakEvenMargin != null ? '$' + i.breakEvenMargin.toFixed(0) + '/MWh' : 'n/a'}.`);
+  if (mc) {
+    if (mc.pCompliant < 0.9) add('v', 'MC', 'Not robust across weather years', `Compliant in ${(mc.pCompliant * 100).toFixed(0)}% of ${mc.n} synthetic congestion years (investment threshold ≥ 90%).`);
+    if (mc.npvP10 < 0) add('v', 'P10', 'P10 NPV is negative', `P10 NPV ${usd(mc.npvP10)} across ${mc.n} weather years.`);
+  }
+  if (p.bessPowerCost / 4 > p.bessCost) add('v', 'COST', 'Inconsistent BESS cost inputs', 'The power block exceeds the 4-h reference cost, so the energy block is priced at $0/kWh.');
+  if (p.bessMW > 0 && p.bessH < 1) add('w', 'CRATE', `C-rate ${(1 / p.bessH).toFixed(1)}C exceeds 1C`, 'Verify the cell chemistry, the warranty cycling limits and thermal design for high-rate discharge.');
+  if (p.maxThrottleH > 3 && f.thrE > 0) add('w', 'HOLD', `Throttle hold of ${p.maxThrottleH} h exceeds field evidence`, 'Public field data show a 25% cut sustained for 3 h on a 256-GPU cluster. Longer holds need workload-owner contracts and a pilot.');
+  if (p.deferShare > 0.30) add('w', 'DEFER', `${(p.deferShare * 100).toFixed(0)}% of load assumed deferrable`, 'Needs contractual deferral rights by workload class. Inference SLAs must stay untouched.');
+  if (p.deferCost === 0 && f.thrE > 0) add('w', 'FREE', 'Deferral is free in this run', `Workload owners usually require compensation. NPV stays positive up to ${i.breakEvenDeferCost != null ? '$' + Math.round(i.breakEvenDeferCost).toLocaleString('en-US') + '/MWh deferred' : 'n/a'}.`);
+  if (p.safetyMargin < 0.25) add('w', 'DEADBAND', 'No metering / control deadband', 'Real controllers need margin below the ceiling for meter error and telemetry latency.');
+  if (p.bessMW > 0 && p.socWindow > 0.95) add('w', 'SOC', 'SoC window above 95%', 'Likely outside the warranty operating window.');
+  if (p.bessMW > 0 && p.bessDerate >= 1) add('w', 'AVAIL', '100% BESS availability assumed', 'No allowance for an inverter outage (N-1) during an event.');
+  if (p.genMW > 0 && f.genHrs >= p.genCapH) add('w', 'PERMIT', 'Genset permit hours exhausted', `Genset ran ${f.genHrs} h, the permit cap. Later events are uncovered.`);
+  if (r.Y.events.reduce((a, x) => a + x.dur, 0) < Math.round(p.stressHours)) add('w', 'SAT', 'Signal calendar saturated', 'Not all requested signal hours could be placed in the seasonal windows.');
+  if (p.salvage > 0.4) add('w', 'SALV', 'Optimistic BESS resale value', 'The secondary market for used grid batteries is thin. Treat resale above 40% as speculative.');
+  if (i.payback != null && i.bridgeMonths > 0 && i.payback > (p.bessLead + i.bridgeMonths)) add('w', 'PAYB', 'Payback outlasts the bridge window', 'The capital is recovered only through post-firm value.');
+  for (const fx of (fixes || [])) add('w', 'FIX', `Auto-corrected ${fx.k}`, `${fx.why}: ${fx.from} → ${fx.to}.`);
+  if (e.reduction < 0.25) add('i', 'KPI', 'Case KPI (> 25% lower all-in $/MWh) not met', `All-in ${(e.reduction * 100).toFixed(1)}% vs. waiting. Reaching 25% needs carry ≥ ${Number.isFinite(e.breakevenCarry) && e.breakevenCarry > 0 ? usd(e.breakevenCarry) + '/mo' : 'n/a'}. The KPI is diluted by energy cost, which is equal across pathways.`);
+  add('i', 'MARGIN', 'NPV scales with the assumed gross margin', `Assumed $${p.marginPreEnergy}/MWh before energy; break-even $${i.breakEvenMargin != null ? i.breakEvenMargin.toFixed(0) : 'n/a'}/MWh. Replace with contracted revenue.`);
+  return out;
+}
+function verdictOf(g, mc) {
+  const v = g.filter(x => x.sev === 'v'), w = g.filter(x => x.sev === 'w');
+  if (v.length) return { level: 'bad', tag: 'NOT INVESTABLE', text: v.length + ' blocking violation' + (v.length > 1 ? 's' : '') + ': ' + v.map(x => x.title).join(' · ') };
+  if (!mc) return { level: 'warn', tag: 'PENDING', text: 'Weather-year robustness is still computing.' };
+  if (w.length) return { level: 'warn', tag: 'CONDITIONAL', text: 'Investable subject to ' + w.length + ' diligence item' + (w.length > 1 ? 's' : '') + ': ' + w.map(x => x.title).join(' · ') };
+  return { level: 'good', tag: 'INVESTABLE', text: 'No violations or open diligence items in this scenario.' };
+}
+
+function kpiSummary(r, mc, verdict) {
+  const f = r.sims.flex, e = r.econ, i = r.inv;
+  return {
+    verdict: verdict ? verdict.tag : null, npv: i.npv, npvFail: i.npvFail, paybackMonths: i.payback, irr: Number.isFinite(i.irr) ? i.irr : null,
+    pCompliant: mc ? mc.pCompliant : null, npvP10: mc ? mc.npvP10 : null, mcYears: mc ? mc.n : null,
+    certified: e.certified, pullForwardMonths: e.pullForward, fullCapacityMonth: e.F, slaLatePct: f.breachPct, shortfallMWh: f.shortE,
+    penaltyPerYear: f.penaltyCost, bessCapex: e.capex, costPerMWMonth: i.costPerMWMonth, allInReductionVsWait: e.reduction,
+    breakevenCarry: Number.isFinite(e.breakevenCarry) ? e.breakevenCarry : null, breakEvenMargin: i.breakEvenMargin, softwareShareOfValue: i.swShare
+  };
+}
+
+function csvCell(v) {
+  if (v === null || v === undefined) return '';
+  let s = typeof v === 'number' ? (Number.isFinite(v) ? String(+v.toPrecision(10)) : '') : String(v);
+  if (/^[=+\-@\t\r]/.test(s) && typeof v !== 'number') s = "'" + s; // neutralise spreadsheet formula injection
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+const CSV_COLS = ['name', 'savedAt', 'fingerprint', 'modelVersion', 'verdict', 'npv', 'npvFail', 'paybackMonths', 'pCompliant', 'npvP10', 'pullForwardMonths', 'slaLatePct', 'shortfallMWh', 'penaltyPerYear', 'bessCapex', 'costPerMWMonth', 'allInReductionVsWait', 'breakEvenMargin'];
+function toCSV(rows) {
+  const keys = CSV_COLS.concat(SPEC.map(s => 'in_' + s.k), ['in_strategy']);
+  const lines = [keys.join(',')];
+  for (const r of rows) lines.push(keys.map(k => k.startsWith('in_') ? csvCell(r.params[k.slice(3)]) : csvCell(k in r.kpis ? r.kpis[k] : r[k])).join(','));
+  return lines.join('\r\n');
+}
+
+
+// ===================== v0.2 analytics: pure, deterministic, shared by UI, golden script and Rust port =====================
+const OPT_MAX_BESS_MW = 60;
+const OPT_HOLDS = [3, 4, 6, 8, 12, 16, 24];
+const OPT_DURATIONS = [1, 2, 4];
+const ROBUST_THRESHOLD = 0.9;
+
+// Robust optimiser. Stage 1: on the base weather year, for each (hold <= current hold) x duration, scan BESS power
+// 0..40 MW in 2 MW steps, then refine +/-1.5 MW in 0.5 MW steps around that pair's best; maximise NPV subject to
+// compliance. Ranking NPV excludes post-firm arbitrage (conservative, and 2x faster). Stage 2: add 0.5 MW at a time
+// until the design is compliant in >= 90% of min(16, mcSeeds) weather years.
+function* robustOptimiseGen(p0) {
+  const p = sanitizeParams(p0).p;
+  const holds = Array.from(new Set(OPT_HOLDS.filter(h => h <= p.maxThrottleH).concat([p.maxThrottleH]))).sort((a, b) => a - b);
+  const base = runAll(p);
+  const cache = { Y: base.Y, firm: base.sims.firm, interim: base.sims.interim, skipFirmB: true };
+  const evalD = (mw, h, mt) => {
+    const r = runAll(Object.assign({}, p, { bessMW: mw, bessH: h, maxThrottleH: mt }), cache);
+    return { mw, h, mt, ok: isCompliant(r), npv: r.inv.npv, capex: r.econ.capex };
+  };
+  let best = null, evals = 0, pi = 0;
+  const pairs = holds.length * OPT_DURATIONS.length;
+  for (const mt of holds) for (const h of OPT_DURATIONS) {
+    pi++;
+    yield { frac: 0.7 * pi / pairs, msg: `Searching hold ${mt} h x duration ${h} h (${pi}/${pairs})` };
+    let pb = null;
+    for (let k = 0; k <= 20; k++) { const c = evalD(2 * k, h, mt); evals++; if (c.ok && (!pb || c.npv > pb.npv + 1)) pb = c; }
+    if (pb) {
+      const centre = pb.mw;
+      for (let k = -3; k <= 3; k++) {
+        if (k === 0) continue;
+        const mw = centre + 0.5 * k; if (mw < 0) continue;
+        const c = evalD(mw, h, mt); evals++; if (c.ok && c.npv > pb.npv + 1) pb = c;
+      }
+    }
+    if (pb && (!best || pb.npv > best.npv + 1)) best = pb;
+  }
+  let verified = null;
+  if (best) {
+    const n = Math.min(16, p.mcSeeds), seeds = seedList(p.seed, n);
+    for (let bump = 0; bump <= 20; bump++) {
+      const mw = best.mw + bump * 0.5;
+      if (mw > OPT_MAX_BESS_MW) break;
+      let okN = 0;
+      for (let s = 0; s < seeds.length; s++) {
+        yield { frac: 0.7 + 0.3 * Math.min(1, (bump + (s + 1) / n) / 6), msg: `Verifying ${mw} MW / ${best.h} h across ${n} weather years` };
+        const r = runAll(Object.assign({}, p, { bessMW: mw, bessH: best.h, maxThrottleH: best.mt, seed: seeds[s] }), { skipFirmB: true });
+        if (isCompliant(r)) okN++;
+      }
+      if (okN / n >= ROBUST_THRESHOLD) {
+        const r = runAll(Object.assign({}, p, { bessMW: mw, bessH: best.h, maxThrottleH: best.mt }));
+        verified = { mw, h: best.h, mt: best.mt, npv: r.inv.npv, capex: r.econ.capex, pOk: okN / n, n, bumps: bump };
+        break;
+      }
+    }
+  }
+  return { best, verified, evals, holds };
+}
+function drive(gen) { let s; while (!(s = gen.next()).done) { /* no-op */ } return s.value; }
+function robustOptimise(p) { return drive(robustOptimiseGen(p)); }
+
+const TORNADO_DRIVERS = [
+  ['marginPreEnergy', 'Gross margin $/MWh', (v, p) => v * 0.5, (v, p) => v * 1.5],
+  ['bessCost', 'BESS installed $/kWh', (v, p) => v * 0.8, (v, p) => v * 1.4],
+  ['queueMonths', 'Firm arrival month', (v, p) => Math.max(p.interimMonth + 1, v - 14), (v, p) => v + 10],
+  ['bessLead', 'Bridge build months', (v, p) => Math.max(1, v - 3), (v, p) => v + 6],
+  ['stressHours', 'Signal hours / yr', (v, p) => Math.round(v * 0.67), (v, p) => Math.min(600, v * 2)],
+  ['ceilingMW', 'Signal ceiling MW', (v, p) => Math.max(0, v - 2), (v, p) => Math.min(p.targetMW, v + 2)],
+  ['deferShare', 'Deferrable share', (v, p) => Math.max(0, v - 0.05), (v, p) => Math.min(0.6, v + 0.05)],
+  ['maxThrottleH', 'Throttle hold h', (v, p) => Math.max(1, v - 4), (v, p) => Math.min(24, v + 4)],
+  ['wacc', 'WACC', (v, p) => Math.max(0.01, v - 0.03), (v, p) => v + 0.05],
+  ['deferCost', 'Deferral fee $/MWh', (v, p) => 0, (v, p) => v + 200],
+  ['safetyMargin', 'Control deadband MW', (v, p) => 0, (v, p) => v + 1],
+  ['socWindow', 'Usable SoC window', (v, p) => Math.min(1, v + 0.05), (v, p) => Math.max(0.5, v - 0.1)]
+];
+const INTENSITY_LEVELS = [180, 240, 300, 360, 450, 600];
+const INTENSITY_SEEDS = 6;
+
+// Stress suite: design x world matrix, one-at-a-time tornado, break-even and compliance-cliff thresholds,
+// and compliance vs. curtailment intensity. Every run is a full deterministic simulation (no caching shortcuts
+// that could change numbers), so the Rust port reproduces it exactly.
+function* stressGen(p0) {
+  const p = sanitizeParams(p0).p;
+  const base = runAll(p);
+  const total = (DESIGNS.length + 1) * WORLDS.length + 2 * TORNADO_DRIVERS.length + 1 + INTENSITY_LEVELS.length * INTENSITY_SEEDS + 5;
+  let done = 0;
+  const step = () => ({ frac: Math.min(1, ++done / total) });
+  // Cost/timing-only changes do not alter the hourly simulation, so they are re-priced on the base sims
+  // (bit-identical to a full re-run, and ~20x faster).
+  const fast = (q, keys) => keys.every(k => REPRICE_KEYS.includes(k)) ? reprice(q, base) : runAll(q);
+  // 1. design x world matrix
+  const designs = [{ id: 'current', label: 'Current design', patch: Object.fromEntries(DESIGN_KEYS.map(k => [k, p[k]])) }].concat(DESIGNS);
+  const matrix = [];
+  for (const d of designs) {
+    const row = { design: { id: d.id, label: d.label }, cells: [] };
+    for (const w of WORLDS) {
+      const r = runAll(worldParams(designParams(p, d), w));
+      row.cells.push({ world: w.id, npv: r.inv.npv, compliant: isCompliant(r), certified: r.econ.certified, short: r.sims.flex.shortE, capex: r.econ.capex });
+      yield step();
+    }
+    matrix.push(row);
+  }
+  // 2. tornado
+  const baseNpv = base.inv.npv, baseOk = isCompliant(base);
+  const tornado = [];
+  for (const [k, label, lo, hi] of TORNADO_DRIVERS) {
+    const out = { k, label };
+    for (const [side, fn] of [['lo', lo], ['hi', hi]]) {
+      const q = sanitizeParams(Object.assign({}, p, { [k]: fn(p[k], p) })).p;
+      const r = fast(q, [k]);
+      out[side] = { v: q[k], npv: r.inv.npv, ok: isCompliant(r) };
+      yield step();
+    }
+    out.swing = Math.abs(out.hi.npv - out.lo.npv);
+    tornado.push(out);
+  }
+  tornado.sort((a, b) => b.swing - a.swing);
+  // 3. break-evens (NPV = 0) and compliance cliffs
+  const i0 = base.inv, be = [];
+  const npvWith = patch => fast(Object.assign({}, p, patch), Object.keys(patch)).inv.npv;
+  be.push({ id: 'margin', label: 'Gross margin before energy', kind: 'NPV = 0', cur: p.marginPreEnergy, value: i0.breakEvenMargin, none: 'n/a' });
+  be.push({ id: 'defer', label: 'Deferral fee to workload owners', kind: 'NPV = 0', cur: p.deferCost, value: i0.breakEvenDeferCost, none: 'n/a' });
+  be.push({ id: 'sla', label: 'SLA penalty on late work', kind: 'NPV = 0', cur: p.slaPenalty, value: i0.breakEvenSlaPenalty, none: 'n/a' });
+  const bisect = (k, lo, hi) => { let a = lo, b = hi; for (let n = 0; n < 50; n++) { const m = (a + b) / 2; if (npvWith({ [k]: m }) > 0) a = m; else b = m; } return a; };
+  if (baseNpv > 0 && p.bessMW > 0) {
+    const hiC = p.bessCost * 40;
+    be.push({ id: 'bessCost', label: 'BESS installed cost', kind: 'NPV = 0', cur: p.bessCost, value: npvWith({ bessCost: hiC }) > 0 ? null : bisect('bessCost', p.bessCost, hiC), none: '> 40x current' });
+  }
+  if (baseNpv > 0) be.push({ id: 'wacc', label: 'Discount rate (WACC)', kind: 'NPV = 0', cur: p.wacc, value: npvWith({ wacc: 3 }) > 0 ? null : bisect('wacc', p.wacc, 3), none: '> 300%' });
+  let qBE = null;
+  if (baseNpv > 0) for (let q = p.queueMonths; q >= p.interimMonth + 1; q--) { if (npvWith({ queueMonths: q }) <= 0) { qBE = q + 1; break; } }
+  be.push({ id: 'queue', label: 'Firm service arrival (queue compression)', kind: 'NPV = 0', cur: p.queueMonths, value: qBE, none: baseNpv > 0 ? 'positive for any firm date' : 'already <= 0' });
+  let leadBE = null;
+  if (baseNpv > 0) for (let L = p.bessLead; L <= 36; L++) { if (npvWith({ bessLead: L }) <= 0) { leadBE = L; break; } }
+  be.push({ id: 'lead', label: 'BESS delivery + witness-test delay', kind: 'NPV = 0', cur: p.bessLead, value: leadBE, none: 'positive up to 36 months' });
+  const bc = base.econ.breakevenCarry;
+  be.push({ id: 'carry', label: 'Carry for the case 25% KPI', kind: 'KPI', cur: p.carry, value: Number.isFinite(bc) && bc > 0 ? bc : null, none: 'unreachable' });
+  yield step();
+  const scan = (k, from, to, stp) => {
+    let last = null;
+    const n = Math.floor(Math.abs(to - from) / Math.abs(stp) + 1e-9);
+    for (let j = 0; j <= n; j++) {
+      const v = Math.round((from + j * stp) * 1e4) / 1e4;
+      const r = runAll(Object.assign({}, p, { [k]: v }));
+      if (!isCompliant(r)) return { fail: v, last };
+      last = v;
+    }
+    return { fail: null, last };
+  };
+  if (baseOk) {
+    const cliffs = [
+      ['ceiling', 'ceilingMW', 'Signal ceiling (tariff tightening)', p.ceilingMW, Math.max(0, p.ceilingMW - 8), -0.5],
+      ['deferShare', 'deferShare', 'Deferrable load share', p.deferShare, Math.max(0, p.deferShare - 0.2), -0.01],
+      ['hold', 'maxThrottleH', 'Throttle hold limit', p.maxThrottleH, 1, -1],
+      ['bessMW', 'bessMW', 'BESS power', p.bessMW, Math.max(0, p.bessMW - 10), -0.5],
+      ['deadband', 'safetyMargin', 'Control deadband', p.safetyMargin, p.safetyMargin + 3, 0.25]
+    ];
+    for (const [id, k, label, from, to, stp] of cliffs) {
+      const c = scan(k, from, to, stp);
+      be.push({ id, label, kind: 'compliance cliff', cur: p[k], value: c.fail == null ? null : c.last, none: 'no cliff within scan range' });
+      yield step();
+    }
+  } else {
+    be.push({ id: 'cliffs', label: 'Physical cliffs', kind: 'compliance cliff', cur: null, value: null, none: 'scenario is not compliant; cliffs not applicable' });
+    for (let j = 0; j < 5; j++) yield step();
+  }
+  // 4. compliance vs curtailment intensity
+  const intensity = [];
+  for (const sh of INTENSITY_LEVELS) {
+    let okN = 0;
+    for (const seed of seedList(p.seed, INTENSITY_SEEDS)) { const r = runAll(Object.assign({}, p, { stressHours: sh, seed }), { skipFirmB: true }); if (isCompliant(r)) okN++; yield step(); }
+    intensity.push({ sh, p: okN / INTENSITY_SEEDS });
+  }
+  return { p, matrix, tornado, be, intensity, baseNpv, baseOk };
+}
+function stressSuite(p) { return drive(stressGen(p)); }
+
+/*FIRMGAP-CORE-END*/
+</script>
+<script>
+// ===================== firmgap UI (DOM layer) =====================
+(function () {
+'use strict';
+
+const COL = { grid: '#60a5fa', bess: '#34d399', gen: '#fb923c', thr: '#fbbf24', cu: '#a78bfa', chg: 'rgba(103,232,249,.6)', short: '#f43f5e', ceil: '#fb7185', soc: '#a7f3d0', A: '#94a3b8', B: '#fbbf24', C: '#34d399', bad: '#f43f5e' };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#888';
+const tick = () => new Promise(res => setTimeout(res, 0));
+
+function usd(v, dp) {
+  if (v == null || !Number.isFinite(v)) return 'n/a';
+  const a = Math.abs(v), sg = v < 0 ? '−' : '';
+  if (a >= 1e9) return sg + '$' + (a / 1e9).toFixed(2) + 'B';
+  if (a >= 1e6) return sg + '$' + (a / 1e6).toFixed(dp == null ? 1 : dp) + 'M';
+  if (a >= 1e3) return sg + '$' + (a / 1e3).toFixed(dp == null ? 0 : dp) + 'k';
+  return sg + '$' + a.toFixed(dp == null ? 0 : dp);
+}
+const pct = (v, d) => (v == null || !Number.isFinite(v)) ? 'n/a' : (v * 100).toFixed(d == null ? 1 : d) + '%';
+const num = (v, d) => (v == null || !Number.isFinite(v)) ? 'n/a' : v.toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 });
+function fmtIn(s, v) {
+  if (s.kind === 'pct') return (v * 100).toFixed(s.step < 0.01 ? 1 : 0) + '%';
+  if (s.kind === 'usd') return usd(v, v >= 1e6 ? 2 : 0) + (s.unit || '');
+  return num(v, s.step < 1 ? 1 : 0) + (s.unit ? ' ' + s.unit : '');
+}
+
+// ---------------- storage (localStorage with in-memory fallback) ----------------
+const Store = (() => {
+  const KEY = 'firmgap.v2.store';
+  let mode = 'memory', mem = null, lastError = null;
+  try { const t = '__firmgap_probe__'; window.localStorage.setItem(t, '1'); window.localStorage.removeItem(t); mode = 'local'; }
+  catch (e) { mode = 'memory'; lastError = e && e.name; }
+  return {
+    get mode() { return mode; }, get lastError() { return lastError; },
+    load() {
+      try { const s = mode === 'local' ? window.localStorage.getItem(KEY) : mem; return s ? JSON.parse(s) : null; }
+      catch (e) { lastError = e && e.name; return null; }
+    },
+    save(obj) {
+      const s = JSON.stringify(obj);
+      if (mode === 'local') { try { window.localStorage.setItem(KEY, s); return true; } catch (e) { lastError = e && e.name; mode = 'memory'; } }
+      mem = s; return true;
+    },
+    clear() { if (mode === 'local') { try { window.localStorage.removeItem(KEY); } catch (e) { /* ignore */ } } mem = null; }
+  };
+})();
+
+// ---------------- state ----------------
+const MAX_SCEN = 200, MAX_AUDIT = 1000;
+const state = {
+  p: null, flags: {}, fixes: [], r: null, guard: [], verdict: null, fp: '',
+  mc: null, mcRunning: false, mcToken: 0,
+  stress: null, stressRunning: false, opt: null, optRunning: false,
+  tab: 'overview', evId: null, ledFilter: 'all',
+  scenarios: [], audit: [], selected: new Set(), clearArmed: false, lastEditLog: 0
+};
+
+function persist() {
+  Store.save({ schema: 'firmgap.store.v2', modelVersion: MODEL_VERSION, current: state.p, scenarios: state.scenarios, audit: state.audit });
+  renderStoreBadge();
+}
+function log(action, detail) {
+  state.audit.push({ ts: new Date().toISOString(), action, detail: cleanText(detail, 300), fp: state.fp, model: MODEL_VERSION });
+  if (state.audit.length > MAX_AUDIT) state.audit.splice(0, state.audit.length - MAX_AUDIT);
+  persist();
+  if (state.tab === 'audit') renderAuditLog();
+}
+function toast(msg, tone) {
+  const d = document.createElement('div');
+  d.textContent = msg;
+  if (tone) d.style.borderColor = tone === 'bad' ? 'var(--bad)' : tone === 'good' ? 'var(--good)' : 'var(--warn)';
+  $('toast').appendChild(d);
+  setTimeout(() => d.remove(), 4200);
+}
+function showError(e) {
+  const box = $('errBox');
+  box.hidden = false;
+  box.textContent = 'Calculation error: ' + (e && e.message ? e.message : String(e)) + '. The last valid results remain on screen; adjust the inputs or reset to the Base Case.';
+}
+
+// ---------------- parameter handling ----------------
+function applyParams(raw, opts) {
+  const s = sanitizeParams(raw, state.p || undefined);
+  state.p = s.p;
+  state.fixes = s.repairs;
+  const flags = {};
+  for (const c of s.clamps) flags[c.k] = 'clamp';
+  for (const r of s.repairs) flags[r.k] = 'repair';
+  state.flags = (opts && opts.keepFlags) ? Object.assign({}, state.flags, flags) : flags;
+  if (s.clamps.length && !(opts && opts.silent)) toast(s.clamps.length + ' value' + (s.clamps.length > 1 ? 's' : '') + ' clamped to safe bounds (' + s.clamps.map(c => c.k).join(', ') + ')', 'warn');
+  if (!(opts && opts.silent)) {
+    if (s.clamps.length) log('input clamped', s.clamps.map(c => `${c.k}: ${c.from} → ${c.to}`).join('; '));
+    if (s.repairs.length) log('input repaired', s.repairs.map(r => `${r.k}: ${r.from} → ${r.to} (${r.why})`).join('; '));
+  }
+  return s;
+}
+
+let recalcTimer = null, mcTimer = null, persistTimer = null;
+function scheduleRecalc() { clearTimeout(recalcTimer); recalcTimer = setTimeout(recalc, 80); }
+function recalc() {
+  try {
+    const r = runAll(state.p, { trace: true });
+    state.r = r;
+    $('errBox').hidden = true;
+  } catch (e) { showError(e); return; }
+  state.fp = fingerprint(state.p);
+  const mcFresh = state.mc && state.mc.fp === state.fp ? state.mc.res : null;
+  state.guard = guardrails(state.p, state.r, mcFresh, state.fixes);
+  state.verdict = verdictOf(state.guard, mcFresh);
+  const evs = state.r.sims.flex.evs;
+  if (state.evId == null || !evs[state.evId]) state.evId = worstEvent();
+  renderAll();
+  clearTimeout(persistTimer); persistTimer = setTimeout(persist, 400);
+  if (!mcFresh) { clearTimeout(mcTimer); mcTimer = setTimeout(runMC, 450); }
+}
+function worstEvent() {
+  const evs = state.r.sims.flex.evs; if (!evs.length) return null;
+  let best = 0, sc = -1;
+  evs.forEach((e, i) => { const s = e.short * 1000 + e.breach * 10 + e.gapE; if (s > sc) { sc = s; best = i; } });
+  return best;
+}
+
+// ---------------- Monte Carlo (async, cancellable) ----------------
+async function runMC() {
+  const token = ++state.mcToken, p = Object.assign({}, state.p), fp = state.fp, n = p.mcSeeds;
+  state.mcRunning = true; renderKPIs();
+  const seeds = seedList(p.seed, n), rows = [];
+  for (let i = 0; i < seeds.length; i++) {
+    if (token !== state.mcToken) return;
+    try {
+      const r = runAll(Object.assign({}, p, { seed: seeds[i] }));
+      const f = r.sims.flex;
+      rows.push({ seed: seeds[i], certified: r.econ.certified, compliant: isCompliant(r), shortE: f.shortE, breachPct: f.breachPct, penalty: f.penaltyCost, npv: r.inv.npv, events: r.Y.events.length, maxEvent: r.Y.events.reduce((a, e) => Math.max(a, e.dur), 0) });
+    } catch (e) { /* a failed seed is recorded as non-compliant */ rows.push({ seed: seeds[i], certified: false, compliant: false, shortE: NaN, breachPct: NaN, penalty: NaN, npv: NaN, events: 0, maxEvent: 0 }); }
+    if (i % 3 === 2) { state.mcProgress = (i + 1) / n; renderKPIs(); await tick(); }
+  }
+  if (token !== state.mcToken) return;
+  const q = (arr, x) => { const s = arr.filter(Number.isFinite).sort((a, b) => a - b); if (!s.length) return NaN; return s[Math.min(s.length - 1, Math.max(0, Math.round(x * (s.length - 1))))]; };
+  const npvs = rows.map(r => r.npv), sh = rows.map(r => r.shortE);
+  const res = { n, rows, pCertified: rows.filter(r => r.certified).length / n, pCompliant: rows.filter(r => r.compliant).length / n, npvP10: q(npvs, 0.1), npvP50: q(npvs, 0.5), npvP90: q(npvs, 0.9), shortP50: q(sh, 0.5), shortP90: q(sh, 0.9), penaltyMean: rows.reduce((a, r) => a + (Number.isFinite(r.penalty) ? r.penalty : 0), 0) / n };
+  state.mc = { fp, res };
+  state.mcRunning = false;
+  if (fp === state.fp) {
+    state.guard = guardrails(state.p, state.r, res, state.fixes);
+    state.verdict = verdictOf(state.guard, res);
+    renderVerdict(); renderKPIs(); renderGuards(); renderInputs(); if (state.tab === 'stress') renderMC();
+  }
+}
+
+// ---------------- render: header & presets ----------------
+function renderStoreBadge() {
+  const b = $('storeBadge');
+  if (Store.mode === 'local') { b.className = 'badge b-good'; b.innerHTML = '<i class="dot"></i>Persistence: browser storage'; b.title = 'Scenarios and the audit log are saved in this browser (localStorage).'; }
+  else { b.className = 'badge b-warn'; b.innerHTML = '<i class="dot"></i>Persistence: session only'; b.title = 'Browser storage is unavailable here (sandboxed preview or private mode). Data lasts for this session only; export a JSON audit bundle to keep it.'; }
+  $('storeNote').textContent = Store.mode === 'local'
+    ? `Stored in this browser (localStorage) · ${state.scenarios.length}/${MAX_SCEN} scenarios · inputs auto-saved.`
+    : `Browser storage is blocked in this context (${Store.lastError || 'sandbox'}). Runs persist for this session only. Use Export JSON to keep a reproducible record, and Import to restore it.`;
+}
+function renderPresets() {
+  const w = matchWorld(state.p), d = matchDesign(state.p);
+  $('worldBar').innerHTML = WORLDS.map(x => `<button class="btn sm${x.id === w ? ' primary' : ''}" data-world="${x.id}" title="${esc(x.desc)}">${esc(x.label)}</button>`).join('');
+  $('designBar').innerHTML = DESIGNS.map(x => `<button class="btn sm${x.id === d ? ' primary' : ''}" data-design="${x.id}" title="${esc(x.desc)}">${esc(x.label)}</button>`).join('') +
+    `<span class="badge b-mute">${d ? 'preset design' : 'custom design'}: ${num(state.p.bessMW, 1)} MW / ${num(state.p.bessH, 1)} h · hold ${state.p.maxThrottleH} h${state.p.genMW > 0 ? ' · genset ' + num(state.p.genMW, 1) + ' MW' : ''} · ${state.p.strategy}-first</span>`;
+  const wd = WORLDS.find(x => x.id === w), dd = DESIGNS.find(x => x.id === d);
+  $('presetDesc').textContent = (wd ? 'World: ' + wd.desc : 'World: custom inputs (no preset matches exactly).') + (dd ? '  ·  Design: ' + dd.desc : '');
+  $('verLabel').textContent = MODEL_VERSION;
+  $('fpBadge').textContent = state.fp;
+}
+
+// ---------------- render: overview ----------------
+function renderVerdict() {
+  const v = state.verdict;
+  $('verdict').innerHTML = `<div class="verdict v-${v.level}"><span class="tag">${esc(v.tag)}</span><div class="grow"><div class="bold">${esc(v.text)}</div>
+    <div class="small muted" style="margin-top:3px">Verdict rule: any violation is NOT INVESTABLE. Otherwise any open diligence warning makes it CONDITIONAL. Weather-year robustness must be ≥ 90% compliant with P10 NPV > 0.</div></div></div>`;
+}
+function tile(t) {
+  const tone = { good: 'b-good', warn: 'b-warn', bad: 'b-bad', info: 'b-info', mute: 'b-mute' }[t.tone || 'mute'];
+  const bar = { good: 'var(--good)', warn: 'var(--warn)', bad: 'var(--bad)', info: 'var(--info)', mute: 'var(--faint)' }[t.tone || 'mute'];
+  return `<div class="kpi"><div class="lab"><span>${esc(t.label)}</span><span class="badge ${tone}">${esc(t.badge)}</span></div><div class="val">${esc(t.value)}</div><div class="note">${t.note}</div>${t.meter != null ? `<div class="meter"><i style="width:${Math.max(2, Math.min(100, t.meter * 100)).toFixed(1)}%;background:${bar}"></i></div>` : ''}</div>`;
+}
+function renderKPIs() {
+  if (!state.r) return;
+  const p = state.p, r = state.r, f = r.sims.flex, e = r.econ, i = r.inv;
+  const mc = state.mc && state.mc.fp === state.fp ? state.mc.res : null;
+  const gapped = f.evs.filter(x => x.peakGap > 1e-9).length;
+  const irr = i.irr == null ? 'n/a' : (i.irr === Infinity || i.irr > 1 ? '>100%' : pct(i.irr, 0));
+  const tiles = [
+    { label: 'Bridge NPV vs. interim-only', value: usd(i.npv), badge: i.npv > 0 ? 'ACCRETIVE' : 'DILUTIVE', tone: i.npv > 0 ? 'good' : 'bad', note: `IRR ${irr} · payback ${i.payback == null ? 'n/a' : i.payback + ' mo from commitment'}` },
+    { label: 'Capital at risk (test fails)', value: usd(i.npvFail), badge: i.capexAtRisk > 0 ? 'DOWNSIDE' : 'NONE', tone: i.capexAtRisk > 0 ? 'warn' : 'mute', note: `BESS CapEx ${usd(i.capexAtRisk)} · ${esc(i.failDisposition)}` },
+    mc ? { label: 'Weather-year compliance', value: pct(mc.pCompliant, 0), badge: mc.pCompliant >= 0.9 ? 'ROBUST' : mc.pCompliant >= 0.7 ? 'FRAGILE' : 'NOT ROBUST', tone: mc.pCompliant >= 0.9 ? 'good' : mc.pCompliant >= 0.7 ? 'warn' : 'bad', note: `${mc.n} years · NPV P10 ${usd(mc.npvP10)} / P50 ${usd(mc.npvP50)}`, meter: mc.pCompliant }
+       : { label: 'Weather-year compliance', value: '…', badge: 'COMPUTING', tone: 'info', note: `Monte Carlo over ${p.mcSeeds} years · ${pct(state.mcProgress || 0, 0)}`, meter: state.mcProgress || 0 },
+    { label: 'Capacity pull-forward', value: e.pullForward + ' mo', badge: !e.certified ? 'BLOCKED' : e.pullForward >= 24 ? 'ON TARGET' : 'BELOW', tone: !e.certified ? 'bad' : e.pullForward >= 24 ? 'good' : 'warn', note: e.certified ? `Full ${num(p.targetMW)} MW at M${e.F} vs. M${p.queueMonths} firm · target 24–34` : `Not certified: increment waits for M${p.queueMonths}`, meter: e.pullForward / 34 },
+    { label: 'SLA-late compute', value: pct(f.breachPct, 2), badge: f.breachPct < p.slaTarget ? 'WITHIN' : 'BREACH', tone: f.breachPct < p.slaTarget ? 'good' : 'bad', note: `target < ${pct(p.slaTarget, 1)} · deferred ${pct(f.deferPct, 2)} of compute`, meter: f.breachPct / p.slaTarget },
+    { label: 'Ceiling shortfall', value: num(f.shortE, 1) + ' MWh', badge: f.shortE < 0.5 ? 'COMPLIANT' : 'BREACH', tone: f.shortE < 0.5 ? 'good' : 'bad', note: `${usd(f.penaltyCost)}/yr at ${usd(p.penalty)}/MWh, plus termination risk` },
+    { label: 'First-minutes response test', value: f.pass5All ? 'PASS' : 'FAIL', badge: f.pass5All ? 'CERTIFIABLE' : 'FAILS', tone: f.pass5All ? 'good' : 'bad', note: `${gapped - f.failed5}/${gapped} events covered in ${num(p.rampMin, 1)} min · worst ${pct(f.worstRampCover, 0)}`, meter: f.worstRampCover },
+    { label: 'Bridge cost per MW-month', value: i.costPerMWMonth == null ? 'n/a' : usd(i.costPerMWMonth, 1), badge: 'FULL-LIFE', tone: 'info', note: `PV of BESS net of post-firm value, penalties, fees · ${num(i.mwMonths)} MW-months unlocked` },
+    { label: 'Case KPI: all-in $/MWh vs. wait', value: (e.reduction >= 0 ? '−' : '+') + pct(Math.abs(e.reduction), 1), badge: e.reduction >= 0.25 ? '> 25%' : 'BELOW 25%', tone: e.reduction >= 0.25 ? 'good' : 'warn', note: `25% needs carry ≥ ${Number.isFinite(e.breakevenCarry) && e.breakevenCarry > 0 ? usd(e.breakevenCarry) + '/mo' : 'n/a'} (case ${usd(p.carry)}/mo)`, meter: Math.max(0, e.reduction) / 0.25 },
+    { label: 'Software value capture', value: i.swShare == null ? 'n/a' : pct(i.swShare, 1), badge: 'PRICING', tone: 'info', note: `PV ${usd(i.swPV)} of fees · customer payback ${i.swPaybackDays == null ? 'n/a' : num(i.swPaybackDays, 1) + ' days'}` }
+  ];
+  $('kpis').innerHTML = tiles.map(tile).join('');
+}
+function renderGuards() {
+  const g = state.guard, order = { v: 0, w: 1, i: 2 }, icon = { v: '✕', w: '!', i: 'i' };
+  const sorted = g.slice().sort((a, b) => order[a.sev] - order[b.sev]);
+  $('guardList').innerHTML = sorted.length ? sorted.map(x => `<div class="gitem sev-${x.sev}"><div class="ic">${icon[x.sev]}</div><div><div class="t">${esc(x.title)}</div><div class="d">${esc(x.detail)}</div></div></div>`).join('') : '<div class="muted">No guardrail findings.</div>';
+}
+function renderValueBridge() {
+  const r = state.r, i = r.inv, pv = i.pvFactor;
+  const items = [
+    ['Gross margin on unlocked compute', 'campus owner revenue', i.parts.margin * pv],
+    ['Incremental grid energy', 'utility / ISO', i.parts.energy * pv],
+    ['BESS CapEx (PV)', 'BESS OEM / EPC', -i.capexPV],
+    ['Post-firm residual value', i.disposition, i.postPV],
+    ['Deferral fees', 'workload owners / tenants', i.parts.deferral * pv],
+    ['SLA penalties', 'compute customers', i.parts.sla * pv],
+    ['Ceiling penalties', 'utility', i.parts.penalty * pv],
+    ['Genset rental + fuel', 'genset vendors', i.parts.genset * pv]
+  ];
+  const net = items.reduce((a, x) => a + x[2], 0);
+  const sw = -i.swPV;
+  const gross = Math.max(1, Math.abs(items[0][2]));
+  const row = (lab, who, v, strong) => `<div class="barrow"><div><div class="${strong ? 'bold' : ''}">${esc(lab)}</div><div class="tiny faint">${esc(who)}</div></div>
+    <div class="bartrack"><i style="left:0;width:${Math.min(100, Math.abs(v) / gross * 100).toFixed(2)}%;background:${v >= 0 ? (strong ? 'var(--accent)' : '#34d399') : '#f43f5e'};opacity:${strong ? 1 : .8}"></i></div>
+    <div class="num" style="text-align:right;${v < 0 ? 'color:var(--bad)' : ''}">${usd(v)}</div></div>`;
+  $('valueBridge').innerHTML = '<div class="bars">' + items.map(x => row(x[0], x[1], x[2])).join('') +
+    row('Net value to campus owner (NPV)', 'before software fees', net, true) +
+    row('Software fees (hypothesis)', 'vendor', sw) +
+    row('Owner NPV after software', 'net of fees', net + sw, true) + '</div>' +
+    `<div class="small muted" style="margin-top:8px">Check: engine NPV ${usd(i.npv)} · bridge ${i.bridgeMonths} months · ${num(i.mwMonths)} MW-months. Carry is excluded (see Method).</div>`;
+}
+
+// ---------------- canvas helpers ----------------
+function setupCanvas(id) {
+  const cv = $(id); if (!cv || !cv.parentElement) return null;
+  if (!cv.dataset.h) cv.dataset.h = cv.getAttribute('height') || '240';
+  const h = parseInt(cv.dataset.h, 10), w = Math.max(280, cv.parentElement.clientWidth - 2 || 600);
+  const dpr = window.devicePixelRatio || 1;
+  cv.style.height = h + 'px'; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  const ctx = cv.getContext && cv.getContext('2d'); if (!ctx) return null;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h); ctx.font = '11px ' + (cssVar('--font') || 'sans-serif');
+  return { cv, ctx, w, h };
+}
+function niceMax(v) { if (!(v > 0)) return 1; const e = Math.pow(10, Math.floor(Math.log10(v))); const f = v / e; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e; }
+function axes(ctx, L, T, W, H, lo, hi, ticks, fmt) {
+  const grid = cssVar('--border'), txt = cssVar('--muted');
+  ctx.strokeStyle = grid; ctx.fillStyle = txt; ctx.lineWidth = 1; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let k = 0; k <= ticks; k++) { const v = lo + (hi - lo) * k / ticks, y = T + H - H * k / ticks; ctx.beginPath(); ctx.moveTo(L, y + .5); ctx.lineTo(L + W, y + .5); ctx.stroke(); ctx.fillText(fmt(v), L - 6, y); }
+}
+function tip(ev, html) { const t = $('tip'); t.innerHTML = html; t.hidden = false; const r = t.getBoundingClientRect(); t.style.left = Math.min(ev.clientX + 14, window.innerWidth - r.width - 8) + 'px'; t.style.top = Math.min(ev.clientY + 14, window.innerHeight - r.height - 8) + 'px'; }
+function untip() { $('tip').hidden = true; }
+
+function drawCash() {
+  const c = setupCanvas('cvCash'); if (!c) return;
+  const { ctx, w, h } = c, i = state.r.inv, p = state.p;
+  const n = Math.min(i.cf.length, Math.max(p.queueMonths + 18, 60));
+  const cum = a => { let s = 0; return a.slice(0, n).map(x => (s += x)); };
+  const A = cum(i.cf), B = cum(i.cfFail);
+  let lo = Math.min(0, ...A, ...B), hi = Math.max(0, ...A, ...B); const pad = (hi - lo) * 0.08 || 1; lo -= pad; hi += pad;
+  const L = 58, R = 10, T = 10, B2 = 24, W = w - L - R, H = h - T - B2;
+  const X = m => L + W * m / (n - 1), Y = v => T + H - H * (v - lo) / (hi - lo);
+  const e = state.r.econ;
+  if (e.certified && e.F < p.queueMonths) { ctx.fillStyle = 'rgba(148,163,184,.10)'; ctx.fillRect(X(e.F), T, X(p.queueMonths) - X(e.F), H); }
+  axes(ctx, L, T, W, H, lo, hi, 5, v => usd(v));
+  ctx.strokeStyle = cssVar('--border2'); ctx.beginPath(); ctx.moveTo(L, Y(0)); ctx.lineTo(L + W, Y(0)); ctx.stroke();
+  ctx.fillStyle = cssVar('--muted'); ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let m = 0; m < n; m += 6) ctx.fillText('M' + m, X(m), T + H + 6);
+  const line = (arr, col, wd) => { ctx.strokeStyle = col; ctx.lineWidth = wd; ctx.beginPath(); arr.forEach((v, m) => m ? ctx.lineTo(X(m), Y(v)) : ctx.moveTo(X(m), Y(v))); ctx.stroke(); };
+  line(B, COL.bad, 2); line(A, COL.C, 2.5);
+  c.cv.onmousemove = ev => { const rc = c.cv.getBoundingClientRect(); const m = Math.round((ev.clientX - rc.left - L) / W * (n - 1)); if (m < 0 || m >= n) return untip(); tip(ev, `<b>Month ${m}</b><br>Certified: ${usd(A[m])}<br>Test fails: ${usd(B[m])}`); };
+  c.cv.onmouseleave = untip;
+}
+function drawPhase() {
+  const c = setupCanvas('cvPhase'); if (!c) return;
+  const { ctx, w, h } = c, S = state.r.econ.S, p = state.p, n = S.A.series.length;
+  const L = 40, R = 10, T = 10, B = 24, W = w - L - R, H = h - T - B, ymax = niceMax(p.targetMW * 1.1);
+  const X = m => L + W * m / n, Y = v => T + H - H * v / ymax;
+  axes(ctx, L, T, W, H, 0, ymax, 5, v => num(v));
+  ctx.fillStyle = cssVar('--muted'); ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let m = 0; m <= n; m += 6) ctx.fillText('M' + m, X(m), T + H + 6);
+  const step = (arr, col, wd, off) => { ctx.strokeStyle = col; ctx.lineWidth = wd; ctx.beginPath(); for (let m = 0; m < n; m++) { const y = Y(arr[m]) + off; if (!m) ctx.moveTo(X(0), y); else { ctx.lineTo(X(m), Y(arr[m - 1]) + off); ctx.lineTo(X(m), y); } } ctx.lineTo(X(n), Y(arr[n - 1]) + off); ctx.stroke(); };
+  step(S.A.series, COL.A, 2, 2); step(S.B.series, COL.B, 2, 0); step(S.C.series, COL.C, 3, -2);
+  c.cv.onmousemove = ev => { const rc = c.cv.getBoundingClientRect(); const m = Math.floor((ev.clientX - rc.left - L) / W * n); if (m < 0 || m >= n) return untip(); tip(ev, `<b>Month ${m}</b><br>A ${num(S.A.series[m])} MW · B ${num(S.B.series[m])} MW · C ${num(S.C.series[m])} MW`); };
+  c.cv.onmouseleave = untip;
+}
+
+// ---------------- render: inputs ----------------
+function renderInputs() {
+  const host = $('inputGroups');
+  if (!host.dataset.built) {
+    host.innerHTML = GROUPS.map(([g, title]) => `<div class="grp"><h3>${esc(title)}</h3>` + SPEC.filter(s => s.g === g).map(s => {
+      const range = s.k === 'seed' ? '' : `<input type="range" id="rg_${s.k}" data-k="${s.k}" min="${s.min}" max="${s.max}" step="${s.step}" aria-label="${esc(s.label)}">`;
+      return `<div class="field" id="fd_${s.k}"><div class="top"><label for="nb_${s.k}" title="${esc(s.help)}">${esc(s.label)}</label><span id="bd_${s.k}"></span></div>
+        <div class="ctl">${range || '<span></span>'}<input type="number" id="nb_${s.k}" data-k="${s.k}" min="${s.min}" max="${s.max}" step="${s.kind === 'pct' ? s.step : s.step}" inputmode="decimal"></div>
+        <div class="meta"><span id="fv_${s.k}"></span><span>${esc(fmtIn(s, s.min))} – ${esc(fmtIn(s, s.max))}</span></div></div>`;
+    }).join('') + (g === 'design' ? `<div class="field"><div class="top"><label for="sel_strategy">Dispatch priority</label></div><div class="ctl"><select id="sel_strategy"><option value="throttle">Throttle first, then BESS</option><option value="bess">BESS first, then throttle</option></select><span></span></div></div>` : '') + '</div>').join('');
+    host.dataset.built = '1';
+    host.addEventListener('input', ev => {
+      const t = ev.target; if (!t.dataset || !t.dataset.k) return;
+      const k = t.dataset.k;
+      if (t.type === 'range') { const nb = $('nb_' + k); if (nb) nb.value = t.value; }
+      commitField(k, t.value, t.type === 'range');
+    });
+    host.addEventListener('change', ev => {
+      const t = ev.target;
+      if (t.id === 'sel_strategy') { const old = state.p.strategy; applyParams(Object.assign({}, state.p, { strategy: t.value })); logEdit('strategy', old, state.p.strategy); scheduleRecalc(); return; }
+      if (t.dataset && t.dataset.k && t.type === 'number') { commitField(t.dataset.k, t.value, false, true); syncInputs(); }
+    });
+  }
+  syncInputs();
+  const nc = Object.values(state.flags).filter(x => x === 'clamp').length, nr = Object.values(state.flags).filter(x => x === 'repair').length;
+  $('clampCount').textContent = nc + ' clamped'; $('repairCount').textContent = nr + ' auto-repaired';
+}
+function commitField(k, raw, fromRange, final) {
+  if (raw === '' && !final) return;
+  const old = state.p[k];
+  const s = applyParams(Object.assign({}, state.p, { [k]: raw === '' ? NaN : Number(raw) }), { silent: !final, keepFlags: true });
+  if (!s.clamps.some(c => c.k === k) && state.flags[k] === 'clamp') delete state.flags[k];
+  if (state.p[k] !== old) logEdit(k, old, state.p[k]);
+  scheduleRecalc();
+}
+const editBuf = new Map(); let editTimer = null;
+function logEdit(k, from, to) {
+  const prev = editBuf.get(k); editBuf.set(k, { from: prev ? prev.from : from, to });
+  clearTimeout(editTimer);
+  editTimer = setTimeout(() => { const d = Array.from(editBuf.entries()).map(([kk, v]) => `${kk}: ${v.from} → ${v.to}`).join('; '); editBuf.clear(); if (d) log('inputs edited', d); }, 1200);
+}
+function syncInputs() {
+  if (!state.p) return;
+  const relevant = guardCodesByKey();
+  for (const s of SPEC) {
+    const v = state.p[s.k], rg = $('rg_' + s.k), nb = $('nb_' + s.k), fd = $('fd_' + s.k), bd = $('bd_' + s.k), fv = $('fv_' + s.k);
+    if (!nb) continue;
+    if (rg && document.activeElement !== rg) rg.value = v;
+    if (document.activeElement !== nb) nb.value = v;
+    fv.textContent = fmtIn(s, v) + (Math.abs(v - CASE_STATED[s.k]) > 1e-12 ? '  · case ' + fmtIn(s, CASE_STATED[s.k]) : '');
+    fd.classList.toggle('flag-clamp', state.flags[s.k] === 'clamp');
+    fd.classList.toggle('flag-repair', state.flags[s.k] === 'repair');
+    const badges = [];
+    if (state.flags[s.k] === 'clamp') badges.push('<span class="badge b-warn">clamped</span>');
+    if (state.flags[s.k] === 'repair') badges.push('<span class="badge b-info">auto-repaired</span>');
+    for (const g of (relevant[s.k] || [])) badges.push(`<span class="badge ${g.sev === 'v' ? 'b-bad' : 'b-warn'}" title="${esc(g.detail)}">${esc(g.code)}</span>`);
+    bd.innerHTML = badges.join(' ');
+  }
+  const sel = $('sel_strategy'); if (sel) sel.value = state.p.strategy;
+}
+function guardCodesByKey() {
+  const map = { CERT: ['bessMW', 'fastCap', 'rampMin', 'ceilingMW', 'safetyMargin', 'bessDerate'], SHORT: ['maxThrottleH', 'bessH', 'deferShare', 'socWindow'], SLA: ['slaWindow', 'maxThrottleH', 'slaTarget'], WINDOW: ['queueMonths', 'bessLead'], NPV: ['marginPreEnergy', 'bessCost'], MC: ['stressHours', 'avgEventH'], COST: ['bessPowerCost', 'bessCost'], CRATE: ['bessH'], HOLD: ['maxThrottleH'], DEFER: ['deferShare'], FREE: ['deferCost'], DEADBAND: ['safetyMargin'], SOC: ['socWindow'], AVAIL: ['bessDerate'], PERMIT: ['genCapH', 'genMW'], SAT: ['stressHours'], SALV: ['salvage'] };
+  const out = {};
+  for (const g of state.guard) if (g.sev !== 'i') for (const k of (map[g.code] || [])) (out[k] = out[k] || []).push(g);
+  return out;
+}
+
+// ---------------- stress suite ----------------
+function stressFresh() { return state.stress && state.stress.fp === state.fp; }
+async function runStress() {
+  if (state.stressRunning || !state.r) return;
+  state.stressRunning = true; $('btnStress').disabled = true;
+  const fp = state.fp;
+  try {
+    const gen = stressGen(state.p); let st, n = 0;
+    while (!(st = gen.next()).done) {
+      if (++n % 2 === 0) { $('stressProg').style.width = (100 * st.value.frac).toFixed(1) + '%'; $('stressStatus').textContent = 'Running stress suite... ' + Math.round(100 * st.value.frac) + '%'; await tick(); }
+    }
+    state.stress = Object.assign({ fp, at: new Date().toISOString() }, st.value);
+    log('stress suite', `matrix ${state.stress.matrix.length}x${WORLDS.length}, ${state.stress.tornado.length} drivers, ${state.stress.be.length} thresholds`);
+  } catch (e) { showError(e); }
+  state.stressRunning = false; $('btnStress').disabled = false; $('stressProg').style.width = '100%';
+  renderStress();
+}
+const TORNADO_FMT = { marginPreEnergy: v => '$' + num(v), bessCost: v => '$' + num(v), queueMonths: v => 'M' + v, bessLead: v => num(v) + ' mo', stressHours: v => num(v) + ' h', ceilingMW: v => num(v, 1) + ' MW', deferShare: v => pct(v, 0), maxThrottleH: v => num(v) + ' h', wacc: v => pct(v, 1), deferCost: v => '$' + num(v), safetyMargin: v => num(v, 1) + ' MW', socWindow: v => pct(v, 0) };
+const BE_FMT = {
+  margin: [v => '$' + num(v) + '/MWh', v => '$' + num(v) + '/MWh'],
+  defer: [v => '$' + num(v) + '/MWh', v => '$' + num(v) + '/MWh'],
+  sla: [v => '$' + num(v) + '/MWh', v => '$' + num(v) + '/MWh'],
+  bessCost: [(v, p) => '$' + num(v) + '/kWh (' + (v / p.bessCost).toFixed(1) + 'x)', v => '$' + num(v) + '/kWh'],
+  wacc: [v => pct(v, 0), v => pct(v, 1)],
+  queue: [(v, p) => 'month ' + v + ' (' + (p.queueMonths - v) + ' mo earlier)', v => 'month ' + v],
+  lead: [(v, p) => num(v) + ' months (+' + (v - p.bessLead) + ')', v => num(v) + ' months'],
+  carry: [v => usd(v) + '/mo (' + pct(v * 12 / 68e6, 1) + '/yr on $68M)', v => usd(v) + '/mo'],
+  ceiling: [v => num(v, 1) + ' MW minimum', v => num(v, 1) + ' MW'],
+  deferShare: [v => pct(v, 0) + ' minimum', v => pct(v, 0)],
+  hold: [v => num(v) + ' h minimum', v => num(v) + ' h'],
+  bessMW: [v => num(v, 1) + ' MW minimum', v => num(v, 1) + ' MW'],
+  deadband: [v => num(v, 2) + ' MW maximum', v => num(v, 2) + ' MW'],
+  cliffs: [v => String(v), () => '']
+};
+function beText(b, p) { const f = BE_FMT[b.id] || [String, String]; return { cur: b.cur == null ? '' : f[1](b.cur, p), val: b.value == null ? b.none : f[0](b.value, p) }; }
+function renderStress() {
+  const S = state.stress;
+  $('stressStatus').textContent = !S ? 'Not run yet for these inputs.' : (S.fp === state.fp ? 'Results current for ' + state.fp + ' (run ' + S.at.slice(0, 19).replace('T', ' ') + ' UTC).' : 'Inputs changed since the last run; results below are stale. Re-run the suite.');
+  if (!S) { $('matrix').innerHTML = ''; $('tornado').innerHTML = '<div class="muted">Run the stress suite to compute sensitivities.</div>'; $('breakevens').innerHTML = ''; $('intensity').innerHTML = ''; renderMC(); return; }
+  const cellTone = c => c.compliant ? 'background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)' : c.certified ? 'background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)' : 'background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)';
+  $('matrix').innerHTML = '<thead><tr><th class="l">Design</th><th>CapEx</th>' + WORLDS.map(w => `<th title="${esc(w.desc)}">${esc(w.label)}</th>`).join('') + '</tr></thead><tbody>' +
+    S.matrix.map(row => `<tr><td class="l">${esc(row.design.label)}</td><td>${usd(row.cells[0].capex)}</td>` + row.cells.map(c => `<td><div class="mcell" style="${cellTone(c)}" title="${c.compliant ? 'compliant' : c.certified ? 'certified, but shortfall ' + num(c.short, 1) + ' MWh/yr' : 'not certifiable'}">${(c.npv / 1e6).toFixed(1)}${c.compliant ? ' ✓' : c.certified ? ' ~' : ' ✕'}</div></td>`).join('') + '</tr>').join('') +
+    '</tbody><caption style="caption-side:bottom;text-align:left;padding-top:6px" class="small muted">✓ compliant · ~ certified but breaches the ceiling or SLA (penalty and termination risk) · ✕ fails the first-minutes test (capital at risk). Each world overlays fixed stress values on the current inputs.</caption>';
+  const maxSwing = Math.max(1, ...S.tornado.map(t => Math.max(Math.abs(t.lo.npv - S.baseNpv), Math.abs(t.hi.npv - S.baseNpv))));
+  $('tornado').innerHTML = S.tornado.map(t => {
+    const seg = (x, side) => { const d = x.npv - S.baseNpv, wv = Math.abs(d) / maxSwing * 50; const left = d < 0 ? 50 - wv : 50; return `<i style="left:${left.toFixed(2)}%;width:${wv.toFixed(2)}%;background:${d < 0 ? '#f43f5e' : '#34d399'};opacity:${side === 'lo' ? .65 : 1}"></i>`; };
+    const cliff = (!t.lo.ok || !t.hi.ok) ? ' ⚠' : '';
+    const fm = TORNADO_FMT[t.k] || String;
+    return `<div class="barrow"><div><div>${esc(t.label)}${cliff}</div><div class="tiny faint">${esc(fm(t.lo.v))} → ${esc(fm(t.hi.v))}</div></div><div class="bartrack"><span class="mid" style="left:50%"></span>${seg(t.lo, 'lo')}${seg(t.hi, 'hi')}</div>
+      <div class="tiny num" style="text-align:right"><span style="color:${t.lo.ok ? 'inherit' : 'var(--bad)'}">${usd(t.lo.npv)}</span><br><span style="color:${t.hi.ok ? 'inherit' : 'var(--bad)'}">${usd(t.hi.npv)}</span></div></div>`;
+  }).join('') + `<div class="small muted" style="margin-top:6px">Base NPV ${usd(S.baseNpv)}. Faded bar = low value, solid bar = high value. Red figures = scenario loses compliance.</div>`;
+  $('breakevens').innerHTML = '<table><thead><tr><th class="l">Variable</th><th class="l">Test</th><th>Current</th><th>Threshold</th></tr></thead><tbody>' +
+    S.be.map(b => { const t = beText(b, S.p); return `<tr><td class="l">${esc(b.label)}</td><td class="l"><span class="chip">${esc(b.kind)}</span></td><td>${esc(t.cur)}</td><td class="${b.value == null ? 'cell-good' : ''}">${esc(t.val)}</td></tr>`; }).join('') + '</tbody></table>';
+  $('intensity').innerHTML = '<div class="bars">' + S.intensity.map(x => `<div class="barrow"><div>${num(x.sh)} signal h/yr</div><div class="bartrack"><i style="left:0;width:${(x.p * 100).toFixed(1)}%;background:${x.p >= 0.9 ? '#34d399' : x.p >= 0.7 ? '#fbbf24' : '#f43f5e'}"></i></div><div class="num" style="text-align:right">${pct(x.p, 0)}</div></div>`).join('') + '</div><div class="small muted" style="margin-top:6px">6 weather years per level, mean event duration held at the current value.</div>';
+  renderMC();
+}
+function renderMC() {
+  const mc = state.mc && state.mc.fp === state.fp ? state.mc.res : null;
+  if (!mc) { $('mcSummary').innerHTML = `<div class="muted">${state.mcRunning ? 'Computing ' + pct(state.mcProgress || 0, 0) + '…' : 'Waiting for the Monte Carlo run.'}</div>`; const c = setupCanvas('cvMC'); return; }
+  $('mcSub').textContent = `Same design over ${mc.n} independent synthetic congestion years (seeds derived from ${state.p.seed})`;
+  $('mcSummary').innerHTML = `<dl class="kv"><dt>Compliant years</dt><dd>${pct(mc.pCompliant, 0)} (${Math.round(mc.pCompliant * mc.n)}/${mc.n})</dd><dt>Certifiable years</dt><dd>${pct(mc.pCertified, 0)}</dd>
+    <dt>NPV P10 / P50 / P90</dt><dd>${usd(mc.npvP10)} / ${usd(mc.npvP50)} / ${usd(mc.npvP90)}</dd><dt>Shortfall P50 / P90</dt><dd>${num(mc.shortP50, 1)} / ${num(mc.shortP90, 1)} MWh/yr</dd><dt>Mean penalty</dt><dd>${usd(mc.penaltyMean)}/yr</dd></dl>`;
+  const c = setupCanvas('cvMC'); if (!c) return;
+  const { ctx, w, h } = c, rows = mc.rows.slice().sort((a, b) => a.npv - b.npv);
+  const vals = rows.map(r => r.npv).filter(Number.isFinite);
+  let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals); const pad = (hi - lo) * 0.1 || 1; lo -= pad; hi += pad;
+  const L = 58, R = 8, T = 8, B = 18, W = w - L - R, H = h - T - B, bw = W / rows.length;
+  axes(ctx, L, T, W, H, lo, hi, 4, v => usd(v));
+  const Y = v => T + H - H * (v - lo) / (hi - lo);
+  rows.forEach((r, k) => { const v = Number.isFinite(r.npv) ? r.npv : 0; ctx.fillStyle = r.compliant ? '#34d399' : r.certified ? '#fbbf24' : '#f43f5e'; const y0 = Y(0), y1 = Y(v); ctx.fillRect(L + k * bw + bw * 0.15, Math.min(y0, y1), bw * 0.7, Math.max(1, Math.abs(y1 - y0))); });
+  ctx.fillStyle = cssVar('--muted'); ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText('weather years sorted by NPV · green compliant · amber certified with breaches · red not certifiable', L, T + H + 4);
+  c.cv.onmousemove = ev => { const rc = c.cv.getBoundingClientRect(); const k = Math.floor((ev.clientX - rc.left - L) / bw); const r = rows[k]; if (!r) return untip(); tip(ev, `<b>Seed ${r.seed}</b><br>NPV ${usd(r.npv)}<br>${r.events} events, longest ${r.maxEvent} h<br>shortfall ${num(r.shortE, 1)} MWh · SLA ${pct(r.breachPct, 2)}`); };
+  c.cv.onmouseleave = untip;
+}
+
+// ---------------- robust optimiser ----------------
+async function runOptimise() {
+  if (state.optRunning || !state.r) return;
+  state.optRunning = true; $('btnOptimise').disabled = true;
+  const box = $('optBox'); box.hidden = false;
+  const fp = state.fp;
+  const show = (msg, frac) => { box.innerHTML = `<div class="small">${esc(msg)}</div><div class="progress" style="margin-top:6px"><i style="width:${(frac * 100).toFixed(1)}%"></i></div>`; };
+  try {
+    const gen = robustOptimiseGen(state.p); let st;
+    while (!(st = gen.next()).done) { show(st.value.msg + '...', st.value.frac); await tick(); }
+    const o = st.value, v = o.verified;
+    state.opt = Object.assign({ fp, at: new Date().toISOString() }, o);
+    log('robust optimise', v ? `recommend ${v.mw} MW / ${v.h} h, hold ${v.mt} h (NPV ${Math.round(v.npv)}, ${Math.round(v.pOk * 100)}% compliant over ${v.n} years; ${o.evals} configurations)` : `no robust design found (${o.evals} configurations)`);
+  } catch (e) { showError(e); }
+  state.optRunning = false; $('btnOptimise').disabled = false;
+  renderOpt();
+}
+function renderOpt() {
+  const o = state.opt, box = $('optBox'); if (!o) { box.hidden = true; return; }
+  box.hidden = false;
+  const stale = o.fp !== state.fp;
+  if (!o.verified) { box.innerHTML = `<div class="err" style="margin:0">No design up to 60 MW BESS (1, 2 or 4 h, holds ≤ ${state.p.maxThrottleH} h) is compliant in ≥ 90% of weather years. Raise the throttle hold limit, deferrable share or ceiling, add genset hours, or reduce the control deadband. ${o.evals} configurations evaluated.</div>`; return; }
+  const v = o.verified, applied = Math.abs(state.p.bessMW - v.mw) < 1e-9 && state.p.bessH === v.h && state.p.maxThrottleH === v.mt;
+  box.innerHTML = `<div class="row between" style="border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);border-radius:10px;padding:10px 12px">
+    <div><div class="tiny bold" style="color:var(--accent);letter-spacing:.07em">ROBUST RECOMMENDATION${stale ? ' · <span style="color:var(--warn)">inputs changed since this search</span>' : ''}</div>
+    <div class="bold" style="font-size:14px">${num(v.mw, 1)} MW / ${v.h} h BESS (${num(v.mw * v.h, 1)} MWh) + ${v.mt} h throttle hold</div>
+    <div class="small muted">NPV ${usd(v.npv)} · CapEx ${usd(v.capex)} · compliant in ${pct(v.pOk, 0)} of ${v.n} weather years${v.bumps ? ` · +${num(v.bumps * 0.5, 1)} MW over the single-year optimum for robustness` : ''} · ${o.evals} configurations searched (holds ≤ ${Math.max(...o.holds)} h)</div></div>
+    <div class="row">${applied ? '<span class="badge b-good">Applied</span>' : '<button class="btn primary" id="btnApplyOpt">Apply design</button>'}<button class="btn sm" id="btnHideOpt">Dismiss</button></div></div>`;
+  const a = $('btnApplyOpt'); if (a) a.onclick = () => { applyParams(Object.assign({}, state.p, { bessMW: v.mw, bessH: v.h, maxThrottleH: v.mt })); log('design applied', `optimiser: ${v.mw} MW / ${v.h} h, hold ${v.mt} h`); recalc(); renderOpt(); };
+  $('btnHideOpt').onclick = () => { state.opt = null; renderOpt(); };
+}
+
+// ---------------- dispatch replay ----------------
+function evStatus(e) { if (e.peakGap <= 1e-9) return 'nogap'; if (e.short > 0.05) return 'short'; if (!e.pass5) return 'fail5'; if (e.breach > 0.5) return 'sla'; return 'clean'; }
+const ST = { short: ['Shortfall', 'b-bad'], fail5: ['First-minutes fail', 'b-bad'], sla: ['SLA-late work', 'b-warn'], clean: ['Compliant', 'b-good'], nogap: ['No gap', 'b-mute'] };
+function evLabel(e) { const d = hourToDate(e.start); return MONTHS[d.month] + ' ' + d.day + ' ' + String(d.hour).padStart(2, '0') + ':00'; }
+function renderDispatch() {
+  const f = state.r.sims.flex, sel = $('evSel');
+  sel.innerHTML = f.evs.map((e, k) => `<option value="${k}">#${k + 1} · ${esc(evLabel(e))} · ${e.dur} h · gap ${num(e.peakGap, 1)} MW · ${esc(ST[evStatus(e)][0])}</option>`).join('');
+  if (state.evId != null) sel.value = state.evId;
+  drawReplay(); renderLedger();
+}
+function drawReplay() {
+  const c = setupCanvas('cvReplay'); const f = state.r.sims.flex, tr = f.tr, e = f.evs[state.evId];
+  if (!c || !tr || !e) return;
+  const { ctx, w, h } = c, p = state.p, eff = effective(p);
+  const t0 = Math.max(0, e.start - 3), t1 = Math.min(HRS - 1, e.start + e.dur + 8), n = t1 - t0 + 1;
+  const L = 40, R = 46, T = 10, B = 26, W = w - L - R, H = h - T - B;
+  let mx = p.targetMW; for (let t = t0; t <= t1; t++) mx = Math.max(mx, tr.dem[t] + tr.cu[t] + tr.chg[t]);
+  const ymax = niceMax(mx * 1.06), socMax = Math.max(1, eff.bessMWh), bw = W / n, Y = v => T + H - H * v / ymax;
+  ctx.fillStyle = 'rgba(244,63,94,.07)'; ctx.fillRect(L + (e.start - t0) * bw, T, e.dur * bw, H);
+  axes(ctx, L, T, W, H, 0, ymax, 5, v => num(v));
+  for (let k = 0; k < n; k++) {
+    const t = t0 + k, x = L + k * bw + bw * 0.14, bwi = bw * 0.72;
+    const served = Math.max(0, tr.dem[t] - tr.thr[t] - tr.bes[t] - tr.gen[t] - tr.short[t]);
+    let acc = 0;
+    for (const [v, col] of [[served, COL.grid], [tr.short[t], COL.short], [tr.bes[t], COL.bess], [tr.gen[t], COL.gen], [tr.cu[t], COL.cu], [tr.chg[t], COL.chg], [tr.thr[t], COL.thr]]) {
+      if (v <= 1e-6) continue; const y1 = Y(acc), y2 = Y(acc + v); ctx.fillStyle = col; ctx.globalAlpha = col === COL.thr ? 0.55 : 1; ctx.fillRect(x, y2, bwi, y1 - y2); ctx.globalAlpha = 1; acc += v;
+    }
+    const d = hourToDate(t); ctx.fillStyle = t >= e.start && t < e.start + e.dur ? '#fb7185' : cssVar('--muted'); ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    if (n <= 30 || k % 2 === 0) ctx.fillText(String(d.hour).padStart(2, '0'), L + k * bw + bw / 2, T + H + 6);
+  }
+  ctx.strokeStyle = COL.ceil; ctx.setLineDash([6, 4]); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(L + (e.start - t0) * bw, Y(eff.ceiling)); ctx.lineTo(L + (e.start - t0 + e.dur) * bw, Y(eff.ceiling)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = COL.ceil; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText('effective ceiling ' + num(eff.ceiling, 1) + ' MW', L + (e.start - t0) * bw + 4, Y(eff.ceiling) - 3);
+  if (eff.bessMWh > 0) {
+    ctx.strokeStyle = COL.soc; ctx.lineWidth = 2; ctx.beginPath();
+    for (let k = 0; k < n; k++) { const t = t0 + k, x = L + k * bw + bw / 2, y = T + H - H * tr.soc[t] / socMax; k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.stroke(); ctx.fillStyle = cssVar('--muted'); ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('SoC', L + W + 6, T + 6); ctx.fillText(num(socMax, 0) + ' MWh', L + W + 6, T + 18);
+  }
+  c.cv.onmousemove = ev => {
+    const rc = c.cv.getBoundingClientRect(); const k = Math.floor((ev.clientX - rc.left - L) / bw); if (k < 0 || k >= n) return untip();
+    const t = t0 + k, d = hourToDate(t), row = (a, v) => `<div class="row between"><span>${a}</span><span class="num">${num(v, 2)}</span></div>`;
+    tip(ev, `<b>${MONTHS[d.month]} ${d.day} ${String(d.hour).padStart(2, '0')}:00</b>` + row('Demand MW', tr.dem[t]) + row('Grid MW', tr.grid[t]) + row('Throttled MWh', tr.thr[t]) + row('BESS MWh', tr.bes[t]) + row('Genset MWh', tr.gen[t]) + row('Shortfall MWh', tr.short[t]) + row('Catch-up MWh', tr.cu[t]) + row('Recharge MWh', tr.chg[t]) + (eff.bessMWh > 0 ? row('SoC MWh', tr.soc[t]) : ''));
+  };
+  c.cv.onmouseleave = untip;
+}
+function renderLedger() {
+  const f = state.r.sims.flex, p = state.p;
+  const filt = { all: () => true, bad: e => ['short', 'fail5'].includes(evStatus(e)), sla: e => evStatus(e) === 'sla', long: e => e.dur > p.slaWindow };
+  const cnt = k => f.evs.filter(filt[k]).length;
+  $('ledFilters').innerHTML = [['all', 'All'], ['bad', 'Non-compliant'], ['sla', 'SLA-late'], ['long', 'Longer than SLA window']].map(([k, l]) => `<button class="btn sm${state.ledFilter === k ? ' primary' : ''}" data-lf="${k}">${l} (${cnt(k)})</button>`).join('');
+  const rows = f.evs.map((e, k) => ({ e, k })).filter(x => filt[state.ledFilter](x.e));
+  $('ledger').innerHTML = '<thead><tr><th class="l">#</th><th class="l">Start</th><th>Dur</th><th>Peak gap MW</th><th>Throttle MWh</th><th>BESS MWh</th><th>Genset MWh</th><th>Shortfall MWh</th><th>Penalty</th><th>SLA-late MWh</th><th class="l">Status</th></tr></thead><tbody>' +
+    (rows.length ? rows.map(({ e, k }) => `<tr data-ev="${k}" style="cursor:pointer${k === state.evId ? ';background:var(--hover)' : ''}"><td class="l">${k + 1}</td><td class="l">${esc(evLabel(e))}</td><td>${e.dur} h</td><td>${num(e.peakGap, 2)}</td><td>${num(e.thr, 1)}</td><td>${num(e.bes, 1)}</td><td>${num(e.gen, 1)}</td><td class="${e.short > 0.05 ? 'cell-bad' : ''}">${num(e.short, 2)}</td><td>${usd(e.short * p.penalty)}</td><td class="${e.breach > 0.5 ? 'cell-warn' : ''}">${num(e.breach, 1)}</td><td class="l"><span class="badge ${ST[evStatus(e)][1]}">${ST[evStatus(e)][0]}</span></td></tr>`).join('') : '<tr><td colspan="11" class="l muted">No events match this filter.</td></tr>') + '</tbody>';
+}
+
+// ---------------- scenarios, compare, export/import ----------------
+function currentRecord(name) {
+  const mc = state.mc && state.mc.fp === state.fp ? state.mc.res : null;
+  return { id: 'sc-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e6).toString(36), name: cleanText(name || 'Untitled run', 80), savedAt: new Date().toISOString(), modelVersion: MODEL_VERSION, appVersion: APP_VERSION, fingerprint: state.fp, params: Object.assign({}, state.p), kpis: kpiSummary(state.r, mc, state.verdict), guard: { violations: state.guard.filter(g => g.sev === 'v').map(g => g.code), warnings: state.guard.filter(g => g.sev === 'w').map(g => g.code) } };
+}
+function saveScenario() {
+  if (state.scenarios.length >= MAX_SCEN) { toast('Scenario limit reached (' + MAX_SCEN + '). Delete or export first.', 'bad'); return; }
+  const rec = currentRecord($('saveName').value || ((matchWorld(state.p) || 'custom') + ' / ' + (matchDesign(state.p) || 'custom')));
+  state.scenarios.push(rec); $('saveName').value = '';
+  log('scenario saved', `${rec.name} (${rec.fingerprint})`);
+  renderScenarios(); toast('Saved "' + rec.name + '"', 'good');
+}
+function renderScenarios() {
+  const rows = state.scenarios.slice().reverse();
+  $('scenTable').innerHTML = '<thead><tr><th class="l"></th><th class="l">Name</th><th class="l">Saved (UTC)</th><th class="l">Fingerprint</th><th class="l">Verdict</th><th>NPV</th><th>Downside</th><th>Compliant yrs</th><th>Pull-fwd</th><th>BESS</th><th>CapEx</th><th class="l">Actions</th></tr></thead><tbody>' +
+    (rows.length ? rows.map(s => { const k = s.kpis, tone = k.verdict === 'INVESTABLE' ? 'b-good' : k.verdict === 'NOT INVESTABLE' ? 'b-bad' : 'b-warn';
+      return `<tr><td class="l"><input type="checkbox" data-sel="${esc(s.id)}"${state.selected.has(s.id) ? ' checked' : ''} aria-label="select"></td><td class="l">${esc(s.name)}</td><td class="l mono small">${esc(s.savedAt.slice(0, 19).replace('T', ' '))}</td><td class="l mono small">${esc(s.fingerprint)}</td><td class="l"><span class="badge ${tone}">${esc(k.verdict || 'n/a')}</span></td><td>${usd(k.npv)}</td><td>${usd(k.npvFail)}</td><td>${k.pCompliant == null ? 'n/a' : pct(k.pCompliant, 0)}</td><td>${num(k.pullForwardMonths)} mo</td><td>${num(s.params.bessMW, 1)} MW / ${num(s.params.bessH, 1)} h</td><td>${usd(k.bessCapex)}</td>
+      <td class="l"><button class="btn sm" data-load="${esc(s.id)}">Load</button> <button class="btn sm danger" data-del="${esc(s.id)}">Delete</button></td></tr>`; }).join('') : '<tr><td colspan="12" class="l muted">No saved scenarios yet. Name the current run and click "Save current run".</td></tr>') + '</tbody>';
+  $('btnCompare').disabled = state.selected.size < 2;
+  $('btnCompare').textContent = 'Compare selected (' + state.selected.size + ')';
+  renderStoreBadge();
+}
+function renderCompare() {
+  const list = state.scenarios.filter(s => state.selected.has(s.id)).slice(0, 4);
+  if (list.length < 2) { $('comparePanel').hidden = true; return; }
+  $('comparePanel').hidden = false;
+  const metrics = [['Verdict', k => k.verdict || 'n/a', null], ['NPV vs. interim-only', k => k.npv, usd], ['Downside NPV', k => k.npvFail, usd], ['Payback (months)', k => k.paybackMonths, v => v == null ? 'n/a' : num(v)], ['Compliant weather years', k => k.pCompliant, v => pct(v, 0)], ['NPV P10', k => k.npvP10, usd], ['Pull-forward (months)', k => k.pullForwardMonths, v => num(v)], ['SLA-late compute', k => k.slaLatePct, v => pct(v, 2)], ['Shortfall MWh/yr', k => k.shortfallMWh, v => num(v, 1)], ['BESS CapEx', k => k.bessCapex, usd], ['Cost per MW-month', k => k.costPerMWMonth, v => usd(v, 1)], ['All-in vs. wait', k => k.allInReductionVsWait, v => pct(v, 1)], ['Break-even margin', k => k.breakEvenMargin, v => v == null ? 'n/a' : '$' + num(v) + '/MWh']];
+  const ref = list[0].kpis;
+  $('compareTable').innerHTML = '<thead><tr><th class="l">Metric</th>' + list.map((s, k) => `<th>${esc(s.name)}${k === 0 ? ' (ref)' : ''}</th>`).join('') + '</tr></thead><tbody>' +
+    metrics.map(([lab, get, f]) => '<tr><td class="l">' + esc(lab) + '</td>' + list.map((s, k) => { const v = get(s.kpis); if (!f) return `<td>${esc(v)}</td>`; const d = k && typeof v === 'number' && typeof get(ref) === 'number' ? v - get(ref) : null; return `<td>${esc(f(v))}${d != null && Math.abs(d) > 1e-9 ? `<div class="tiny ${d > 0 ? 'cell-good' : 'cell-bad'}">${d > 0 ? '+' : '−'}${esc(f(Math.abs(d)))}</div>` : ''}</td>`; }).join('') + '</tr>').join('') + '</tbody>';
+  const diffs = SPEC.filter(s => list.some(x => x.params[s.k] !== list[0].params[s.k])).map(s => `${s.label}: ` + list.map(x => fmtIn(s, x.params[s.k])).join(' | '));
+  if (list.some(x => x.params.strategy !== list[0].params.strategy)) diffs.push('Dispatch priority: ' + list.map(x => x.params.strategy).join(' | '));
+  $('compareDiff').innerHTML = diffs.length ? '<b>Inputs that differ</b><ul class="clean">' + diffs.map(d => '<li>' + esc(d) + '</li>').join('') + '</ul>' : 'Inputs are identical; differences come from the model version only.';
+}
+function renderAuditLog() {
+  $('auditCount').textContent = state.audit.length + ' entries';
+  $('auditTable').innerHTML = '<thead><tr><th class="l">Time (UTC)</th><th class="l">Action</th><th class="l">Detail</th><th class="l">Fingerprint</th><th class="l">Model</th></tr></thead><tbody>' +
+    state.audit.slice().reverse().slice(0, 400).map(a => `<tr><td class="l mono small">${esc(a.ts.slice(0, 19).replace('T', ' '))}</td><td class="l">${esc(a.action)}</td><td class="l small" style="white-space:normal;max-width:620px">${esc(a.detail)}</td><td class="l mono small">${esc(a.fp)}</td><td class="l mono small">${esc(a.model)}</td></tr>`).join('') + '</tbody>';
+}
+async function digest(text) {
+  try { if (window.crypto && crypto.subtle && window.isSecureContext) { const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)); return { algorithm: 'SHA-256', value: Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('') }; } } catch (e) { /* fall through */ }
+  return { algorithm: 'cyrb53 (non-cryptographic)', value: cyrb53(text) };
+}
+async function exportJSON() {
+  const mc = state.mc && state.mc.fp === state.fp ? state.mc.res : null;
+  const current = Object.assign(currentRecord('current run'), { guardrails: state.guard, monteCarlo: mc ? { n: mc.n, pCompliant: mc.pCompliant, pCertified: mc.pCertified, npvP10: mc.npvP10, npvP50: mc.npvP50, npvP90: mc.npvP90, seeds: mc.rows.map(r => r.seed) } : null, stress: stressFresh() ? { matrix: state.stress.matrix.map(r => ({ design: r.design.label, cells: r.cells.map(c => ({ world: c.world, npv: c.npv, compliant: c.compliant, certified: c.certified })) })), breakevens: state.stress.be.map(b => ({ id: b.id, variable: b.label, test: b.kind, current: b.cur, threshold: b.value })), tornado: state.stress.tornado.map(t => ({ variable: t.k, low: t.lo, high: t.hi })), intensity: state.stress.intensity } : null });
+  const payload = { current, scenarios: state.scenarios };
+  const integ = await digest(canonical(payload));
+  const bundle = Object.assign({ schema: 'firmgap.audit-bundle.v2', exportedAt: new Date().toISOString(), modelVersion: MODEL_VERSION, appVersion: APP_VERSION, integrity: Object.assign(integ, { covers: 'canonical JSON of {current, scenarios}' }) }, payload, { audit: state.audit });
+  const text = JSON.stringify(bundle, null, 2);
+  log('export JSON', `${state.scenarios.length} scenarios, ${integ.algorithm} ${integ.value.slice(0, 16)}…`);
+  offerDownload('firmgap-audit-' + state.fp + '.json', 'application/json', text, 'Audit bundle (JSON)', `Integrity ${integ.algorithm}: ${integ.value}`);
+}
+function exportCSV() {
+  const rows = [currentRecord('current run')].concat(state.scenarios);
+  const text = toCSV(rows);
+  log('export CSV', rows.length + ' rows');
+  offerDownload('firmgap-scenarios-' + state.fp + '.csv', 'text/csv', text, 'Scenario summary (CSV)', 'One row per scenario: KPIs followed by every validated input. Text cells that start with = + - @ are prefixed to block spreadsheet formula injection.');
+}
+function offerDownload(filename, mime, text, title, note) {
+  let downloaded = false;
+  try { const url = URL.createObjectURL(new Blob([text], { type: mime + ';charset=utf-8' })); const a = document.createElement('a'); a.href = url; a.download = filename; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); downloaded = true; } catch (e) { downloaded = false; }
+  openModal(title, (downloaded ? 'Download started (if your browser allows downloads here). ' : '') + 'You can also copy the content below. ' + (note || ''), text, [['Copy to clipboard', () => copyText(text)], ['Select all', () => { $('modalText').select(); }]], true);
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); toast('Copied to clipboard', 'good'); }
+  catch (e) { $('modalText').select(); try { document.execCommand('copy'); toast('Copied (fallback)', 'good'); } catch (e2) { toast('Clipboard blocked here; the text is selected, so press Ctrl/Cmd+C', 'warn'); } }
+}
+function openModal(title, note, text, actions, readOnly) {
+  $('modalTitle').textContent = title; $('modalNote').textContent = note; $('modalText').value = text; $('modalText').readOnly = !!readOnly;
+  const box = $('modalActions'); box.innerHTML = '';
+  for (const [lab, fn, primary] of actions) { const b = document.createElement('button'); b.className = 'btn' + (primary ? ' primary' : ''); b.textContent = lab; b.onclick = fn; box.appendChild(b); }
+  $('modal').hidden = false;
+}
+function closeModal() { $('modal').hidden = true; }
+const MAX_IMPORT = 2 * 1024 * 1024;
+function importText(text) {
+  if (typeof text !== 'string' || text.length > MAX_IMPORT) { toast('Import rejected: empty or larger than 2 MB', 'bad'); return; }
+  let data; try { data = JSON.parse(text); } catch (e) { toast('Import rejected: not valid JSON', 'bad'); return; }
+  if (!data || typeof data !== 'object') { toast('Import rejected: unexpected structure', 'bad'); return; }
+  const incoming = [];
+  if (Array.isArray(data.scenarios)) incoming.push(...data.scenarios.slice(0, MAX_SCEN));
+  let currentParams = null;
+  if (data.current && data.current.params) currentParams = data.current.params;
+  else if (data.params) currentParams = data.params;
+  else if (!Array.isArray(data.scenarios) && SPEC.some(s => s.k in data)) currentParams = data;
+  let nClamp = 0, nDrop = 0, nOk = 0;
+  for (const s of incoming) {
+    if (!s || typeof s !== 'object' || !s.params) continue;
+    const san = sanitizeParams(s.params); nClamp += san.clamps.length; nDrop += san.dropped.length;
+    let r; try { r = runAll(san.p); } catch (e) { continue; }
+    const g = guardrails(san.p, r, null, san.repairs);
+    state.scenarios.push({ id: 'sc-' + Date.now().toString(36) + '-' + nOk, name: cleanText(s.name || 'imported', 80), savedAt: typeof s.savedAt === 'string' && !isNaN(Date.parse(s.savedAt)) ? new Date(s.savedAt).toISOString() : new Date().toISOString(), modelVersion: MODEL_VERSION, appVersion: APP_VERSION, importedFrom: cleanText(s.modelVersion || 'unknown', 40), fingerprint: fingerprint(san.p), params: san.p, kpis: kpiSummary(r, null, verdictOf(g, { n: 0 }) ), guard: { violations: g.filter(x => x.sev === 'v').map(x => x.code), warnings: g.filter(x => x.sev === 'w').map(x => x.code) } });
+    nOk++;
+    if (state.scenarios.length >= MAX_SCEN) break;
+  }
+  if (currentParams) { const san = applyParams(currentParams); nClamp += 0; nDrop += san.dropped.length; recalc(); }
+  log('import', `${nOk} scenarios re-validated and re-computed with ${MODEL_VERSION}; ${nClamp} values clamped; ${nDrop} unknown keys dropped${currentParams ? '; current inputs restored' : ''}`);
+  renderScenarios(); closeModal();
+  toast(`Imported ${nOk} scenario(s)${currentParams ? ' + current inputs' : ''}. KPIs were recomputed; stored results are never trusted.`, 'good');
+}
+
+// ---------------- self-test ----------------
+const GOLDEN = {
+  case_eng: { patch: {}, events: 51, shortE: 91.95314557850361, energyCost: 21898202.013520163, breach: 639.5300232768059, F: 10, capex: 26220000, Ctotal: null, reduction: -0.0202 },
+  right_sized: { patch: { bessMW: 13.5, bessH: 2, maxThrottleH: 12 }, events: 51, shortE: 0.18643172085285187, F: 10, capex: 9382500, reduction: 0.07198749033816132 }
+};
+async function selfTest() {
+  const out = [], add = (name, ok, detail) => out.push({ name, ok, detail });
+  const host = $('selfTest'); host.innerHTML = '<div class="muted">Running…</div>'; await tick();
+  try {
+    const pure = Object.assign({}, CASE_STATED);
+    const a = runAll(Object.assign({}, pure, GOLDEN.case_eng.patch));
+    const close = (x, y, tol) => Math.abs(x - y) <= (tol || 1e-9) * Math.max(1, Math.abs(y));
+    add('Golden: case events = 51', a.Y.events.length === 51, a.Y.events.length);
+    add('Golden: case shortfall', close(a.sims.flex.shortE, GOLDEN.case_eng.shortE), a.sims.flex.shortE);
+    add('Golden: case flex energy cost', close(a.sims.flex.energyCost, GOLDEN.case_eng.energyCost), a.sims.flex.energyCost);
+    add('Golden: case SLA-late energy', close(a.sims.flex.breach, GOLDEN.case_eng.breach), a.sims.flex.breach);
+    add('Golden: case BESS CapEx', a.econ.capex === 26220000, a.econ.capex);
+    const b = runAll(Object.assign({}, pure, GOLDEN.right_sized.patch));
+    add('Golden: v0.1 optimum shortfall', close(b.sims.flex.shortE, GOLDEN.right_sized.shortE), b.sims.flex.shortE);
+    add('Golden: v0.1 optimum all-in reduction', close(b.econ.reduction, GOLDEN.right_sized.reduction), b.econ.reduction);
+    add('Golden: bridge month = 10', b.econ.F === 10, b.econ.F);
+    await tick();
+    const r = state.r, tr = r.sims.flex.tr, eff = effective(state.p); let bal = 0, ceil = 0, soc = 0, chg = 0;
+    for (let t = 0; t < HRS; t++) {
+      if (Math.abs(tr.dem[t] - ((tr.grid[t] - tr.cu[t] - tr.chg[t]) + tr.thr[t] + tr.bes[t] + tr.gen[t])) > 1e-3) bal++;
+      if (tr.soc[t] < -1e-3 || tr.soc[t] > eff.bessMWh + 1e-3) soc++;
+      if (r.Y.ev[t] >= 0) { if (Math.max(0, tr.grid[t] - eff.ceiling) > tr.short[t] + 1e-3) ceil++; if (tr.chg[t] !== 0) chg++; }
+    }
+    add('Invariant: hourly energy balance (current)', bal === 0, bal + ' violations');
+    add('Invariant: draw above ceiling = shortfall (current)', ceil === 0, ceil + ' violations');
+    add('Invariant: SoC within usable window (current)', soc === 0, soc + ' violations');
+    add('Invariant: no charging during signals (current)', chg === 0, chg + ' violations');
+    const f = r.sims.flex;
+    add('Invariant: gap fully attributed', Math.abs(f.thrE + f.besE + f.genE + f.shortE - f.gapE) < 1e-3, (f.thrE + f.besE + f.genE + f.shortE - f.gapE).toExponential(2));
+    add('Invariant: deferred work conserved', f.catchE + f.breach <= f.thrE + 1e-6, `${num(f.catchE + f.breach, 1)} ≤ ${num(f.thrE, 1)}`);
+    await tick();
+    const up = reprice(Object.assign({}, state.p, { bessCost: state.p.bessCost * 1.1 }), r).inv.npv;
+    add('Metamorphic: higher BESS cost never raises NPV', up <= r.inv.npv + 1e-6, usd(up) + ' ≤ ' + usd(r.inv.npv));
+    const mUp = reprice(Object.assign({}, state.p, { marginPreEnergy: state.p.marginPreEnergy * 1.1 }), r).inv.npv;
+    add('Metamorphic: higher margin never lowers NPV', mUp >= r.inv.npv - 1e-6, usd(mUp) + ' ≥ ' + usd(r.inv.npv));
+    const more = runAll(Object.assign({}, state.p, { bessMW: state.p.bessMW + 2 }), { Y: r.Y }).sims.flex.shortE;
+    add('Metamorphic: +2 MW BESS never raises shortfall', more <= f.shortE + 1e-6, num(more, 2) + ' ≤ ' + num(f.shortE, 2));
+    const hostile = sanitizeParams({ util: 'abc', bessMW: 1e12, queueMonths: -1, strategy: '<img src=x onerror=alert(1)>', __proto__: { polluted: true }, wacc: Infinity });
+    add('Guard: hostile input is clamped, finite and in range', SPEC.every(s => Number.isFinite(hostile.p[s.k]) && hostile.p[s.k] >= s.min && hostile.p[s.k] <= s.max) && hostile.p.strategy === 'throttle' && !({}).polluted, hostile.clamps.length + ' clamps');
+    add('Guard: CSV formula injection neutralised', toCSV([{ name: '=cmd|calc', savedAt: '', fingerprint: '', modelVersion: '', params: state.p, kpis: {} }]).split('\r\n')[1].startsWith("'=cmd"), 'prefix applied');
+  } catch (e) { add('Self-test execution', false, e && e.message); }
+  const pass = out.filter(x => x.ok).length;
+  host.innerHTML = `<div class="row" style="margin-bottom:6px"><span class="badge ${pass === out.length ? 'b-good' : 'b-bad'}">${pass}/${out.length} passed</span><span class="small muted">${esc(MODEL_VERSION)} · ${new Date().toISOString().slice(0, 19).replace('T', ' ')} UTC</span></div>` +
+    '<table><tbody>' + out.map(x => `<tr><td class="l">${esc(x.name)}</td><td class="l small muted">${esc(String(x.detail))}</td><td class="${x.ok ? 'cell-good' : 'cell-bad'}">${x.ok ? 'PASS' : 'FAIL'}</td></tr>`).join('') + '</tbody></table>';
+  log('self-test', `${pass}/${out.length} passed`);
+}
+function renderParamTable() {
+  $('paramTable').innerHTML = '<thead><tr><th class="l">Key</th><th class="l">Input</th><th>Value</th><th>Case value</th><th>Min</th><th>Max</th><th class="l">Note</th></tr></thead><tbody>' +
+    SPEC.map(s => `<tr><td class="l mono small">${s.k}</td><td class="l">${esc(s.label)}</td><td>${esc(fmtIn(s, state.p[s.k]))}</td><td class="faint">${esc(fmtIn(s, CASE_STATED[s.k]))}</td><td class="faint">${esc(fmtIn(s, s.min))}</td><td class="faint">${esc(fmtIn(s, s.max))}</td><td class="l small muted" style="white-space:normal;max-width:420px">${esc(s.help)}</td></tr>`).join('') +
+    `<tr><td class="l mono small">strategy</td><td class="l">Dispatch priority</td><td>${esc(state.p.strategy)}</td><td class="faint">throttle</td><td></td><td></td><td class="l small muted">throttle | bess</td></tr></tbody>`;
+}
+
+// ---------------- orchestration ----------------
+function renderAll() {
+  if (!state.r || !state.verdict) return;
+  renderPresets(); renderVerdict(); renderKPIs(); renderGuards(); renderValueBridge();
+  if (state.tab === 'overview') { drawCash(); drawPhase(); }
+  if (state.tab === 'inputs') renderInputs();
+  if (state.tab === 'stress') renderStress();
+  if (state.tab === 'dispatch') renderDispatch();
+  if (state.tab === 'audit') { renderScenarios(); renderAuditLog(); }
+  if (state.tab === 'method') renderParamTable();
+  renderOpt();
+}
+function setTab(t) {
+  state.tab = t;
+  document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  document.querySelectorAll('[data-panel]').forEach(s => { s.hidden = s.dataset.panel !== t; });
+  renderAll();
+  if (t === 'stress' && !stressFresh() && !state.stressRunning) runStress();
+}
+function wire() {
+  $('tabs').addEventListener('click', ev => { const b = ev.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab); });
+  $('worldBar').addEventListener('click', ev => { const b = ev.target.closest('[data-world]'); if (!b) return; const w = WORLDS.find(x => x.id === b.dataset.world); applyParams(worldParams(state.p, w), { silent: true }); log('world preset', w.label); recalc(); });
+  $('designBar').addEventListener('click', ev => { const b = ev.target.closest('[data-design]'); if (!b) return; const d = DESIGNS.find(x => x.id === b.dataset.design); applyParams(designParams(state.p, d), { silent: true }); log('design preset', d.label); recalc(); });
+  $('btnStress').onclick = runStress;
+  $('btnOptimise').onclick = runOptimise;
+  $('btnExportTop').onclick = exportJSON;
+  $('btnExportJSON').onclick = exportJSON;
+  $('btnExportCSV').onclick = exportCSV;
+  $('btnSave').onclick = saveScenario;
+  $('saveName').addEventListener('keydown', ev => { if (ev.key === 'Enter') saveScenario(); });
+  $('btnResetInputs').onclick = () => { applyParams(Object.assign({}, CASE_STATED, WORLDS[1].patch, DESIGNS[0].patch), { silent: true }); state.flags = {}; log('reset', 'inputs reset to Base Case + robust design'); recalc(); };
+  $('btnImport').onclick = () => openModal('Import scenarios', 'Choose a firmgap JSON export, or paste JSON below. Every value is re-validated and every result is recomputed with the current model; nothing stored in the file is trusted.', '', [['Choose file…', () => $('fileImport').click()], ['Import pasted JSON', () => importText($('modalText').value), true]], false);
+  $('fileImport').addEventListener('change', ev => { const file = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (!file) return; if (file.size > MAX_IMPORT) { toast('File larger than 2 MB rejected', 'bad'); return; } const rd = new FileReader(); rd.onload = () => importText(String(rd.result)); rd.onerror = () => toast('Could not read the file', 'bad'); rd.readAsText(file); });
+  $('btnClear').onclick = () => {
+    if (!state.clearArmed) { state.clearArmed = true; $('btnClear').textContent = 'Click again to erase everything'; setTimeout(() => { state.clearArmed = false; $('btnClear').textContent = 'Clear all data'; }, 4000); return; }
+    state.clearArmed = false; Store.clear(); state.scenarios = []; state.audit = []; state.selected.clear(); $('btnClear').textContent = 'Clear all data';
+    log('data cleared', 'all scenarios and the audit log erased by user'); renderScenarios(); renderAuditLog(); toast('All stored data erased', 'warn');
+  };
+  $('scenTable').addEventListener('click', ev => {
+    const t = ev.target;
+    if (t.dataset.sel) { if (t.checked) { if (state.selected.size >= 4) { t.checked = false; toast('Compare up to 4 scenarios', 'warn'); return; } state.selected.add(t.dataset.sel); } else state.selected.delete(t.dataset.sel); renderScenarios(); return; }
+    if (t.dataset.load) { const s = state.scenarios.find(x => x.id === t.dataset.load); if (!s) return; applyParams(s.params, { silent: true }); log('scenario loaded', `${s.name} (${s.fingerprint})`); recalc(); toast('Loaded "' + s.name + '"', 'good'); return; }
+    if (t.dataset.del) { const k = state.scenarios.findIndex(x => x.id === t.dataset.del); if (k < 0) return; const s = state.scenarios.splice(k, 1)[0]; state.selected.delete(s.id); log('scenario deleted', `${s.name} (${s.fingerprint})`); renderScenarios(); renderCompare(); }
+  });
+  $('btnCompare').onclick = () => { renderCompare(); log('compare', state.selected.size + ' scenarios'); };
+  $('btnCloseCompare').onclick = () => { $('comparePanel').hidden = true; };
+  $('btnSelfTest').onclick = selfTest;
+  $('modalClose').onclick = closeModal;
+  $('modal').addEventListener('click', ev => { if (ev.target === $('modal')) closeModal(); });
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeModal(); });
+  $('evSel').onchange = ev => { state.evId = parseInt(ev.target.value, 10); drawReplay(); renderLedger(); };
+  const step = d => { const n = state.r.sims.flex.evs.length; if (!n) return; state.evId = ((state.evId || 0) + d + n) % n; $('evSel').value = state.evId; drawReplay(); renderLedger(); };
+  $('evPrev').onclick = () => step(-1); $('evNext').onclick = () => step(1);
+  $('ledFilters').addEventListener('click', ev => { const b = ev.target.closest('[data-lf]'); if (b) { state.ledFilter = b.dataset.lf; renderLedger(); } });
+  $('ledger').addEventListener('click', ev => { const tr = ev.target.closest('tr[data-ev]'); if (!tr) return; state.evId = parseInt(tr.dataset.ev, 10); $('evSel').value = state.evId; drawReplay(); renderLedger(); });
+  let rz = null; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (state.tab === 'overview') { drawCash(); drawPhase(); } if (state.tab === 'dispatch') drawReplay(); if (state.tab === 'stress') renderMC(); }, 150); });
+}
+function restore() {
+  const saved = Store.load();
+  let restored = false;
+  if (saved && typeof saved === 'object' && saved.schema === 'firmgap.store.v2') {
+    if (Array.isArray(saved.scenarios)) for (const s of saved.scenarios.slice(0, MAX_SCEN)) {
+      if (!s || typeof s !== 'object' || !s.params || !s.kpis) continue;
+      const san = sanitizeParams(s.params);
+      state.scenarios.push({ id: cleanText(s.id || ('sc-' + Math.random().toString(36).slice(2)), 40), name: cleanText(s.name, 80) || 'restored', savedAt: typeof s.savedAt === 'string' && !isNaN(Date.parse(s.savedAt)) ? new Date(s.savedAt).toISOString() : new Date().toISOString(), modelVersion: cleanText(s.modelVersion, 40), appVersion: cleanText(s.appVersion, 40), fingerprint: fingerprint(san.p), params: san.p, kpis: sanitizeKpis(s.kpis), guard: s.guard && typeof s.guard === 'object' ? { violations: (s.guard.violations || []).map(x => cleanText(x, 12)).slice(0, 30), warnings: (s.guard.warnings || []).map(x => cleanText(x, 12)).slice(0, 30) } : { violations: [], warnings: [] } });
+    }
+    if (Array.isArray(saved.audit)) state.audit = saved.audit.slice(-MAX_AUDIT).filter(a => a && typeof a === 'object').map(a => ({ ts: typeof a.ts === 'string' && !isNaN(Date.parse(a.ts)) ? a.ts : new Date().toISOString(), action: cleanText(a.action, 40), detail: cleanText(a.detail, 300), fp: cleanText(a.fp, 24), model: cleanText(a.model, 40) }));
+    if (saved.current && typeof saved.current === 'object') { applyParams(saved.current, { silent: true }); restored = true; }
+  }
+  if (!restored) applyParams(Object.assign({}, CASE_STATED, WORLDS[1].patch, DESIGNS[0].patch), { silent: true });
+  state.flags = {};
+  return restored;
+}
+function sanitizeKpis(k) {
+  const out = {};
+  for (const key of CSV_COLS.slice(4)) { const v = k[key]; out[key] = key === 'verdict' ? cleanText(v, 20) : (typeof v === 'number' && Number.isFinite(v) ? v : null); }
+  out.certified = !!k.certified;
+  return out;
+}
+
+const restored = restore();
+wire();
+state.fp = fingerprint(state.p);
+log('session start', (restored ? 'restored saved inputs' : 'Base Case + robust design') + ' · storage ' + Store.mode);
+recalc();
+setTab('overview');
+})();
+
+</script>
+</body>
+</html>

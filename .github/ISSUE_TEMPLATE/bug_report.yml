@@ -1,0 +1,23 @@
+name: Bug report
+description: Wrong number, crash, or unexpected behaviour
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Security issues: do NOT open a public issue. Use Security > Report a vulnerability (see SECURITY.md)."
+  - type: input
+    id: version
+    attributes: { label: firmgap version, placeholder: "firmgap --version" }
+    validations: { required: true }
+  - type: textarea
+    id: command
+    attributes: { label: Exact command or scenario file, render: shell }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: What did you expect, and why? (cite a source if it is a modelling claim) }
+    validations: { required: true }
+  - type: textarea
+    id: actual
+    attributes: { label: What happened instead }
+    validations: { required: true }

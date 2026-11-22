@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kakashi3lite/firmgap/schemas/scenario_snapshot.schema.json",
+  "title": "Immutable scenario snapshot (IC / board record)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "snapshot_id",
+    "version",
+    "model_version",
+    "created_at",
+    "author",
+    "inputs",
+    "inputs_sha256",
+    "results",
+    "state"
+  ],
+  "properties": {
+    "snapshot_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{8,64}$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "supersedes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "model_version": {
+      "type": "string",
+      "pattern": "^firmgap-model \\d+\\.\\d+\\.\\d+$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC, ISO-8601 with Z suffix"
+    },
+    "author": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Canonical validated parameter set (see firmgap params)",
+      "additionalProperties": {
+        "type": [
+          "number",
+          "string"
+        ]
+      }
+    },
+    "inputs_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "data_snapshots": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "load_profile": {
+          "type": "string"
+        },
+        "lmp": {
+          "type": "string"
+        },
+        "signal_history": {
+          "type": "string"
+        }
+      }
+    },
+    "seed_set": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4294967295
+      },
+      "maxItems": 1000
+    },
+    "results": {
+      "type": "object",
+      "required": [
+        "npv",
+        "npv_downside",
+        "p_compliant",
+        "certified"
+      ],
+      "properties": {
+        "npv": {
+          "type": "number"
+        },
+        "npv_downside": {
+          "type": "number"
+        },
+        "p_compliant": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "certified": {
+          "type": "boolean"
+        },
+        "guardrails": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "reviewed",
+        "approved_for_ic",
+        "superseded"
+      ]
+    },
+    "approvals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "by",
+          "at",
+          "role"
+        ],
+        "properties": {
+          "by": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC, ISO-8601 with Z suffix"
+          },
+          "role": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        }
+      }
+    }
+  }
+}

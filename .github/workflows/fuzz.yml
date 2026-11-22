@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Every third-party action is pinned to a full commit SHA (tag in the comment);
+# Dependabot proposes updates. Default token permissions are read-only.
+name: fuzz
+
+on:
+  schedule:
+    - cron: "5 4 * * 3"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scenario-parser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install nightly --profile minimal && cargo install --locked cargo-fuzz
+      - name: Fuzz untrusted scenario input for 10 minutes
+        run: cargo +nightly fuzz run scenario -- -max_total_time=600 -rss_limit_mb=2048

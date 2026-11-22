@@ -1,0 +1,44 @@
+[package]
+name = "firmgap"
+version = "0.2.0"
+edition = "2021"
+rust-version = "1.74"
+description = "Interim non-firm grid energization and curtailment economics simulator for AI data centers: BESS sizing, workload throttling, SLA risk and interconnection-queue delay cost."
+license = "AGPL-3.0-only"
+authors = ["Swanand Tanavade"]
+repository = "https://github.com/kakashi3lite/firmgap"
+homepage = "https://github.com/kakashi3lite/firmgap"
+documentation = "https://github.com/kakashi3lite/firmgap/tree/main/docs"
+readme = "README.md"
+keywords = ["data-center", "curtailment", "battery-storage", "interconnection", "energy"]
+categories = ["science", "simulation", "command-line-utilities"]
+exclude = ["/web", "/fuzz", "/.github", "/scripts"]
+
+[lib]
+name = "firmgap"
+path = "src/lib.rs"
+
+[[bin]]
+name = "firmgap"
+path = "src/main.rs"
+
+# Deliberately empty: zero third-party runtime dependencies keeps the
+# supply-chain attack surface at the Rust standard library only.
+[dependencies]
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+# Positional format args are kept for readability of wide report tables.
+uninlined_format_args = "allow"
+
+# Simulations are numeric loops; light optimisation keeps `cargo test` fast while keeping debug assertions.
+[profile.dev]
+opt-level = 1
+
+[profile.release]
+lto = true
+codegen-units = 1
+overflow-checks = true
+strip = "symbols"

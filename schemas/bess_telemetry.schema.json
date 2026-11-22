@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kakashi3lite/firmgap/schemas/bess_telemetry.schema.json",
+  "title": "BESS telemetry sample",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "site_id",
+    "t",
+    "soc_pct",
+    "p_mw",
+    "p_discharge_avail_mw",
+    "p_charge_avail_mw",
+    "energy_nameplate_mwh"
+  ],
+  "properties": {
+    "site_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,64}$"
+    },
+    "t": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC, ISO-8601 with Z suffix"
+    },
+    "soc_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "soc_min_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Operating floor (reserve)"
+    },
+    "soc_max_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "p_mw": {
+      "type": "number",
+      "minimum": -2000,
+      "maximum": 2000,
+      "description": "Positive = discharge"
+    },
+    "p_discharge_avail_mw": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 2000
+    },
+    "p_charge_avail_mw": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 2000
+    },
+    "c_rate_max": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 4
+    },
+    "energy_nameplate_mwh": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 20000
+    },
+    "inverters_available": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "inverters_total": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "alarms": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "string",
+        "maxLength": 64
+      }
+    },
+    "quality": {
+      "type": "string",
+      "enum": [
+        "good",
+        "estimated",
+        "suspect",
+        "missing"
+      ]
+    }
+  }
+}

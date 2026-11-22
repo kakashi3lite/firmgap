@@ -1,0 +1,7 @@
+# firmgap scenario: stress test of the right-sized bridge
+# Deeper curtailment (15 MW ceiling) and a harsher congestion year (260 signal hours).
+preset = "right-sized"
+
+ceiling_mw = 15
+stress_hours = 260
+seed = 2026

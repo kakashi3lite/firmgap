@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kakashi3lite/firmgap/schemas/curtailment_signal.schema.json",
+  "title": "Utility curtailment signal (OpenADR 3-compatible envelope)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "program_id",
+    "issued_at",
+    "start",
+    "duration_minutes",
+    "ceiling_mw",
+    "signature"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "program_id": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC, ISO-8601 with Z suffix"
+    },
+    "start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC, ISO-8601 with Z suffix"
+    },
+    "duration_minutes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2880
+    },
+    "ceiling_mw": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5000
+    },
+    "notice_seconds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ack_deadline": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC, ISO-8601 with Z suffix"
+    },
+    "ramp_limit_mw_per_min": {
+      "type": "number",
+      "minimum": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "active",
+        "modified",
+        "cancelled",
+        "completed"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "openadr3",
+        "utility_api",
+        "manual_verified"
+      ]
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alg",
+        "kid",
+        "value"
+      ],
+      "properties": {
+        "alg": {
+          "type": "string",
+          "enum": [
+            "ES256",
+            "EdDSA",
+            "RS256"
+          ]
+        },
+        "kid": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 4096
+        }
+      }
+    }
+  }
+}

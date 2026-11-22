@@ -1,0 +1,60 @@
+# firmgap scenario: KilowattBridge case study inputs, stated explicitly.
+# Identical to the built-in defaults; useful as a template for a new site.
+
+# interconnection & phasing
+queue_months = 38
+interim_month = 4
+interim_mw = 22
+ceiling_mw = 22
+bess_lead = 6
+horizon = 60
+
+# campus load & workload flexibility
+target_mw = 45
+util = 0.78
+defer_share = 0.35
+fast_cap = 0.10
+ramp_min = 4
+sla_window = 4
+max_throttle_h = 4
+
+# grid stress & tariff
+stress_hours = 180
+avg_event_h = 3.5
+base_price = 68
+stress_price = 310
+penalty = 450
+
+# bridge assets
+bess_mw = 23
+bess_h = 4
+bess_cost = 285
+bess_power_cost = 250
+rte = 0.88
+gen_mw = 0
+gen_cap_h = 50
+gen_cost = 290
+gen_rental = 65
+
+# finance
+carry = 145000
+wacc = 0.09
+life = 10
+sla_target = 0.015
+
+# engineering derates (v0.2; these values reproduce model v0.1)
+safety_margin = 0
+bess_derate = 1
+soc_window = 1
+
+# investor layer (v0.2)
+defer_cost = 0
+sla_penalty = 0
+salvage = 0
+margin_pre_energy = 320   # ASSUMPTION: replace with contracted figures
+sw_setup = 250000
+sw_price_mw_month = 1500
+mc_seeds = 24
+
+strategy = "throttle"
+seed = 2026

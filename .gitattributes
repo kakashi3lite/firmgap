@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.rs diff=rust
+LICENSE -diff linguist-documentation
+web/index.html linguist-detectable=true

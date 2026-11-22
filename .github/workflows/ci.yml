@@ -1,0 +1,99 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Every third-party action is pinned to a full commit SHA (tag in the comment);
+# Dependabot proposes updates. Default token permissions are read-only.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install stable Rust (rustup is preinstalled on hosted runners)
+        run: rustup toolchain install stable --profile minimal --component clippy,rustfmt && rustup default stable
+      - name: Format
+        if: matrix.os == 'ubuntu-latest'
+        run: cargo fmt --all --check
+      - name: Lint
+        run: cargo clippy --all-targets --locked -- -D warnings
+      - name: Test (unit, invariants, golden parity, CLI)
+        run: cargo test --all-targets --locked
+      - name: Doc tests
+        run: cargo test --doc --locked
+      - name: Release build
+        run: cargo build --release --locked
+      - name: Smoke-run the binary
+        shell: bash
+        run: |
+          ./target/release/firmgap run --preset right-sized --json > out.json
+          grep -q '"certified":true' out.json
+          ./target/release/firmgap optimise --fixed-hold > /dev/null
+          ./target/release/firmgap diligence --world base --design robust -n 4 --json > dd.json
+          grep -q '"verdict":"CONDITIONAL"' dd.json
+          ./target/release/firmgap diligence --world base --design edge -n 4 | grep -q 'VERDICT: NOT INVESTABLE'
+
+  msrv:
+    name: msrv
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install 1.74 --profile minimal
+      # Zero dependencies: regenerate the lockfile with the MSRV toolchain itself.
+      - run: rm -f Cargo.lock && cargo +1.74 test --all-targets
+
+  web-parity:
+    name: web-parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Reference JavaScript model still reproduces tests/golden.json
+        run: node scripts/golden.mjs --check
+
+  supply-chain:
+    name: supply-chain
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install stable --profile minimal && rustup default stable
+      - name: Install cargo-deny and cargo-audit
+        run: cargo install --locked cargo-deny cargo-audit
+      - name: Licenses, bans, sources, advisories
+        run: cargo deny check
+      - name: RustSec advisories
+        run: cargo audit
+      - name: Zero runtime dependencies guard
+        run: |
+          n=$(cargo tree --edges normal --prefix none --locked | sort -u | wc -l)
+          test "$n" -eq 1 || { echo "unexpected runtime dependency added:"; cargo tree --edges normal; exit 1; }

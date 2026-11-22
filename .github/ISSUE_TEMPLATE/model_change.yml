@@ -1,0 +1,19 @@
+name: Model change proposal
+description: Propose a change to dispatch rules, economics or defaults
+labels: [model]
+body:
+  - type: textarea
+    id: change
+    attributes: { label: Proposed change }
+    validations: { required: true }
+  - type: textarea
+    id: evidence
+    attributes: { label: Evidence (tariff, ISO rule, paper, field data) with links }
+    validations: { required: true }
+  - type: checkboxes
+    id: parity
+    attributes:
+      label: Parity
+      options:
+        - label: I understand the web model and Rust kernel must change together and tests/golden.json must be regenerated (docs/CONTEXT_MAP.md).
+          required: true

@@ -1,0 +1,15 @@
+# firmgap scenario: Base Case world + robust design, stated explicitly (model 0.2).
+# Equivalent to: firmgap diligence --world base --design robust
+preset = "case"
+
+# realistic engineering derates
+safety_margin = 0.5     # MW control deadband below the ceiling
+soc_window = 0.9        # usable share of nameplate energy
+bess_derate = 0.95      # power availability in every event
+defer_cost = 25         # $/MWh paid to workload owners
+
+# robust bridge design
+bess_mw = 18.5
+bess_h = 2
+max_throttle_h = 12
+strategy = "throttle"

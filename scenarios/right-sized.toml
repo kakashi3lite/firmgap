@@ -1,0 +1,8 @@
+# firmgap scenario: right-sized hybrid bridge (optimiser result for the case study)
+# Format: flat `key = value` (TOML subset). Run `firmgap params` for every key.
+preset = "case"
+
+bess_mw = 13.5          # MW
+bess_h = 2              # hours  -> 27 MWh
+max_throttle_h = 12     # let batch work stay deferred through long events
+strategy = "throttle"   # throttle-first, BESS covers the first minutes and the residual
