@@ -44,6 +44,8 @@ pub enum Error {
     Io(String),
     /// Bad command-line usage.
     Usage(String),
+    /// An audit dossier failed integrity verification (tampered, truncated or malformed).
+    Integrity(String),
 }
 
 impl fmt::Display for Error {
@@ -63,6 +65,7 @@ impl fmt::Display for Error {
             Error::Parse { line, message } => write!(f, "scenario line {}: {}", line, s(message)),
             Error::Io(m) => write!(f, "i/o error: {}", s(m)),
             Error::Usage(m) => write!(f, "{}", m),
+            Error::Integrity(m) => write!(f, "dossier integrity check failed: {}", s(m)),
         }
     }
 }

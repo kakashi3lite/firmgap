@@ -54,6 +54,19 @@ jobs:
           ./target/release/firmgap diligence --world base --design robust -n 4 --json > dd.json
           grep -q '"verdict":"CONDITIONAL"' dd.json
           ./target/release/firmgap diligence --world base --design edge -n 4 | grep -q 'VERDICT: NOT INVESTABLE'
+          ./target/release/firmgap audit --scenario scenarios/ercot-sb6-100mw-compliant.toml --jurisdiction ercot-sb6 --out dossier.json | grep -q 'VERDICT: BankablePass'
+          ./target/release/firmgap audit --verify dossier.json
+          ./target/release/firmgap audit --scenario scenarios/ercot-sb6-illegal-stack.toml --jurisdiction ercot-sb6 | grep -q 'VERDICT: StatutoryBlocker'
+          sed 's/"gross_peak_mw":100/"gross_peak_mw":200/' dossier.json > tampered.json
+          if ./target/release/firmgap audit --verify tampered.json; then echo "tampered dossier was accepted"; exit 1; fi
+          ./target/release/firmgap compare-jurisdictions --scenario scenarios/ercot-sb6-100mw-compliant.toml --format markdown | grep -q 'ES-RD-1032'
+          ./target/release/firmgap batch-audit --dir scenarios --jurisdiction all --format markdown --timings > batch.md
+          grep -q 'firmgap batch audit' batch.md
+          ./target/release/firmgap rulepacks > /dev/null
+      - name: Performance report (informational on shared runners)
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: FIRMGAP_MAX_AUDIT_MS=50 FIRMGAP_MAX_BATCH_MS=5000 bash scripts/bench.sh
 
   msrv:
     name: msrv
@@ -75,7 +88,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Reference JavaScript model still reproduces tests/golden.json
+      - name: Repository hygiene (to-do markers, HTML sinks in hostile-input UI, SHA-pinned actions)
+        run: bash scripts/hygiene.sh
+      - name: Reference JavaScript model reproduces tests/golden.json, golden_v2.json and golden_audit.json (dossier, matrix and proof-link parity)
         run: node scripts/golden.mjs --check
 
   supply-chain:

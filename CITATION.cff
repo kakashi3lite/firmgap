@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use firmgap in research or a filing, please cite it."
 title: "firmgap: interim non-firm grid energization and curtailment economics simulator for AI data centers"
-version: 0.2.0
+version: 0.4.0
 date-released: 2026-11-22
 license: AGPL-3.0-only
 repository-code: "https://github.com/kakashi3lite/firmgap"

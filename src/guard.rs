@@ -294,3 +294,23 @@ pub fn verdict(findings: &[Finding], mc_evaluated: bool) -> Verdict {
 pub fn codes(findings: &[Finding]) -> Vec<String> {
     findings.iter().map(|f| format!("{}:{}", f.sev.letter(), f.code)).collect()
 }
+
+/// Map a compliance report onto guardrail findings (failed blockers become violations, failed
+/// warnings become warnings). Separate from [`guardrails`] so existing verdicts are unchanged.
+pub fn compliance_findings(rep: &crate::compliance::ComplianceReport) -> Vec<Finding> {
+    use crate::compliance::Severity as C;
+    rep.checks
+        .iter()
+        .filter(|c| !c.passed)
+        .map(|c| Finding {
+            sev: match c.severity {
+                C::Blocker => Severity::Violation,
+                C::Warning => Severity::Warning,
+                C::Info => Severity::Info,
+            },
+            code: c.rule_id.code(),
+            title: format!("{} failed", c.rule_id.code()),
+            detail: c.summary.clone(),
+        })
+        .collect()
+}

@@ -103,6 +103,13 @@ pub fn bess_capex(p: &Params) -> f64 {
     p.bess_mw * 1000.0 * p.bess_power_cost + p.bess_mw * p.bess_h * 1000.0 * e_rate
 }
 
+/// Two-part BESS cost for an explicit power (MW) and energy (MWh) block, same calibration as
+/// [`bess_capex`]. Used by the shedding curve and compliance remediations.
+pub fn bess_capex_power_energy(p: &Params, mw: f64, mwh: f64) -> f64 {
+    let e_rate = (p.bess_cost - p.bess_power_cost / 4.0).max(0.0);
+    mw * 1000.0 * p.bess_power_cost + mwh * 1000.0 * e_rate
+}
+
 /// Capital recovery factor.
 pub fn crf(r: f64, n: f64) -> f64 {
     if r == 0.0 {

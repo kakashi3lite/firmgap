@@ -18,7 +18,10 @@
 //! * every value goes through [`Params::set`], which enforces type, finiteness
 //!   and range; the final set is checked by [`Params::validate`];
 //! * no includes, no environment expansion, no paths, no code.
+//! * compliance site keys (booleans `true` / `false` and ranged numbers) are accepted alongside
+//!   simulation parameters; see `firmgap audit`.
 
+use crate::compliance::{ComplianceVerdict, JurisdictionRulepack, SiteInputs};
 use crate::error::Error;
 use crate::params::Params;
 use crate::presets;
@@ -86,14 +89,66 @@ pub fn sanitize(s: &str) -> String {
     s.chars().take(160).map(|c| if c.is_ascii_graphic() || c == ' ' { c } else { '?' }).collect()
 }
 
-/// Apply parsed pairs onto `p`. A `preset` key is applied before all others.
+/// Apply parsed pairs onto `p`. A `preset` key is applied before all others. Compliance site keys
+/// (see [`crate::compliance::SITE_SPECS`]) are validated and then ignored; use [`apply_with_site`]
+/// to keep them.
 pub fn apply(p: &mut Params, pairs: &[(String, String)]) -> Result<(), Error> {
+    let mut site = SiteInputs::default();
+    apply_with_site(p, &mut site, pairs)
+}
+
+/// Scenario metadata keys: validated, never part of the simulation inputs or the dossier hash.
+pub const META_KEYS: [&str; 2] = ["jurisdiction", "expected_verdict"];
+
+/// Optional scenario metadata.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct ScenarioMeta {
+    /// Default rulepack for `firmgap audit` (`jurisdiction = "ercot-sb6"`).
+    pub jurisdiction: Option<JurisdictionRulepack>,
+    /// Verdict the file is expected to produce under that rulepack (fixtures and demo blockers).
+    pub expected_verdict: Option<ComplianceVerdict>,
+}
+
+/// Read and validate the metadata keys.
+pub fn metadata(pairs: &[(String, String)]) -> Result<ScenarioMeta, Error> {
+    let mut m = ScenarioMeta::default();
+    for (k, v) in pairs {
+        let value = v.trim().trim_matches('"').trim_matches('\'');
+        match k.as_str() {
+            "jurisdiction" => {
+                m.jurisdiction = Some(JurisdictionRulepack::parse(value).ok_or_else(|| Error::InvalidValue {
+                    key: k.clone(),
+                    value: value.to_string(),
+                    reason: "unknown jurisdiction (run `firmgap rulepacks`)",
+                })?);
+            }
+            "expected_verdict" => {
+                m.expected_verdict = Some(ComplianceVerdict::parse(value).ok_or_else(|| Error::InvalidValue {
+                    key: k.clone(),
+                    value: value.to_string(),
+                    reason: "expected BankablePass, ConditionalWarning or StatutoryBlocker",
+                })?);
+            }
+            _ => {}
+        }
+    }
+    Ok(m)
+}
+
+/// Apply parsed pairs onto simulation parameters and compliance site inputs. Metadata keys are
+/// validated and skipped.
+pub fn apply_with_site(p: &mut Params, site: &mut SiteInputs, pairs: &[(String, String)]) -> Result<(), Error> {
+    metadata(pairs)?;
     if let Some((_, v)) = pairs.iter().find(|(k, _)| k == "preset") {
         let name = v.trim().trim_matches('"').trim_matches('\'');
         presets::apply(p, name)?;
     }
-    for (k, v) in pairs.iter().filter(|(k, _)| k != "preset") {
-        p.set(k, v)?;
+    for (k, v) in pairs.iter().filter(|(k, _)| k != "preset" && !META_KEYS.contains(&k.as_str())) {
+        if SiteInputs::is_site_key(k) {
+            site.set(k, v)?;
+        } else {
+            p.set(k, v)?;
+        }
     }
     Ok(())
 }
@@ -124,6 +179,27 @@ mod tests {
         assert_eq!(p.bess_mw, 13.5);
         assert_eq!(p.seed, 7);
         p.validate().unwrap();
+    }
+
+    #[test]
+    fn metadata_is_validated_and_kept_out_of_inputs() {
+        let pairs = parse("jurisdiction = \"es-rd\"  # meta\nexpected_verdict = \"StatutoryBlocker\"\nbess_mw = 20\n").unwrap_or_default();
+        let m = metadata(&pairs);
+        assert!(matches!(
+            m,
+            Ok(ScenarioMeta {
+                jurisdiction: Some(JurisdictionRulepack::SpainRd2026),
+                expected_verdict: Some(ComplianceVerdict::StatutoryBlocker)
+            })
+        ));
+        let mut p = Params::default();
+        let mut site = SiteInputs::default();
+        assert!(apply_with_site(&mut p, &mut site, &pairs).is_ok());
+        assert_eq!(p.bess_mw, 20.0);
+        let bad = parse("jurisdiction = \"mars\"\n").unwrap_or_default();
+        assert!(apply_with_site(&mut p, &mut site, &bad).is_err());
+        let bad = parse("expected_verdict = \"Fine\"\n").unwrap_or_default();
+        assert!(metadata(&bad).is_err());
     }
 
     #[test]

@@ -136,3 +136,191 @@ fn downside_is_never_better_than_certified_bridge() {
     assert!(r.inv.npv_fail < r.inv.npv);
     assert!(r.inv.npv_fail >= -r.inv.capex_at_risk - 1e-6, "downside cannot lose more than the BESS capex");
 }
+
+// ---------------- model 0.3: shedding curve, SB 6 security, SHA-256, dossier integrity ----------------
+
+fn site_with(pairs: &[(&str, &str)]) -> firmgap::SiteInputs {
+    let mut s = firmgap::SiteInputs::default();
+    for (k, v) in pairs {
+        s.set(k, v).unwrap();
+    }
+    s
+}
+
+#[test]
+fn shedding_curve_is_monotonically_non_increasing_in_duration() {
+    let p = Params::default();
+    for u_min in ["0", "0.2", "0.4", "0.7", "1"] {
+        for slack in ["0", "0.1", "0.5", "1", "2", "4", "12"] {
+            for share in ["0", "0.2", "0.4", "0.8"] {
+                for beta in ["0.3", "0.75", "1"] {
+                    let st =
+                        site_with(&[("u_min", u_min), ("sla_slack_hours", slack), ("flexible_share", share), ("beta", beta)]).resolve(&p);
+                    let c = firmgap::shed_curve(&st, &p);
+                    for w in c.points.windows(2) {
+                        assert!(
+                            w[1].certified_shed_mw <= w[0].certified_shed_mw + 1e-12,
+                            "u_min {u_min} slack {slack} share {share} beta {beta}: {:?}",
+                            c.points
+                        );
+                    }
+                    for pt in &c.points {
+                        assert!(pt.certified_shed_mw >= 0.0 && pt.certified_shed_mw <= st.gross_peak_mw + 1e-9);
+                        assert!(pt.target_shed_mw <= pt.certified_shed_mw + 1e-12);
+                    }
+                    assert!(c.capex_avoided_usd >= -1e-6, "shedding can only reduce BESS capex");
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn sb6_security_posting_is_invariant_to_bess_size() {
+    use firmgap::compliance::{compliance_report, JurisdictionRulepack};
+    let site = site_with(&[("gross_peak_mw", "100")]);
+    let mut seen = None;
+    for mw in [0.0, 5.0, 23.0, 60.0, 200.0] {
+        let p = Params { target_mw: 100.0, interim_mw: 60.0, ceiling_mw: 60.0, bess_mw: mw, ..Params::default() };
+        let r = run(&p, false).unwrap();
+        let rep = compliance_report(JurisdictionRulepack::ErcotSb6_2026, &site.resolve(&p), &p, &r);
+        let sec = rep.financial_drag.security_locked_usd;
+        assert_eq!(sec, 5_000_000.0, "security uses gross requested peak, not net of storage");
+        assert_eq!(*seen.get_or_insert(sec), sec);
+    }
+}
+
+#[test]
+fn sha256_vectors_and_dossier_determinism() {
+    use firmgap::audit_bundle::build_dossier;
+    use firmgap::compliance::JurisdictionRulepack;
+    assert_eq!(firmgap::sha256_hex(b"abc"), "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+    assert_eq!(firmgap::sha256_hex(b""), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+    let p = Params::default();
+    let site = site_with(&[("gross_peak_mw", "80")]);
+    let a = build_dossier(JurisdictionRulepack::ErcotSb6_2026, &p, &site, "x.toml").unwrap();
+    let b = build_dossier(JurisdictionRulepack::ErcotSb6_2026, &p, &site, "x.toml").unwrap();
+    assert_eq!(a.text, b.text);
+    assert_eq!(a.sha256, b.sha256);
+    assert!(firmgap::verify_text(&a.text).unwrap().ok);
+}
+
+#[test]
+fn tampering_any_single_byte_fails_verification() {
+    use firmgap::audit_bundle::build_dossier;
+    use firmgap::compliance::JurisdictionRulepack;
+    let p = Params::default();
+    let d = build_dossier(JurisdictionRulepack::ErcotSb6_2026, &p, &site_with(&[("gross_peak_mw", "90")]), "t.toml").unwrap();
+    let bytes = d.text.as_bytes();
+    // the final newline is outside the JSON value and is not covered by the hash
+    for i in 0..bytes.len() - 1 {
+        let mut t = bytes.to_vec();
+        t[i] = if t[i] == b'x' { b'y' } else { b'x' };
+        let text = String::from_utf8(t).unwrap();
+        let intact = firmgap::verify_text(&text).map(|v| v.ok).unwrap_or(false);
+        assert!(!intact, "tampering byte {i} ({:?}) was not detected", bytes[i] as char);
+    }
+}
+
+// ---------------- model 0.4: registry, portfolio, hostile input ----------------
+
+#[test]
+fn every_rulepack_evaluates_every_listed_rule_and_nothing_else() {
+    use firmgap::compliance::{compliance_report, JurisdictionRulepack};
+    let p = Params::default();
+    let r = run(&p, true).unwrap();
+    for gross in ["1", "8", "45", "100"] {
+        let st = site_with(&[("gross_peak_mw", gross), ("backup_gen_mw", "5")]).resolve(&p);
+        for rp in JurisdictionRulepack::ALL {
+            let rep = compliance_report(rp, &st, &p, &r);
+            assert_eq!(rep.rulepack_id, rp.id());
+            for c in &rep.checks {
+                assert!(rp.rules().contains(&c.rule_id), "{} emitted {} which is not in its rule list", rp.cli_id(), c.rule_id.code());
+                assert!(c.summary.is_ascii() && !c.summary.is_empty());
+                if let Some(v) = c.observed {
+                    assert!(v.is_finite());
+                }
+            }
+            let fd = rep.financial_drag;
+            for v in [fd.security_locked_usd, fd.working_capital_carry_usd, fd.forfeiture_exposure_usd, fd.total_drag_usd] {
+                assert!(v.is_finite() && v >= 0.0);
+            }
+        }
+    }
+}
+
+#[test]
+fn applying_a_resolving_remediation_turns_its_rule_green() {
+    use firmgap::compliance::{compliance_report, ChangeValue, JurisdictionRulepack};
+    let base = [
+        ("gross_peak_mw", "100"),
+        ("backup_gen_mw", "40"),
+        ("pue", "1.3"),
+        ("green_energy_share", "0.3"),
+        ("hourly_renewable_match", "0.5"),
+    ];
+    let p = Params { target_mw: 100.0, interim_mw: 60.0, ceiling_mw: 60.0, ..Params::default() };
+    let r = run(&p, true).unwrap();
+    let mut applied = 0;
+    for rp in JurisdictionRulepack::ALL {
+        let site = site_with(&base);
+        let rep = compliance_report(rp, &site.resolve(&p), &p, &r);
+        for o in rep.remediations.iter().filter(|o| o.resolves) {
+            let mut s2 = site.clone();
+            let mut p2 = p.clone();
+            for (k, v) in &o.changes {
+                match v {
+                    ChangeValue::Num(x) if firmgap::compliance::SiteInputs::is_site_key(k) => s2.set_value(k, *x).unwrap(),
+                    ChangeValue::Num(x) => p2.set_f64(k, *x).unwrap(),
+                    ChangeValue::Bool(b) => s2.set_value(k, if *b { 1.0 } else { 0.0 }).unwrap(),
+                }
+            }
+            let r2 = run(&p2, true).unwrap();
+            let rep2 = compliance_report(rp, &s2.resolve(&p2), &p2, &r2);
+            let after = rep2.checks.iter().find(|c| c.rule_id == o.rule_id).unwrap();
+            assert!(after.passed, "{}: {} did not resolve {}", rp.cli_id(), o.id, o.rule_id.code());
+            applied += 1;
+        }
+    }
+    assert!(applied >= 3, "expected several resolving remediations, got {applied}");
+}
+
+#[test]
+fn batch_audit_is_deterministic_and_bounded() {
+    use firmgap::{batch_audit, BatchSelection};
+    let a = batch_audit("scenarios", BatchSelection::All).unwrap();
+    let b = batch_audit("scenarios/", BatchSelection::All).unwrap();
+    assert_eq!(a.text, b.text, "trailing slash must not change the batch");
+    assert_eq!(a.errors(), 0);
+    assert_eq!(a.sites.len(), 7);
+    assert!(a.sites.iter().all(|s| s.results.len() == firmgap::compliance::JurisdictionRulepack::ALL.len()));
+    // the declared run matches single-file audits byte for byte
+    let d = batch_audit("scenarios", BatchSelection::Declared).unwrap();
+    let declared: Vec<_> = d.sites.iter().filter(|s| s.error.is_none()).collect();
+    assert_eq!(declared.len(), 3, "three bundled scenarios declare a jurisdiction");
+    assert_eq!(d.unexpected(), 0, "declared verdicts must match expected_verdict");
+    assert!(batch_audit("definitely-not-a-dir", BatchSelection::All).is_err());
+}
+
+#[test]
+fn malformed_and_extreme_inputs_fail_without_panicking() {
+    use firmgap::canon::parse;
+    for txt in ["{", "[[[[", "\u{0}", "{\"a\":1e400}", "\"\\ud800\"", "-", "1e", "{\"a\":[1,2,]}"] {
+        assert!(parse(txt).is_err());
+        assert!(!matches!(firmgap::verify_text(txt), Ok(v) if v.ok));
+    }
+    for tok in ["", "#s=", "#s=****", "#s=e30", "s=AAAA", "https://x/#s=eyJ2IjoxfQ"] {
+        assert!(firmgap::share_decode(tok).is_err(), "accepted {tok:?}");
+    }
+    let mut s = firmgap::SiteInputs::default();
+    for (k, v) in [
+        ("gross_peak_mw", "NaN"),
+        ("gross_peak_mw", "inf"),
+        ("gross_peak_mw", "1e309"),
+        ("pue", "0.5"),
+        ("backup_tier4", "yes"),
+        ("nope", "1"),
+    ] {
+        assert!(s.set(k, v).is_err(), "{k}={v} accepted");
+    }
+}

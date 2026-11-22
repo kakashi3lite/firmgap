@@ -191,3 +191,31 @@ limits on shed and recovery yet):
 * no BESS degradation or augmentation;
 * no demand-charge or capacity-market revenue;
 * SLA breach measured in energy, not per job.
+
+
+---
+
+## 8. Compliance, shedding curve and dossier (models 0.3 and 0.4)
+
+These sit on top of the dispatch model and do not change any number in §1 to §7. Specification,
+citations and limits: [COMPLIANCE.md](COMPLIANCE.md). The equations in brief:
+
+```
+u_bar_k(dt) = min(1, max(u_min_k, max(0, 1 - slack_k/dt)^(1/beta_k)))         SLA-preserving power cap
+certified(dt) = sum_k nominal_k (1 - u_bar_k(dt))                             non-increasing in dt
+u_k(lambda) = clip((lambda / (v_k dt beta_k))^(1/(beta_k - 1)), u_bar_k, 1)   KKT allocation, 64-step bisection
+security = 50,000 $/MW x gross_peak_mw                                        16 TAC 25.194, not netted for BESS
+carry = security x ((1+WACC)^(1/12) - (1+y)^(1/12)) x locked_months           locked_months = months_to_energization
+                                                                              + sum_j interval x max(0, 1 - j x tranche)
+disconnect: max(0, gross - certified(T) - backup) <= BESS_MW_eff  and  x T <= BESS_MWh_eff
+```
+
+Model 0.4 adds, without touching the dispatch model:
+
+```
+Ireland:  MIC = gross_mw / power_factor;  required = MIC - min(renewable_credit, 0.8 MIC)
+          available = backup_mw x gen_derate + usable_BESS_MW x storage_derate          (Blocker if available < required)
+Virginia: exposure = annual_energy_cost x uplift_share                                   (Info, priced)
+GB:       commitment_fee = fee_per_mw x gross_mw   (100% forfeitable; carry over months_to_energization)
+Matrix:   sort by (verdict, failed blockers, failed warnings, qz(total drag), registry order)
+```

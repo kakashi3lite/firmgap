@@ -2,15 +2,15 @@
 <!--
   SPDX-License-Identifier: AGPL-3.0-only
   Copyright (C) 2026 Swanand Tanavade
-  firmgap v0.2: investor-grade queue-bridge & curtailment economics workbench.
+  firmgap v0.4: investor-grade queue-bridge, curtailment economics & compliance workbench.
   Single file, zero third-party code, works offline. The block between
   FIRMGAP-CORE-BEGIN/END is the numerical reference model (golden-tested).
 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none';">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <title>firmgap · Investor-grade Queue-Bridge &amp; Curtailment Economics</title>
 <style>
@@ -159,6 +159,84 @@ canvas { display: block; width: 100%; }
 .chip { display: inline-block; padding: 1px 6px; border-radius: 4px; background: var(--panel2); border: 1px solid var(--border); font-size: 11px; }
 ul.clean { margin: 6px 0 0; padding-left: 18px; color: var(--muted); }
 ul.clean li { margin: 3px 0; }
+.dropzone { margin-top: 10px; border: 1.5px dashed var(--border2); border-radius: 10px; padding: 16px; text-align: center; color: var(--muted); font-size: 12.5px; cursor: pointer; }
+.dropzone:hover, .dropzone:focus { border-color: var(--accent); color: var(--text); outline: none; }
+/* ---- Compliance & bankability war room ---- */
+.cw-zone { position: relative; margin-bottom: 12px; border-radius: 12px; }
+.cw-zone.cw-explain { outline: 1px dashed var(--border2); outline-offset: 4px; }
+.cw-tip { display: flex; gap: 10px; align-items: center; background: var(--panel2); border: 1px solid var(--border2); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; font-size: 12px; color: var(--text); }
+.cw-tip-n { font-weight: 700; white-space: nowrap; }
+.cw-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.cw-lbl { font-size: 11.5px; color: var(--muted); min-width: 92px; }
+.cw-segs { gap: 4px; }
+.cw-seg[aria-pressed="true"] { border-color: var(--text); background: var(--hover); font-weight: 650; }
+.cw-select { width: auto; min-width: 180px; text-align: left; }
+.cw-hero { align-items: stretch; flex-wrap: wrap; }
+.cw-hero .grow { min-width: 260px; }
+.cw-kpis { display: grid; grid-template-columns: repeat(3, minmax(130px, 1fr)); gap: 10px; flex: 1 1 420px; }
+.cw-kpi { border-left: 1px solid var(--border2); padding-left: 10px; }
+.cw-kpi-v { font-size: 22px; font-weight: 700; color: var(--text); margin: 2px 0; }
+.cw-deduce { margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--text); }
+.cw-exec { border-left: 2px solid var(--border2); padding-left: 10px; font-size: 13.5px; }
+.cw-grid { display: grid; grid-template-columns: minmax(0, 35fr) minmax(0, 65fr); gap: 12px; }
+.cw-canvas { display: grid; gap: 12px; min-width: 0; }
+.cw-rail { align-self: start; }
+.cw-rail h3 { margin: 0 0 2px; font-size: 13px; }
+.cw-sec + .cw-sec { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.cw-ctl { padding: 8px 0; border-top: 1px dashed var(--border); }
+.cw-ctl .top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.cw-ctl label { font-size: 12px; }
+.cw-cap { margin: 2px 0 0; font-size: 11.5px; color: var(--muted); }
+.cw-live { margin-top: 3px; font-size: 11.5px; color: var(--text); }
+.cw-val { color: var(--text); }
+.cw-flag { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.cw-list { display: grid; gap: 6px; margin-top: 8px; }
+.cw-rule { border: 1px solid var(--border); border-radius: 8px; background: var(--panel2); }
+.cw-rule.sev-v { border-color: color-mix(in srgb, var(--bad) 45%, transparent); }
+.cw-rule.sev-w { border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
+.cw-rule > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; }
+.cw-rule > summary::-webkit-details-marker { display: none; }
+.cw-rule > summary .badge { justify-self: start; }
+.cw-rule-n { font-weight: 600; }
+.cw-rule-o { color: var(--muted); text-align: right; }
+.cw-drawer { padding: 0 10px 10px 116px; display: grid; gap: 3px; }
+.cw-dt { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-top: 6px; }
+.cw-pathcard { border-color: var(--border2); }
+.cw-paths { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 10px; }
+.cw-path { border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: grid; gap: 6px; align-content: start; background: var(--panel2); }
+.cw-path.rec { border-color: var(--text); }
+.cw-num { font-variant-numeric: tabular-nums; font-size: 12px; }
+.cw-callout { margin-top: 10px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel2); }
+.cw-callout .cw-deduce { margin-top: 2px; }
+.cw-readout { min-height: 16px; margin-top: 4px; }
+.cw-scroll { overflow-x: auto; margin-top: 8px; }
+tr.cw-cur td { background: var(--hover); }
+.cw-ok { border-color: color-mix(in srgb, var(--good) 45%, transparent); }
+.cw-ok .ic { color: var(--good); }
+.cw-break { overflow-wrap: anywhere; word-break: break-word; }
+.cw-trust { margin-top: 8px; }
+[data-panel="compliance"] :focus-visible { outline: 2px solid var(--info); outline-offset: 2px; }
+[data-panel="compliance"] svg g[tabindex]:focus { outline: none; }
+[data-panel="compliance"] svg g[tabindex]:focus circle:last-of-type { stroke: var(--info); stroke-width: 2; }
+.print-memo { display: none; }
+@media (max-width: 980px) { .cw-grid { grid-template-columns: minmax(0, 1fr); } .cw-drawer { padding-left: 10px; } }
+@media (max-width: 640px) { .cw-kpis { grid-template-columns: minmax(0, 1fr); } .cw-rule > summary { grid-template-columns: minmax(0, 1fr); } .cw-rule-o { text-align: left; } .cw-lbl { min-width: 0; width: 100%; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+@media print {
+  @page { size: A4; margin: 16mm 14mm; }
+  body > *:not(#printMemo) { display: none !important; }
+  .print-memo { display: block !important; color: #000; background: #fff; font: 10.5pt/1.4 Georgia, "Times New Roman", serif; }
+  .print-memo h1 { font-size: 16pt; margin: 0 0 4pt; }
+  .print-memo h2 { font-size: 12.5pt; margin: 10pt 0 2pt; }
+  .print-memo h3 { font-size: 11pt; margin: 10pt 0 3pt; border-bottom: 0.5pt solid #999; }
+  .print-memo table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  .print-memo th, .print-memo td { border-bottom: 0.4pt solid #bbb; padding: 2pt 4pt; text-align: left; vertical-align: top; white-space: normal; color: #000; }
+  .print-memo .pm-cite { font-size: 7.5pt; color: #333; }
+  .print-memo .pm-meta { font-size: 8.5pt; color: #333; }
+  .print-memo .pm-verdict { font-weight: 700; font-size: 12pt; }
+  .print-memo .pm-break { page-break-before: always; break-before: page; }
+  .print-memo .pm-stamp { margin-top: 10pt; padding: 6pt; border: 0.6pt solid #000; font: 8pt/1.35 "Courier New", monospace; word-break: break-all; }
+}
 </style>
 </head>
 <body>
@@ -195,6 +273,7 @@ ul.clean li { margin: 3px 0; }
     <button class="tab" role="tab" data-tab="overview" aria-selected="true">IC Overview</button>
     <button class="tab" role="tab" data-tab="inputs" aria-selected="false">Inputs &amp; Guardrails</button>
     <button class="tab" role="tab" data-tab="stress" aria-selected="false">Stress &amp; Break-even</button>
+    <button class="tab" role="tab" data-tab="compliance" aria-selected="false">Compliance &amp; Bankability</button>
     <button class="tab" role="tab" data-tab="dispatch" aria-selected="false">Dispatch Replay</button>
     <button class="tab" role="tab" data-tab="audit" aria-selected="false">Scenarios &amp; Audit</button>
     <button class="tab" role="tab" data-tab="method" aria-selected="false">Method &amp; Self-test</button>
@@ -283,6 +362,85 @@ ul.clean li { margin: 3px 0; }
     </div>
   </section>
 
+  <!-- ================= COMPLIANCE ================= -->
+  <section data-panel="compliance" hidden aria-labelledby="cwTitle">
+    <div class="cw-zone" id="cwZ1">
+      <div class="cw-tip" id="cwTip1" hidden></div>
+      <div class="row between" style="align-items:flex-start">
+        <div><h2 id="cwTitle">Compliance &amp; bankability</h2><p class="sub">Pick the law, a sample campus and who you are. A screening tool, not legal advice: every check shows its citation.</p></div>
+        <button class="btn sm" id="btnExplain" aria-pressed="false">Explain this screen</button>
+      </div>
+      <div class="cw-bar">
+        <span class="cw-lbl" id="cwJurL">Jurisdiction</span>
+        <div class="row cw-segs" id="compJurBar" role="group" aria-labelledby="cwJurL"></div>
+        <label class="cw-lbl" for="jurMore">More corridors</label>
+        <select id="jurMore" class="txt cw-select"><option value="">Choose&hellip;</option><option value="va-sb253">Virginia SB 253</option><option value="uk-neso">GB NESO / Ofgem (proposed)</option><option value="ie-cru">Ireland CRU</option><option value="es-rd">Spain RD 1032/2026</option><option value="sg-gdc">Singapore GDCR / DC-CFA2</option></select>
+      </div>
+      <div class="cw-bar">
+        <span class="cw-lbl" id="cwScenL">Sample campus</span>
+        <div class="row cw-segs" id="compScenBar" role="group" aria-labelledby="cwScenL"></div>
+        <span class="cw-lbl" id="cwRoleL">Role lens</span>
+        <div class="row cw-segs" id="roleLens" role="group" aria-labelledby="cwRoleL"></div>
+      </div>
+    </div>
+
+    <div class="cw-zone" id="cwZ2">
+      <div class="cw-tip" id="cwTip2" hidden></div>
+      <div id="cwHero"></div>
+    </div>
+
+    <div class="cw-zone" id="cwZ3">
+      <div class="cw-tip" id="cwTip3" hidden></div>
+      <div class="cw-grid">
+        <aside class="panel cw-rail" id="rail" aria-label="Inputs"></aside>
+        <div class="cw-canvas">
+          <div class="panel">
+            <h2>Statutory compliance checklist</h2>
+            <p class="cw-cap">Each rule this rulepack applies, with its observed value and limit. Open a row for the citation, why it exists and what it means for you now.</p>
+            <div id="checklist" class="cw-list"></div>
+          </div>
+          <div class="panel cw-pathcard" id="pathCard" hidden aria-live="polite"></div>
+          <div class="panel">
+            <div class="row between"><div><h2>Certified shedding capability curve</h2><p class="cw-cap">Megawatts the campus can shed by GPU power-capping without breaking any SLA, by event length.</p></div><span class="badge b-mute" id="capexBadge"></span></div>
+            <div id="shedSvg"></div>
+            <div class="tiny muted cw-readout" id="curveReadout" aria-live="polite">Hover or tab to a point for its shadow price and the BESS energy it displaces.</div>
+            <div class="cw-callout"><div class="cw-dt">What you can deduce from this curve</div><p class="cw-deduce" id="curveDeduce" aria-live="polite"></p></div>
+          </div>
+          <div class="panel">
+            <h2>Global site comparison</h2>
+            <p class="cw-cap">The same campus under every corridor firmgap models, ranked from most to least bankable. Click a corridor to open it.</p>
+            <div id="matrixBody" class="cw-scroll"></div>
+            <p class="cw-deduce" id="matrixDeduce" aria-live="polite"></p>
+            <div class="tiny muted mono cw-break" id="matrixSha"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cw-zone panel" id="cwZ4">
+      <div class="cw-tip" id="cwTip4" hidden></div>
+      <div class="row between" style="align-items:flex-start">
+        <div><h2>Cryptographic trust bar</h2><p class="cw-cap">Bit-exact match with the <span class="mono">firmgap audit</span> CLI: attach to utility filings or lender data rooms.</p></div>
+        <div class="row">
+          <button class="btn" id="btnDossier">Download signed audit dossier (.json)</button>
+          <button class="btn" id="btnVerifyPick">Verify existing dossier</button>
+          <button class="btn" id="btnShare">Copy proof link</button>
+          <button class="btn" id="btnPrint">Print filing memo</button>
+        </div>
+      </div>
+      <dl class="kv mono small cw-trust">
+        <dt>dossier_sha256</dt><dd id="trustSha" class="cw-break"></dd>
+        <dt>scenario_sha256</dt><dd id="trustScenario" class="cw-break"></dd>
+        <dt>reproduce</dt><dd id="trustRepro" class="cw-break"></dd>
+      </dl>
+      <p class="cw-deduce" id="trustDeduce"></p>
+      <div class="row"><button class="btn sm" id="btnScenToml">Download scenario (.toml)</button><button class="btn sm" id="btnRepro">Copy CLI command</button></div>
+      <div class="dropzone" id="dropZone" tabindex="0" role="button" aria-label="Verify a dossier: drop a file here or press Enter to choose one">Drop a dossier .json here (or press Enter) to check its SHA-256 in this browser<input type="file" id="dossierFile" accept="application/json,.json" hidden></div>
+      <div id="verifyOut" style="margin-top:8px"></div>
+      <div id="shareOut" style="margin-top:8px"></div>
+    </div>
+  </section>
+
   <!-- ================= DISPATCH ================= -->
   <section data-panel="dispatch" hidden>
     <div class="panel">
@@ -358,6 +516,7 @@ ul.clean li { margin: 3px 0; }
   </section>
 </div>
 
+<div id="printMemo" class="print-memo" aria-hidden="true"></div>
 <div class="toast" id="toast" aria-live="polite"></div>
 <div class="modal-bg" id="modal" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -445,7 +604,7 @@ function simulate(p, Y, c) {
   const q = []; let qh = 0;
   const P = c.bessMW, E = c.bessMWh, rte = p.rte;
   const evs = Y.events.map(e => ({ id: e.id, start: e.start, dur: e.dur, peakGap: 0, gapE: 0, thr: 0, bes: 0, gen: 0, short: 0, breach: 0, pass5: true, rampShort: 0 }));
-  const tr = c.trace ? { dem: new Float32Array(HRS), grid: new Float32Array(HRS), thr: new Float32Array(HRS), bes: new Float32Array(HRS), gen: new Float32Array(HRS), short: new Float32Array(HRS), cu: new Float32Array(HRS), chg: new Float32Array(HRS), soc: new Float32Array(HRS) } : null;
+  const F64 = Float64Array; const tr = c.trace ? { dem: new F64(HRS), grid: new F64(HRS), thr: new F64(HRS), bes: new F64(HRS), gen: new F64(HRS), short: new F64(HRS), cu: new F64(HRS), chg: new F64(HRS), soc: new F64(HRS) } : null;
   for (let t = 0; t < HRS; t++) {
     const L = c.cap * Y.u[t]; demand += L;
     const id = Y.ev[t], stress = id >= 0, price = stress ? p.stressPrice : p.basePrice;
@@ -741,7 +900,7 @@ function monteCarlo(p0, n) {
 }
 
 // ===================== firmgap app logic (pure, no DOM) =====================
-const APP_VERSION = 'firmgap-app 0.2.0';
+const APP_VERSION = 'firmgap-app 0.4.0';
 
 const CASE_STATED = {
   queueMonths: 38, interimMW: 22, interimMonth: 4, bessLead: 6, horizon: 60, ceilingMW: 22,
@@ -1155,6 +1314,842 @@ function* stressGen(p0) {
   return { p, matrix, tornado, be, intensity, baseNpv, baseOk };
 }
 function stressSuite(p) { return drive(stressGen(p)); }
+
+
+// ===================== firmgap 0.3: compliance, shedding curve, audit dossier (pure, DOM-free) =====================
+// Rust port: src/compliance.rs, src/shed_curve.rs, src/canon.rs, src/audit_bundle.rs. Golden-tested via
+// tests/golden_audit.json. Every number placed in a dossier is quantised to 1e-4 and every string is ASCII, so the
+// canonical JSON (and its SHA-256) is byte-identical between this file and the Rust CLI.
+const ENGINE_VERSION = '0.4.0';
+const DOSSIER_SCHEMA = '1.0.0';
+
+const PARAM_SNAKE = { queueMonths: 'queue_months', interimMonth: 'interim_month', interimMW: 'interim_mw', ceilingMW: 'ceiling_mw', bessLead: 'bess_lead', horizon: 'horizon', targetMW: 'target_mw', util: 'util', deferShare: 'defer_share', fastCap: 'fast_cap', rampMin: 'ramp_min', slaWindow: 'sla_window', maxThrottleH: 'max_throttle_h', stressHours: 'stress_hours', avgEventH: 'avg_event_h', basePrice: 'base_price', stressPrice: 'stress_price', penalty: 'penalty', bessMW: 'bess_mw', bessH: 'bess_h', bessCost: 'bess_cost', bessPowerCost: 'bess_power_cost', rte: 'rte', genMW: 'gen_mw', genCapH: 'gen_cap_h', genCost: 'gen_cost', genRental: 'gen_rental', carry: 'carry', wacc: 'wacc', life: 'life', slaTarget: 'sla_target', safetyMargin: 'safety_margin', bessDerate: 'bess_derate', socWindow: 'soc_window', deferCost: 'defer_cost', slaPenalty: 'sla_penalty', salvage: 'salvage', marginPreEnergy: 'margin_pre_energy', swSetup: 'sw_setup', swPriceMWMonth: 'sw_price_mw_month', mcSeeds: 'mc_seeds' };
+const PARAM_CAMEL = Object.fromEntries(Object.entries(PARAM_SNAKE).map(([c, s]) => [s, c]));
+
+// ---------- deterministic numeric helpers (identical in Rust) ----------
+function roundHalfUp(q) { const f = Math.floor(q); return (q - f >= 0.5) ? f + 1 : f; }
+function qz(x) {
+  if (typeof x !== 'number' || !Number.isFinite(x)) return null;
+  const q = x * 1e4;
+  if (Math.abs(q) >= 4.5e15) return x === 0 ? 0 : x;
+  const v = roundHalfUp(q) / 1e4;
+  return v === 0 ? 0 : v;
+}
+function fx(x, d) {
+  if (typeof x !== 'number' || !Number.isFinite(x)) return 'n/a';
+  const scale = d === 0 ? 1 : d === 1 ? 10 : d === 2 ? 100 : d === 3 ? 1000 : 10000;
+  let k = roundHalfUp(x * scale);
+  if (k === 0) k = 0;
+  const neg = k < 0;
+  let s = String(Math.abs(k));
+  if (d > 0) { while (s.length < d + 1) s = '0' + s; s = s.slice(0, s.length - d) + '.' + s.slice(s.length - d); }
+  return (neg ? '-' : '') + s;
+}
+function usdTxt(x) {
+  if (typeof x !== 'number' || !Number.isFinite(x)) return 'n/a';
+  const a = Math.abs(x), sg = x < 0 ? '-' : '';
+  if (a >= 1e6) return sg + '$' + fx(a / 1e6, 2) + 'M';
+  if (a >= 1e3) return sg + '$' + fx(a / 1e3, 1) + 'k';
+  return sg + '$' + fx(a, 0);
+}
+
+// ---------- site profile (compliance inputs) ----------
+// [key, min, max, default (null = derived from simulation params), kind, unit, help]
+const SITE_SPEC = [
+  ['gross_peak_mw', 1, 5000, null, 'num', 'MW', 'Requested (non-coincident) peak demand at the site, NOT netted for on-site BESS or generation. Default: target_mw.'],
+  ['study_fee_usd', 0, 1e8, 100000, 'num', '$', 'Initial transmission screening study fee (statutory minimum $100,000).'],
+  ['security_usd_per_mw', 0, 1e7, 50000, 'num', '$/MW', 'Financial security per MW of requested peak demand (16 TAC 25.194).'],
+  ['forfeiture_share', 0, 1, 0.2, 'num', 'fraction', 'Share of security tied to allocated capacity retained if the request is withdrawn after allocation.'],
+  ['release_tranche_share', 0.01, 1, 0.2, 'num', 'fraction', 'Security returned at energization and at each later SLLIA milestone.'],
+  ['months_to_energization', 0, 120, 24, 'num', 'months', 'ASSUMPTION: months from posting security to energization.'],
+  ['milestone_interval_months', 1, 120, 12, 'num', 'months', 'ASSUMPTION: months between SLLIA release milestones.'],
+  ['collateral_yield', 0, 0.5, 0.04, 'num', 'fraction', 'ASSUMPTION: interest earned on cash collateral (rule floor: 1-month T-bill).'],
+  ['withdraw_probability', 0, 1, 0.1, 'num', 'fraction', 'ASSUMPTION: probability of withdrawing after capacity allocation.'],
+  ['sla_ld_usd_per_mwh', 0, 1e6, 500, 'num', '$/MWh', 'ASSUMPTION: liquidated damages per MWh of SLA-late compute.'],
+  ['reliability_service_mw', 0, 5000, 0, 'num', 'MW', 'MW committed to the ERCOT large-load reliability service (PURA 39.170(b)).'],
+  ['reliability_service_usd_per_mw_year', 0, 1e7, 40000, 'num', '$/MW-yr', 'ASSUMPTION: no market price exists yet; ERCOT is still designing the service.'],
+  ['computational_share', 0, 1, 0.9, 'num', 'fraction', 'Share of site demand that is power-electronic computational load.'],
+  ['backup_gen_mw', 0, 5000, 0, 'num', 'MW', 'On-site backup generation (non-exporting).'],
+  ['backup_deploy_hours_per_year', 0, 8760, 20, 'num', 'h/yr', 'ASSUMPTION: hours/yr ERCOT may direct backup deployment in emergencies.'],
+  ['disconnect_test_minutes', 5, 240, 30, 'num', 'min', 'Planning stress test: duration of a full grid disconnect the campus must survive.'],
+  ['u_min', 0, 1, 0.4, 'num', 'fraction', 'GPU power-cap floor for flexible workloads (fraction of nominal power).'],
+  ['beta', 0.1, 1, 0.75, 'num', '-', 'Speed-power sensitivity exponent: throughput ~ power^beta.'],
+  ['sla_slack_hours', 0, 48, 2, 'num', 'h', 'SLA slack of the batch class (training gets slack x multiplier).'],
+  ['flexible_share', 0, 0.95, null, 'num', 'fraction', 'Share of site load that is flexible batch / training. Default: defer_share.'],
+  ['training_share_of_flexible', 0, 1, 0.5, 'num', 'fraction', 'Share of the flexible load that is training (rest is batch).'],
+  ['training_slack_multiplier', 1, 24, 3, 'num', 'x', 'Training SLA slack = sla_slack_hours x this multiplier.'],
+  ['batch_value_usd_per_mwh', 0, 1e5, 250, 'num', '$/MWh', 'ASSUMPTION: value of batch throughput per MWh of compute.'],
+  ['training_value_usd_per_mwh', 0, 1e5, 150, 'num', '$/MWh', 'ASSUMPTION: value of training throughput per MWh of compute.'],
+  ['critical_value_usd_per_mwh', 0, 1e6, 2000, 'num', '$/MWh', 'ASSUMPTION: value of inference (critical, not sheddable).'],
+  ['required_shed_mw', 0, 5000, null, 'num', 'MW', 'Curtailment the site must deliver. Default: gross_peak_mw - effective ceiling.'],
+  ['bess_degradation_usd_per_mwh', 0, 1000, 20, 'num', '$/MWh', 'ASSUMPTION: BESS cycling (degradation) cost per MWh of throughput.'],
+  ['poi_import_limit_mw', 0, 5000, null, 'num', 'MW', 'Point-of-interconnection import limit. Default: gross_peak_mw.'],
+  ['max_ramp_mw_per_min', 0.1, 1000, 10, 'num', 'MW/min', 'ASSUMPTION: ramp-rate limit in the interconnection agreement.'],
+  ['power_factor', 0.5, 1, 0.98, 'num', '-', 'Site power factor at the POI.'],
+  ['pf_floor', 0.5, 1, 0.95, 'num', '-', 'Minimum power factor in the interconnection agreement.'],
+  ['milestone_energize_month', 0, 240, null, 'num', 'month', 'Staged-energization milestone month. Default: interim_month + bess_lead.'],
+  ['it_power_kw', 0, 5e6, null, 'num', 'kW', 'Installed IT power demand (EED threshold 500 kW). Default: gross_peak_mw x 1000.'],
+  ['pue', 1, 3, 1.3, 'num', '-', 'Power usage effectiveness (reported under EED Annex VII).'],
+  ['pue_target', 1, 3, 1.3, 'num', '-', 'National or contractual PUE target (NOT an EED Art. 12 requirement).'],
+  ['renewable_share', 0, 1, 0.5, 'num', 'fraction', 'Renewable energy share (reported under EED Annex VII).'],
+  ['flex_readiness_target', 0, 1, 0.1, 'num', 'fraction', 'ASSUMPTION: target 1-hour certified shed as a share of gross peak.'],
+  ['participates_in_reliability_service', null, null, false, 'bool', '', 'Enrolled in the ERCOT large-load reliability service (PURA 39.170(b)).'],
+  ['price_responsive_lmp_curtailment', null, null, true, 'bool', '', 'Curtails in response to wholesale prices (LMP arbitrage).'],
+  ['firm_shed_telemetry', null, null, true, 'bool', '', 'Remote curtailment equipment for firm load shed is installed (PURA 39.170(a)).'],
+  ['interconnected_after_2025', null, null, true, 'bool', '', 'Transmission-voltage load interconnected after 2025-12-31.'],
+  ['ride_through_certified', null, null, false, 'bool', '', 'NOGRR 282 voltage / frequency ride-through demonstrated.'],
+  ['backup_disclosed', null, null, true, 'bool', '', 'On-site backup generation disclosed to the utility and ERCOT.'],
+  ['eed_metering_ready', null, null, true, 'bool', '', 'Metering and data collection for EED Annex VII KPIs in place.'],
+  ['renewable_disclosed', null, null, true, 'bool', '', 'Renewable energy share disclosure prepared.'],
+  ['va_rate_uplift_share', 0, 1, 0.158, 'num', 'fraction', 'ASSUMPTION: rate increase for the high-load class if the SCC approves the SB 253 cost shift (SCC staff estimate reported in press).'],
+  ['uk_commitment_fee_usd_per_mw', 0, 1e7, 20000, 'num', '$/MW', 'ASSUMPTION: proposed GB data-centre commitment fee; Ofgem has not set the amount.'],
+  ['ie_renewable_derated_mw', 0, 5000, 0, 'num', 'MW', 'De-rated MW of additional Irish renewables contracted (up to 80% of MIC can count toward the dispatchable requirement).'],
+  ['ie_storage_derate', 0, 1, 0.5, 'num', 'fraction', 'ASSUMPTION: CRM T-4 de-rating factor for the BESS duration (check the latest auction pack).'],
+  ['ie_gen_derate', 0, 1, 0.9, 'num', 'fraction', 'ASSUMPTION: CRM de-rating factor for on-site generation.'],
+  ['wue_m3_per_mwh', 0, 5, 0.1, 'num', 'm3/MWh', 'Water usage effectiveness (m3 per MWh of IT energy).'],
+  ['hourly_renewable_match', 0, 1, 0.6, 'num', 'fraction', 'Share of consumption matched hour by hour with new renewables (Spain RD 1032/2026).'],
+  ['es_hourly_target', 0, 1, 0.8, 'num', 'fraction', 'Hourly matching target in force for the site (80% end state; transitional steps before 2032).'],
+  ['green_energy_share', 0, 1, 0.5, 'num', 'fraction', 'Share of power from IMDA-approved green-energy pathways (Singapore DC-CFA2).'],
+  ['va_dominion_territory', null, null, true, 'bool', '', 'Served by Dominion Energy Virginia (SB 253 cost-allocation scope).'],
+  ['backup_tier4', null, null, false, 'bool', '', 'Backup generators are EPA Tier IV or equivalent (Virginia HB 507).'],
+  ['uk_gate2_ready', null, null, true, 'bool', '', 'Meets NESO Gate 2 readiness and strategic-alignment criteria.'],
+  ['uk_end_user_evidence', null, null, false, 'bool', '', 'Evidence of a credible end user (proposed Ofgem queue milestone).'],
+  ['uk_long_lead_procured', null, null, false, 'bool', '', 'Long-lead electrical equipment (e.g. switchgear) procured (proposed milestone).'],
+  ['uk_capability_evidence', null, null, true, 'bool', '', 'Financial and technical capability evidence (proposed milestone).'],
+  ['es_interruptible_opt_in', null, null, false, 'bool', '', 'Accepts the transitional path: first to be disconnected when the grid needs it (five years).']
+].map(a => ({ k: a[0], min: a[1], max: a[2], def: a[3], kind: a[4], unit: a[5], help: a[6] }));
+const SITE_BY = Object.fromEntries(SITE_SPEC.map(s => [s.k, s]));
+
+// Clamp / validate an untrusted site object (keeps null for derived fields that are absent).
+function sanitizeSite(raw) {
+  const src = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
+  const site = {}, clamps = [];
+  for (const s of SITE_SPEC) {
+    let v = src[s.k];
+    if (s.kind === 'bool') {
+      if (typeof v === 'string') v = v.trim().toLowerCase() === 'true' ? true : v.trim().toLowerCase() === 'false' ? false : undefined;
+      site[s.k] = typeof v === 'boolean' ? v : s.def;
+      continue;
+    }
+    if (v === undefined || v === null || v === '') { site[s.k] = s.def; continue; }
+    if (typeof v === 'string') v = Number(v.trim());
+    if (typeof v !== 'number' || !Number.isFinite(v)) { clamps.push({ k: s.k, kind: 'invalid' }); site[s.k] = s.def; continue; }
+    if (v < s.min) { clamps.push({ k: s.k, kind: 'clamped', from: v, to: s.min }); v = s.min; }
+    if (v > s.max) { clamps.push({ k: s.k, kind: 'clamped', from: v, to: s.max }); v = s.max; }
+    site[s.k] = v;
+  }
+  return { site, clamps };
+}
+
+// Resolve derived defaults against validated simulation params (camelCase p).
+function resolveSite(site0, p0) {
+  const p = withDefaults(p0), e = effective(p), s = Object.assign({}, site0);
+  const gross = s.gross_peak_mw == null ? p.targetMW : s.gross_peak_mw;
+  s.gross_peak_mw = gross;
+  if (s.flexible_share == null) s.flexible_share = Math.min(0.95, p.deferShare);
+  if (s.required_shed_mw == null) s.required_shed_mw = Math.min(5000, Math.max(0, gross - e.ceiling));
+  if (s.poi_import_limit_mw == null) s.poi_import_limit_mw = Math.min(5000, gross);
+  if (s.milestone_energize_month == null) s.milestone_energize_month = Math.min(240, p.interimMonth + p.bessLead);
+  if (s.it_power_kw == null) s.it_power_kw = Math.min(5e6, gross * 1000);
+  return s;
+}
+
+// ---------- shedding capability curve (KKT dual-price GPU power-capping allocator) ----------
+const SHED_DURATIONS_H = [0.25, 0.5, 1, 2, 4];
+function shedClasses(s) {
+  const P = s.gross_peak_mw, f = s.flexible_share;
+  const nFlex = P * f, nTrain = nFlex * s.training_share_of_flexible, nBatch = nFlex - nTrain;
+  return [
+    { name: 'inference', nominal_mw: P * (1 - f), u_min: 1, beta: s.beta, value_per_mwh: s.critical_value_usd_per_mwh, sla_slack_hours: 0 },
+    { name: 'batch', nominal_mw: nBatch, u_min: s.u_min, beta: s.beta, value_per_mwh: s.batch_value_usd_per_mwh, sla_slack_hours: s.sla_slack_hours },
+    { name: 'training', nominal_mw: nTrain, u_min: s.u_min, beta: s.beta, value_per_mwh: s.training_value_usd_per_mwh, sla_slack_hours: s.sla_slack_hours * s.training_slack_multiplier }
+  ];
+}
+function uBar(c, dt) {
+  const r = Math.max(0, 1 - c.sla_slack_hours / dt);
+  return Math.min(1, Math.max(c.u_min, Math.pow(r, 1 / c.beta)));
+}
+function certifiedShed(classes, dt) { let s = 0; for (const c of classes) s += c.nominal_mw * (1 - uBar(c, dt)); return s; }
+// power cap of class c at dual price lam (cost per MW shed for an event of duration dt)
+function uAt(c, dt, lam, ub) {
+  const k = c.value_per_mwh * dt * c.beta;
+  if (!(k > 0)) return ub;
+  if (c.beta >= 1) return lam >= k ? ub : 1;
+  const u = Math.pow(lam / k, 1 / (c.beta - 1));
+  return Math.min(1, Math.max(ub, u));
+}
+function allocate(classes, dt, target) {
+  const ubs = classes.map(c => uBar(c, dt));
+  const shedAt = lam => { let s = 0; for (let i = 0; i < classes.length; i++) s += classes[i].nominal_mw * (1 - uAt(classes[i], dt, lam, ubs[i])); return s; };
+  if (!(target > 0)) return { lambda: 0, shed: 0 };
+  let hi = 0;
+  for (let i = 0; i < classes.length; i++) {
+    const c = classes[i];
+    if (!(c.nominal_mw > 0) || ubs[i] >= 1) continue;
+    const m = ubs[i] > 0 ? c.value_per_mwh * dt * c.beta * Math.pow(ubs[i], c.beta - 1) : 1e12;
+    if (m > hi) hi = m;
+  }
+  if (!(hi > 0)) return { lambda: 0, shed: shedAt(0) };
+  hi = Math.min(hi, 1e12);
+  let lo = 0;
+  for (let it = 0; it < 64; it++) { const mid = (lo + hi) / 2; if (shedAt(mid) < target) lo = mid; else hi = mid; }
+  return { lambda: hi, shed: shedAt(hi) };
+}
+function capexPE(p, mw, mwh) {
+  const eRate = Math.max(0, p.bessCost - p.bessPowerCost / 4);
+  return mw * 1000 * p.bessPowerCost + mwh * 1000 * eRate;
+}
+function shedCurve(s, p0) {
+  const p = withDefaults(p0), classes = shedClasses(s), R = s.required_shed_mw;
+  const points = SHED_DURATIONS_H.map(dt => {
+    const cert = certifiedShed(classes, dt);
+    const target = Math.min(R, cert);
+    const a = allocate(classes, dt, target);
+    return { duration_min: dt * 60, certified_shed_mw: cert, target_shed_mw: target, marginal_shadow_price_per_mwh: a.lambda / dt, bess_mwh_displaced: cert * dt };
+  });
+  const shedAtH = dt => points[SHED_DURATIONS_H.indexOf(dt)].certified_shed_mw;
+  const p0mw = R, e0 = R * 4;
+  const p1mw = Math.max(0, R - shedAtH(0.5));
+  let e1 = 0;
+  for (const dt of SHED_DURATIONS_H) { const e = Math.max(0, R - shedAtH(dt)) * dt; if (e > e1) e1 = e; }
+  const capexWithout = capexPE(p, p0mw, e0), capexWith = capexPE(p, p1mw, e1);
+  return {
+    classes, points, required_shed_mw: R,
+    bess_mw_without_shed: p0mw, bess_mwh_without_shed: e0, bess_mw_with_shed: p1mw, bess_mwh_with_shed: e1,
+    capex_without_shed_usd: capexWithout, capex_with_shed_usd: capexWith, capex_avoided_usd: capexWithout - capexWith,
+    cycling_cost_avoided_usd_per_year: s.bess_degradation_usd_per_mwh * p.stressHours * Math.min(R, shedAtH(1))
+  };
+}
+
+// ---------- compliance rulepacks ----------
+const RULEPACKS = {
+  'ercot-sb6': { id: 'TX-SB6-16TAC25.194-2026.10', name: 'ERCOT / Texas SB 6 large-load rules' },
+  'ferc-rm26-4': { id: 'US-FERC-RM26-4-2026.01', name: 'FERC RM26-4 large-load interconnection (anticipated terms)' },
+  'eu-eed': { id: 'EU-EED-ART12-2026.01', name: 'EU Energy Efficiency Directive Art. 12 reporting' },
+  'va-sb253': { id: 'US-VA-SB253-2026.06', name: 'Virginia SB 253 high-load cost allocation (+ HB 507, HB 284)' },
+  'uk-neso': { id: 'GB-NESO-OFGEM-DC-2026.09', name: 'GB NESO Gate 2 + Ofgem data-centre connection reforms (proposed)' },
+  'ie-cru': { id: 'IE-CRU-2025-236-2026.05', name: 'Ireland CRU Large Energy Users connection policy' },
+  'es-rd': { id: 'ES-RD-1032-2026.11', name: 'Spain Real Decreto 1032/2026 data-centre connection conditions' },
+  'sg-gdc': { id: 'SG-IMDA-GDCR-DCCFA2-2026.03', name: 'Singapore Green Data Centre Roadmap / DC-CFA2' }
+};
+// Fixed evaluation and tie-break order for comparisons (identical in Rust: JurisdictionRulepack::ALL).
+const JUR_ORDER = ['ercot-sb6', 'ferc-rm26-4', 'va-sb253', 'uk-neso', 'ie-cru', 'es-rd', 'sg-gdc', 'eu-eed'];
+const CIT = {
+  SB6_APPLICABILITY: 'PURA Sec. 37.0561(c) (Tex. SB 6, 2025): 75 MW demand threshold; 16 TAC Sec. 25.194 (PUCT Project 58481, adoption order filed 2026-09-18): requested peak demand is not netted for on-site generation',
+  SB6_FINANCIAL_SECURITY: 'PURA Sec. 37.0561(f): flat study fee of at least $100,000; 16 TAC Sec. 25.194: security of $50,000/MW, 20% of security tied to allocated capacity retained on withdrawal after allocation, 20% returned at energization and the rest in 20% increments per SLLIA milestones, cash collateral earns at least the 1-month T-bill rate',
+  SB6_ILLEGAL_REVENUE_STACK: 'PURA Sec. 39.170(b)(3) (Tex. SB 6): the ERCOT large-load reliability service must exclude any large load that curtails in response to the wholesale price of electricity or participates in a different reliability or ancillary service',
+  SB6_FIRM_SHED_TELEMETRY: 'PURA Sec. 39.170(a) (Tex. SB 6): equipment allowing transmission-voltage load interconnected after 2025-12-31 to be curtailed during firm load shed; ERCOT PGRR 145 Sec. 9.2.5 (breakers under remote transmission-operator control)',
+  SB6_DISCONNECT_30M: 'Planning stress test, not a codified time limit: survival of a firm-load-shed curtailment under PURA Sec. 39.170(a). The PUCT declined to codify a 30-minute curtailment window in the 16 TAC Sec. 25.194 adoption order',
+  ERCOT_NOGRR282: 'ERCOT NOGRR 282, Large Computational Load ride-through (PUCT approved 2026-07-09, effective 2026-08-01); Large Electronic Load = at least 75 MW with at least 50% computational load (NPRR 1308 definition)',
+  SB6_BACKUP_DISCLOSURE: 'PURA Sec. 37.0561 (Tex. SB 6): disclosure of on-site backup generating facilities that can serve at least 50% of on-site demand; ERCOT may direct their deployment or load curtailment in an energy emergency',
+  TCEQ_AIR_PERMIT_CAP: 'Site air permit (TCEQ) run-hour limit; SB 6 does not authorize violating emissions limits; RICE NESHAP 40 CFR 63.6640(f) limits emergency engines to 50 h/yr of non-emergency use',
+  FERC_DOCKET_STATUS: 'FERC Docket RM26-4-000 (DOE large-load ANOPR); 2026-06-18 show-cause orders to six RTOs/ISOs incl. new transmission services for flexible large loads. No final rule: these checks model anticipated interconnection-agreement terms',
+  FERC_POI_IMPORT: 'Interconnection-agreement POI import limit (anticipated flexible large-load service, FERC RM26-4 show-cause orders)',
+  FERC_RAMP_RATE: 'Interconnection-agreement ramp-rate limit (anticipated; NERC large-load reliability guidance)',
+  FERC_POWER_FACTOR: 'Interconnection-agreement power-factor requirement at the POI (anticipated)',
+  FERC_STAGED_ENERGIZATION: 'Interconnection-agreement staged-energization milestone (anticipated)',
+  EED_APPLICABILITY: 'Directive (EU) 2023/1791 Art. 12 and Annex VII; Delegated Regulation (EU) 2024/1364: annual KPI reporting for data centres with installed IT power demand of at least 500 kW (due 15 May each year)',
+  EED_REPORTING_READINESS: 'Directive (EU) 2023/1791 Art. 12(1) and Annex VII; Delegated Regulation (EU) 2024/1364 Annexes I-II (KPI data collection)',
+  EED_PUE: 'PUE is reported under Delegated Regulation (EU) 2024/1364; the target used here is national or contractual, NOT an EED Art. 12 ceiling',
+  EED_RENEWABLE_DISCLOSURE: 'Directive (EU) 2023/1791 Annex VII (renewable energy share and guarantees of origin)',
+  EED_FLEX_READINESS: 'Grid-flexibility readiness score (firmgap metric; 1-hour certified shed / gross peak). Not an EED requirement',
+  VA_APPLICABILITY: 'Va. SB 253 (2026 Session, Lucas), passed with the Governor amendments on 2026-04-22: the SCC may assign PJM capacity-auction and distribution/substation financing costs to high-load customers; 25 MW threshold as reported in bill summaries',
+  VA_COST_ALLOCATION: 'Va. SB 253 (2026): any cost shift requires State Corporation Commission approval; the uplift rate is an assumption based on the SCC staff estimate reported in press',
+  VA_TIER4_BACKUP: 'Va. HB 507 (2026, McAuliff): DEQ must deny data-centre generator air permits submitted after July 2026 unless the units are Tier IV or equivalent',
+  VA_DEMAND_FLEX: 'Va. HB 284 / SB 371 (2026, signed 2026-06-30): Dominion and Appalachian Power must develop voluntary demand-flexibility programs for high-demand customers',
+  UK_GATE2: 'NESO Connections Reform (Gate 2 to Whole Queue; methodologies approved by Ofgem in 2025): a Gate 2 offer requires the readiness and strategic-alignment criteria',
+  UK_END_USER: 'Ofgem consultation Proposed data centre connection reforms (Curate pillar, 2026-07-29 to 2026-09-17, awaiting decision): queue-management milestone - credible end user',
+  UK_LONG_LEAD: 'Ofgem consultation Proposed data centre connection reforms (2026, awaiting decision): queue-management milestone - procurement of long-lead electrical equipment',
+  UK_CAPABILITY: 'Ofgem consultation Proposed data centre connection reforms (2026, awaiting decision): queue-management milestone - financial and technical capability',
+  UK_COMMITMENT_FEE: 'Ofgem consultation Proposed data centre connection reforms (2026, awaiting decision): commitment fee secured from offer acceptance to readiness and not returned if the project fails the rules; amount not yet set',
+  IE_APPLICABILITY: 'CRU/2025/236 Large Energy Users Connection Policy decision (2025-12-12); EirGrid Data Centre Connection Offer Process and Policy v3 (May 2026): tiers at 1 MVA and 10 MVA of Maximum Import Capacity',
+  IE_DISPATCHABLE_MATCH: 'CRU/2025/236: dispatchable on-site or proximate generation and/or storage (MIC of 10 MVA or more) or an autoproducer (1 to 10 MVA) matching MIC on a de-rated CRM T-4 basis and trading in the SEM; up to 80% of the de-rated renewable match may count',
+  IE_RUN_HOURS: 'CRU/2025/236: the units must not be bound by limited run hours outside routine maintenance; the System Operators reduce MIC if availability falls short',
+  IE_RENEWABLE_80: 'CRU/2025/236: at least 80% of annual demand from additional renewable generation in Ireland, six-year glide path from energisation, annual reporting',
+  ES_APPLICABILITY: 'Real Decreto 1032/2026 (BOE 2026-11-21, in force 2026-11-22): data centres with grid access capacity of 10 MW or more, including same-owner groups on one site',
+  ES_PUE: 'RD 1032/2026: PUE of 1.25 or less until the EU data-centre rating label (expected August 2027), enforced two years after start of operation',
+  ES_WUE: 'RD 1032/2026: WUE of 0.1 m3/MWh or less until the EU label, enforced one year after start of operation',
+  ES_HOURLY_RENEWABLE: 'RD 1032/2026: 80% of consumption matched hour by hour with new renewables (plants connected at most 36 months before start) until renewables exceed 90% of the mix; transitional interruptible path for five years; automatic compensation charges and suspension of connection rights for up to three years',
+  ES_REPORTING: 'RD 1032/2026: sites above 500 kW of IT power report efficiency and sustainability data to MITECO each year; above 1 MW they declare EU Code of Conduct adherence',
+  SG_PUE_GDCR: 'IMDA Green Data Centre Roadmap (2024-05-30): PUE target of 1.3 or lower for new data centres',
+  SG_PUE_CFA: 'EDB/IMDA DC-CFA2 (opened 2025-12-01, closed 2026-03-31): best-in-class efficiency; 1.25 PUE at full load as reported for capacity allocations',
+  SG_GREEN_50: 'EDB/IMDA DC-CFA2: at least 50% of power from approved green-energy pathways',
+  SG_CFA_WINDOW: 'EDB/IMDA DC-CFA2 allocated at least 200 MW; its application window closed 2026-03-31'
+};
+
+function mkCheck(rule_id, severity, passed, observed, limit, unit, summary) {
+  return { rule_id, citation: CIT[rule_id], severity, passed, observed, limit, unit, summary };
+}
+function shedAtDuration(s, dt) { return certifiedShed(shedClasses(s), dt); }
+function disconnectNeed(s, p0) {
+  const p = withDefaults(p0), e = effective(p), dt = s.disconnect_test_minutes / 60;
+  const residual = Math.max(0, s.gross_peak_mw - shedAtDuration(s, dt));
+  const needP = Math.max(0, residual - s.backup_gen_mw);
+  const ok = needP <= e.bessMW + 1e-9 && needP * dt <= e.bessMWh + 1e-9;
+  return { dt, residual, needP, needE: needP * dt, ok, bessMW: e.bessMW, bessMWh: e.bessMWh };
+}
+function genHoursFor(p0, Y, mw) {
+  const p = withDefaults(Object.assign({}, p0, { bessMW: mw })), k = effective(p);
+  return simulate(p, Y, { cap: p.targetMW, gridCap: p.targetMW, ceiling: k.ceiling, bessMW: k.bessMW, bessMWh: k.bessMWh, genMW: p.genMW, mode: 'comp' }).genHrs;
+}
+function annuity(rate, n) { return rate === 0 ? n : (1 - Math.pow(1 + rate, -n)) / rate; }
+
+// t = { security, studyFee, forfeitShare, tranches (SLLIA 20% release steps), show (report locked months) }
+function complianceFinancials(s, p0, r, t) {
+  const p = withDefaults(p0);
+  const security = t.security, studyFee = t.studyFee;
+  const rm = Math.pow(1 + p.wacc, 1 / 12) - 1, ry = Math.pow(1 + s.collateral_yield, 1 / 12) - 1;
+  const net = Math.max(0, rm - ry);
+  let lockedMonths = s.months_to_energization;
+  if (t.tranches) {
+    const nTr = Math.ceil(1 / s.release_tranche_share - 1e-9);
+    for (let j = 1; j <= nTr; j++) lockedMonths += s.milestone_interval_months * Math.max(0, 1 - j * s.release_tranche_share);
+  }
+  const carry = security * net * lockedMonths;
+  const exposure = t.forfeitShare * security;
+  const expected = s.withdraw_probability * exposure;
+  const ld = s.sla_ld_usd_per_mwh * r.sims.flex.breach;
+  return { study_fee_usd: studyFee, security_locked_usd: security, security_months_equivalent: t.show ? lockedMonths : 0, working_capital_carry_usd: carry, forfeiture_exposure_usd: exposure, expected_forfeiture_usd: expected, sla_ld_exposure_usd_per_year: ld, total_drag_usd: carry + expected + ld };
+}
+function sb6Terms(s, applicable) { return { security: applicable ? s.security_usd_per_mw * s.gross_peak_mw : 0, studyFee: applicable ? s.study_fee_usd : 0, forfeitShare: s.forfeiture_share, tranches: true, show: applicable }; }
+function noTerms() { return { security: 0, studyFee: 0, forfeitShare: 0, tranches: false, show: false }; }
+
+// Remediations never propose more BESS than the workbench input range (bessMW max 60 MW).
+const REM_MAX_BESS_MW = 60;
+function roundUp(x, step) { return Math.ceil(x / step - 1e-9) * step; }
+
+function complianceReport(jurisdiction, s, p0, r) {
+  const rp = RULEPACKS[jurisdiction];
+  if (!rp) throw new Error('unknown jurisdiction ' + jurisdiction);
+  if (INTL_REPORTS[jurisdiction]) return INTL_REPORTS[jurisdiction](s, withDefaults(p0), r);
+  const p = withDefaults(p0), f = r.sims.flex, checks = [], remediations = [];
+  let applicable = false;
+  if (jurisdiction === 'ercot-sb6') {
+    applicable = s.gross_peak_mw >= 75;
+    checks.push(mkCheck('SB6_APPLICABILITY', 'Info', true, s.gross_peak_mw, 75, 'MW', applicable
+      ? 'Requested peak demand ' + fx(s.gross_peak_mw, 1) + ' MW is at or above 75 MW: large-load standards apply (on-site BESS and generation do not reduce it).'
+      : 'Requested peak demand ' + fx(s.gross_peak_mw, 1) + ' MW is below 75 MW: SB 6 large-load standards do not apply; remaining SB 6 checks are informational.'));
+    const fin = complianceFinancials(s, p, r, sb6Terms(s, applicable));
+    checks.push(mkCheck('SB6_FINANCIAL_SECURITY', 'Info', true, fin.security_locked_usd, null, '$', applicable
+      ? 'Security ' + usdTxt(fin.security_locked_usd) + ' (' + usdTxt(s.security_usd_per_mw) + '/MW x ' + fx(s.gross_peak_mw, 1) + ' MW) plus study fee ' + usdTxt(fin.study_fee_usd) + '; carry ' + usdTxt(fin.working_capital_carry_usd) + ', forfeiture exposure ' + usdTxt(fin.forfeiture_exposure_usd) + '.'
+      : 'Not applicable below 75 MW.'));
+    // revenue stack
+    const both = s.participates_in_reliability_service && s.price_responsive_lmp_curtailment;
+    checks.push(mkCheck('SB6_ILLEGAL_REVENUE_STACK', applicable ? 'Blocker' : 'Info', !(applicable && both), both ? 1 : 0, 0, 'flag', !applicable
+      ? 'Not applicable below 75 MW.'
+      : both ? 'Ineligible stack: the site enrolls in the ERCOT large-load reliability service AND curtails on wholesale prices. Choose one path.'
+             : 'Revenue stack is eligible (reliability service and price-responsive curtailment are not combined).'));
+    if (applicable && both) {
+      const lmpValue = (f.thrE + f.besE) * Math.max(0, p.stressPrice - p.basePrice);
+      const rsValue = s.reliability_service_mw * s.reliability_service_usd_per_mw_year;
+      const af = annuity(p.wacc, 5);
+      const best = lmpValue >= rsValue ? 'A' : 'B';
+      remediations.push({ id: 'PATH_A_LMP_ONLY', rule_id: 'SB6_ILLEGAL_REVENUE_STACK', title: 'Path A: price-responsive (LMP) curtailment only', action: 'Leave the ERCOT large-load reliability service; keep curtailing on wholesale prices.', changes: [{ key: 'participates_in_reliability_service', value: false }], value_usd_per_year: lmpValue, pv_5y_usd: lmpValue * af, delta_vs_other_usd_per_year: lmpValue - rsValue, capex_usd: 0, recommended: best === 'A', resolves: true });
+      remediations.push({ id: 'PATH_B_RELIABILITY_ONLY', rule_id: 'SB6_ILLEGAL_REVENUE_STACK', title: 'Path B: ERCOT reliability service only', action: 'Stop price-responsive curtailment; commit ' + fx(s.reliability_service_mw, 1) + ' MW to the reliability service (24-hour notice, curtailed for the full emergency).', changes: [{ key: 'price_responsive_lmp_curtailment', value: false }], value_usd_per_year: rsValue, pv_5y_usd: rsValue * af, delta_vs_other_usd_per_year: rsValue - lmpValue, capex_usd: 0, recommended: best === 'B', resolves: true });
+    }
+    const needTel = applicable && s.interconnected_after_2025;
+    checks.push(mkCheck('SB6_FIRM_SHED_TELEMETRY', needTel ? 'Blocker' : 'Info', !needTel || s.firm_shed_telemetry, s.firm_shed_telemetry ? 1 : 0, needTel ? 1 : 0, 'flag', !needTel
+      ? 'Not required (below 75 MW or interconnected before 2026).'
+      : s.firm_shed_telemetry ? 'Remote curtailment equipment for firm load shed is in place.' : 'Missing remote curtailment equipment required before interconnection.'));
+    const d = disconnectNeed(s, p);
+    checks.push(mkCheck('SB6_DISCONNECT_30M', applicable ? 'Warning' : 'Info', !applicable || d.ok, d.needP, d.bessMW, 'MW', !applicable
+      ? 'Not applicable below 75 MW.'
+      : (d.ok ? 'Survives a ' : 'Does NOT survive a ') + fx(s.disconnect_test_minutes, 0) + '-minute disconnect: residual load after certified shed ' + fx(d.residual, 2) + ' MW, BESS must supply ' + fx(d.needP, 2) + ' MW / ' + fx(d.needE, 2) + ' MWh (available ' + fx(d.bessMW, 2) + ' MW / ' + fx(d.bessMWh, 2) + ' MWh).'));
+    if (applicable && !d.ok) {
+      const k = effective(p);
+      const derate = p.bessDerate, soc = p.socWindow, h = p.bessH;
+      const mwReq = Math.max(d.needP / derate, d.needE / (h * soc));
+      const mwApply = Math.min(REM_MAX_BESS_MW, roundUp(mwReq, 0.1));
+      const dMW = Math.max(0, mwApply - p.bessMW);
+      remediations.push({ id: 'DISCONNECT_ADD_BESS', rule_id: 'SB6_DISCONNECT_30M', title: 'Add BESS capacity', action: 'Raise BESS to ' + fx(mwApply, 1) + ' MW / ' + fx(mwApply * h, 1) + ' MWh (+' + fx(dMW, 1) + ' MW / +' + fx(dMW * h, 1) + ' MWh).', changes: [{ key: 'bess_mw', value: qz(mwApply) }], value_usd_per_year: 0, pv_5y_usd: 0, delta_vs_other_usd_per_year: 0, capex_usd: capexPE(p, dMW, dMW * h), recommended: false, resolves: mwReq <= REM_MAX_BESS_MW });
+      const okAt = sl => disconnectNeed(Object.assign({}, s, { sla_slack_hours: sl }), p).ok;
+      if (okAt(48)) {
+        let lo = s.sla_slack_hours, hi = 48;
+        for (let it = 0; it < 64; it++) { const mid = (lo + hi) / 2; if (okAt(mid)) hi = mid; else lo = mid; }
+        const slApply = Math.min(48, roundUp(hi, 0.01));
+        remediations.push({ id: 'DISCONNECT_MORE_SLA_SLACK', rule_id: 'SB6_DISCONNECT_30M', title: 'Negotiate more SLA slack for flexible batch', action: 'Raise batch SLA slack from ' + fx(s.sla_slack_hours, 2) + ' h to ' + fx(slApply, 2) + ' h (training x' + fx(s.training_slack_multiplier, 1) + '), so more load is certified sheddable.', changes: [{ key: 'sla_slack_hours', value: qz(slApply) }], value_usd_per_year: 0, pv_5y_usd: 0, delta_vs_other_usd_per_year: 0, capex_usd: 0, recommended: true, resolves: true });
+      }
+      remediations.sort((a, b) => (a.capex_usd - b.capex_usd));
+      let first = true; for (const rm of remediations.filter(x => x.rule_id === 'SB6_DISCONNECT_30M')) { rm.recommended = first && rm.resolves; first = false; }
+    }
+    const lel = applicable && s.computational_share >= 0.5;
+    checks.push(mkCheck('ERCOT_NOGRR282', lel ? 'Warning' : 'Info', !lel || s.ride_through_certified, s.computational_share, 0.5, 'fraction', !lel
+      ? 'Not a Large Electronic Load (below 75 MW or below 50% computational load).'
+      : s.ride_through_certified ? 'Large Electronic Load: ride-through capability demonstrated.' : 'Large Electronic Load: ride-through performance must be demonstrated (NOGRR 282).'));
+    const needDisc = applicable && s.backup_gen_mw >= 0.5 * s.gross_peak_mw;
+    checks.push(mkCheck('SB6_BACKUP_DISCLOSURE', needDisc ? 'Blocker' : 'Info', !needDisc || s.backup_disclosed, s.backup_gen_mw, 0.5 * s.gross_peak_mw, 'MW', !applicable
+      ? 'Not applicable below 75 MW.'
+      : !needDisc ? 'Backup generation below 50% of on-site demand: no SB 6 backup disclosure trigger.'
+      : s.backup_disclosed ? 'Backup generation covers at least 50% of demand and is disclosed.' : 'Backup generation covers at least 50% of demand but is NOT disclosed.'));
+    const hasGen = p.genMW > 0 || s.backup_gen_mw > 0;
+    const deploy = s.backup_gen_mw > 0 ? s.backup_deploy_hours_per_year : 0;
+    const need = f.genHrs + deploy;
+    const permitOk = !hasGen || need <= p.genCapH;
+    checks.push(mkCheck('TCEQ_AIR_PERMIT_CAP', 'Blocker', permitOk, hasGen ? need : 0, p.genCapH, 'h/yr', !hasGen
+      ? 'No on-site generation: no air-permit exposure.'
+      : 'Generators need ' + fx(need, 0) + ' h/yr (' + fx(f.genHrs, 0) + ' h curtailment + ' + fx(deploy, 0) + ' h directed backup) against a permit cap of ' + fx(p.genCapH, 0) + ' h/yr (headroom ' + fx(p.genCapH - need, 0) + ' h).'));
+    if (!permitOk) {
+      if (deploy > p.genCapH) {
+        remediations.push({ id: 'PERMIT_RENEGOTIATE', rule_id: 'TCEQ_AIR_PERMIT_CAP', title: 'Amend the air permit or reduce backup deployment exposure', action: 'Directed backup deployment alone exceeds the permit cap; storage cannot fix this.', changes: [], value_usd_per_year: 0, pv_5y_usd: 0, delta_vs_other_usd_per_year: 0, capex_usd: 0, recommended: true, resolves: false });
+      } else {
+        const okMW = mw => genHoursFor(p, r.Y, mw) + deploy <= p.genCapH;
+        const hiMW = Math.min(REM_MAX_BESS_MW, p.bessMW + s.gross_peak_mw);
+        if (okMW(hiMW)) {
+          let lo = p.bessMW, hi = hiMW;
+          for (let it = 0; it < 64; it++) { const mid = (lo + hi) / 2; if (okMW(mid)) hi = mid; else lo = mid; }
+          const mwApply = Math.min(REM_MAX_BESS_MW, roundUp(hi, 0.1));
+          const dMW = Math.max(0, mwApply - p.bessMW);
+          remediations.push({ id: 'PERMIT_ADD_BESS', rule_id: 'TCEQ_AIR_PERMIT_CAP', title: 'Displace genset hours with BESS', action: 'Raise BESS to ' + fx(mwApply, 1) + ' MW (+' + fx(dMW, 1) + ' MW / +' + fx(dMW * p.bessH, 1) + ' MWh) so generators stay within ' + fx(p.genCapH, 0) + ' h/yr.', changes: [{ key: 'bess_mw', value: qz(mwApply) }], value_usd_per_year: 0, pv_5y_usd: 0, delta_vs_other_usd_per_year: 0, capex_usd: capexPE(p, dMW, dMW * p.bessH), recommended: true, resolves: true });
+        } else {
+          remediations.push({ id: 'PERMIT_RENEGOTIATE', rule_id: 'TCEQ_AIR_PERMIT_CAP', title: 'Amend the air permit or reduce backup deployment exposure', action: 'No BESS size up to ' + fx(hiMW, 0) + ' MW keeps generators within the cap.', changes: [], value_usd_per_year: 0, pv_5y_usd: 0, delta_vs_other_usd_per_year: 0, capex_usd: 0, recommended: true, resolves: false });
+        }
+      }
+    }
+    const verdict = verdictFor(checks);
+    return { rulepack_id: rp.id, jurisdiction, verdict, checks, financial_drag: fin, remediations };
+  }
+  if (jurisdiction === 'ferc-rm26-4') {
+    const tr = r.sims.flex.tr;
+    let maxGrid = 0, maxStep = 0;
+    for (let t = 0; t < HRS; t++) { if (tr.grid[t] > maxGrid) maxGrid = tr.grid[t]; if (t > 0) { const d = Math.abs(tr.grid[t] - tr.grid[t - 1]); if (d > maxStep) maxStep = d; } }
+    const onset = p.rampMin > 0 ? f.maxGap / p.rampMin : 0;
+    const ramp = Math.max(maxStep / 60, onset);
+    checks.push(mkCheck('FERC_DOCKET_STATUS', 'Info', true, null, null, '', 'RM26-4 has no final rule; checks reflect anticipated flexible large-load interconnection terms.'));
+    checks.push(mkCheck('FERC_POI_IMPORT', 'Blocker', maxGrid <= s.poi_import_limit_mw + 1e-9, maxGrid, s.poi_import_limit_mw, 'MW', 'Peak hourly grid import ' + fx(maxGrid, 2) + ' MW vs POI limit ' + fx(s.poi_import_limit_mw, 2) + ' MW.'));
+    checks.push(mkCheck('FERC_RAMP_RATE', 'Warning', ramp <= s.max_ramp_mw_per_min + 1e-9, ramp, s.max_ramp_mw_per_min, 'MW/min', 'Worst ramp ' + fx(ramp, 2) + ' MW/min (event onset ' + fx(onset, 2) + ', hourly ' + fx(maxStep / 60, 2) + ') vs limit ' + fx(s.max_ramp_mw_per_min, 2) + ' MW/min.'));
+    checks.push(mkCheck('FERC_POWER_FACTOR', 'Warning', s.power_factor >= s.pf_floor - 1e-12, s.power_factor, s.pf_floor, '-', 'Power factor ' + fx(s.power_factor, 3) + ' vs floor ' + fx(s.pf_floor, 3) + '.'));
+    const ready = p.interimMonth + p.bessLead;
+    checks.push(mkCheck('FERC_STAGED_ENERGIZATION', 'Warning', ready <= s.milestone_energize_month + 1e-9, ready, s.milestone_energize_month, 'month', 'Bridge ready at month ' + fx(ready, 0) + ' vs milestone month ' + fx(s.milestone_energize_month, 0) + '.'));
+    const fin = complianceFinancials(s, p, r, noTerms());
+    return { rulepack_id: rp.id, jurisdiction, verdict: verdictFor(checks), checks, financial_drag: fin, remediations };
+  }
+  // eu-eed
+  applicable = s.it_power_kw >= 500;
+  const shed1 = shedAtDuration(s, 1), score = s.gross_peak_mw > 0 ? shed1 / s.gross_peak_mw : 0;
+  checks.push(mkCheck('EED_APPLICABILITY', 'Info', true, s.it_power_kw, 500, 'kW', applicable ? 'Installed IT power ' + fx(s.it_power_kw, 0) + ' kW: annual Art. 12 KPI reporting applies.' : 'Below 500 kW: Art. 12 reporting does not apply.'));
+  const sev = applicable ? 'Warning' : 'Info';
+  checks.push(mkCheck('EED_REPORTING_READINESS', sev, !applicable || s.eed_metering_ready, s.eed_metering_ready ? 1 : 0, 1, 'flag', s.eed_metering_ready ? 'KPI metering and data collection in place.' : 'KPI metering not ready for the 15 May reporting deadline.'));
+  checks.push(mkCheck('EED_PUE', sev, !applicable || s.pue <= s.pue_target + 1e-12, s.pue, s.pue_target, '-', 'PUE ' + fx(s.pue, 2) + ' vs target ' + fx(s.pue_target, 2) + ' (national or contractual target).'));
+  checks.push(mkCheck('EED_RENEWABLE_DISCLOSURE', sev, !applicable || s.renewable_disclosed, s.renewable_share, null, 'fraction', 'Renewable share ' + fx(s.renewable_share * 100, 1) + '%' + (s.renewable_disclosed ? ', disclosure prepared.' : ', disclosure NOT prepared.')));
+  checks.push(mkCheck('EED_FLEX_READINESS', sev, !applicable || score >= s.flex_readiness_target - 1e-12, score, s.flex_readiness_target, 'fraction', 'Certified 1-hour shed ' + fx(shed1, 2) + ' MW = ' + fx(score * 100, 1) + '% of gross peak (target ' + fx(s.flex_readiness_target * 100, 1) + '%).'));
+  const fin = complianceFinancials(s, p, r, noTerms());
+  return { rulepack_id: rp.id, jurisdiction, verdict: verdictFor(checks), checks, financial_drag: fin, remediations };
+}
+function verdictFor(checks) {
+  if (checks.some(c => !c.passed && c.severity === 'Blocker')) return 'StatutoryBlocker';
+  if (checks.some(c => !c.passed && c.severity === 'Warning')) return 'ConditionalWarning';
+  return 'BankablePass';
+}
+
+// ---------- canonical JSON + SHA-256 ----------
+function canonValue(v) {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'number') return qz(v);
+  if (typeof v === 'boolean' || typeof v === 'string') return v;
+  if (Array.isArray(v)) return v.map(canonValue);
+  const o = {};
+  for (const k of Object.keys(v).sort()) o[k] = canonValue(v[k]);
+  return o;
+}
+function canonicalJSON(v) {
+  if (v === null) return 'null';
+  if (typeof v === 'number') return Number.isFinite(v) ? JSON.stringify(v) : 'null';
+  if (typeof v === 'boolean') return v ? 'true' : 'false';
+  if (typeof v === 'string') return JSON.stringify(v);
+  if (Array.isArray(v)) return '[' + v.map(canonicalJSON).join(',') + ']';
+  return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + canonicalJSON(v[k])).join(',') + '}';
+}
+function utf8Bytes(str) {
+  if (typeof TextEncoder !== 'undefined') return new TextEncoder().encode(str);
+  const out = [];
+  for (let i = 0; i < str.length; i++) {
+    let c = str.charCodeAt(i);
+    if (c >= 0xd800 && c <= 0xdbff && i + 1 < str.length) { const d = str.charCodeAt(i + 1); if (d >= 0xdc00 && d <= 0xdfff) { c = 0x10000 + ((c - 0xd800) << 10) + (d - 0xdc00); i++; } }
+    if (c < 0x80) out.push(c); else if (c < 0x800) out.push(0xc0 | (c >> 6), 0x80 | (c & 63));
+    else if (c < 0x10000) out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+    else out.push(0xf0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+  }
+  return Uint8Array.from(out);
+}
+const SHA_K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
+function sha256Hex(bytes) {
+  const n = bytes.length, total = ((n + 9 + 63) >> 6) << 6, m = new Uint8Array(total);
+  m.set(bytes); m[n] = 0x80;
+  const bits = n * 8, hiBits = Math.floor(bits / 4294967296), loBits = bits >>> 0;
+  m[total - 8] = (hiBits >>> 24) & 255; m[total - 7] = (hiBits >>> 16) & 255; m[total - 6] = (hiBits >>> 8) & 255; m[total - 5] = hiBits & 255;
+  m[total - 4] = (loBits >>> 24) & 255; m[total - 3] = (loBits >>> 16) & 255; m[total - 2] = (loBits >>> 8) & 255; m[total - 1] = loBits & 255;
+  const H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+  const W = new Uint32Array(64);
+  const rotr = (x, r) => (x >>> r) | (x << (32 - r));
+  for (let off = 0; off < total; off += 64) {
+    for (let i = 0; i < 16; i++) W[i] = ((m[off + 4 * i] << 24) | (m[off + 4 * i + 1] << 16) | (m[off + 4 * i + 2] << 8) | m[off + 4 * i + 3]) >>> 0;
+    for (let i = 16; i < 64; i++) {
+      const s0 = rotr(W[i - 15], 7) ^ rotr(W[i - 15], 18) ^ (W[i - 15] >>> 3);
+      const s1 = rotr(W[i - 2], 17) ^ rotr(W[i - 2], 19) ^ (W[i - 2] >>> 10);
+      W[i] = (W[i - 16] + s0 + W[i - 7] + s1) >>> 0;
+    }
+    let [a, b, c, d, e, f, g, h] = H;
+    for (let i = 0; i < 64; i++) {
+      const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25), ch = (e & f) ^ (~e & g);
+      const t1 = (h + S1 + ch + SHA_K[i] + W[i]) >>> 0;
+      const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22), mj = (a & b) ^ (a & c) ^ (b & c);
+      const t2 = (S0 + mj) >>> 0;
+      h = g; g = f; f = e; e = (d + t1) >>> 0; d = c; c = b; b = a; a = (t1 + t2) >>> 0;
+    }
+    H[0] = (H[0] + a) >>> 0; H[1] = (H[1] + b) >>> 0; H[2] = (H[2] + c) >>> 0; H[3] = (H[3] + d) >>> 0;
+    H[4] = (H[4] + e) >>> 0; H[5] = (H[5] + f) >>> 0; H[6] = (H[6] + g) >>> 0; H[7] = (H[7] + h) >>> 0;
+  }
+  return H.map(x => x.toString(16).padStart(8, '0')).join('');
+}
+function sha256Text(str) { return sha256Hex(utf8Bytes(str)); }
+
+// ---------- canonical inputs, dossier ----------
+function canonicalInputs(p0, s) {
+  const p = withDefaults(p0), params = {};
+  for (const [camel, snake] of Object.entries(PARAM_SNAKE)) params[snake] = p[camel];
+  params.seed = p.seed; params.strategy = p.strategy;
+  const site = {};
+  for (const sp of SITE_SPEC) site[sp.k] = s[sp.k];
+  return canonValue({ params, site });
+}
+function asciiOnly(str) { return String(str).replace(/[^\x20-\x7e]/g, '?'); }
+function buildDossier(jurisdiction, p0, site0, scenarioPath) {
+  const p = sanitizeParams(p0).p;
+  const s = resolveSite(sanitizeSite(site0).site, p);
+  const r = runAll(p, { trace: true });
+  const curve = shedCurve(s, p);
+  const compliance = complianceReport(jurisdiction, s, p, r);
+  const inputs = canonicalInputs(p, s);
+  const body = canonValue({
+    schema_version: DOSSIER_SCHEMA,
+    engine_version: ENGINE_VERSION,
+    rulepack_id: compliance.rulepack_id,
+    jurisdiction,
+    scenario_sha256: sha256Text(canonicalJSON(inputs)),
+    inputs,
+    shedding_curve: curve,
+    compliance,
+    repro_command: 'firmgap audit --scenario ' + asciiOnly(scenarioPath) + ' --jurisdiction ' + jurisdiction,
+    seed: p.seed
+  });
+  const digest = sha256Text(canonicalJSON(body));
+  const dossier = Object.assign({}, body, { dossier_sha256: digest });
+  return { dossier, text: canonicalJSON(dossier) + '\n', sha256: digest, report: compliance, curve, site: s, params: p, run: r };
+}
+function verifyDossierText(text) {
+  let d;
+  try { d = JSON.parse(text); } catch (e) { return { ok: false, reason: 'not valid JSON' }; }
+  if (!d || typeof d !== 'object' || Array.isArray(d)) return { ok: false, reason: 'not a JSON object' };
+  if (typeof d.dossier_sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(d.dossier_sha256)) return { ok: false, reason: 'missing or malformed dossier_sha256' };
+  const claimed = d.dossier_sha256; const body = Object.assign({}, d); delete body.dossier_sha256;
+  const actual = sha256Text(canonicalJSON(body));
+  return { ok: actual === claimed, claimed, actual, reason: actual === claimed ? 'hash matches canonical body' : 'hash mismatch: dossier was modified after signing', engine_version: d.engine_version, schema_version: d.schema_version };
+}
+// TOML emitter for reproducing a web scenario in the CLI (all values explicit).
+function scenarioToml(p0, s, title, jurisdiction) {
+  const p = withDefaults(p0), lines = ['# firmgap scenario exported from the web workbench (' + asciiOnly(title || 'custom') + ')', '# Reproduce: firmgap audit --scenario <this file> --jurisdiction <id>', '', '# simulation parameters'];
+  for (const [camel, snake] of Object.entries(PARAM_SNAKE)) lines.push(snake + ' = ' + JSON.stringify(qz(p[camel])));
+  lines.push('seed = ' + p.seed, 'strategy = "' + p.strategy + '"', '', '# compliance site profile');
+  if (jurisdiction && JUR_ORDER.indexOf(jurisdiction) >= 0) lines.splice(3, 0, 'jurisdiction = "' + jurisdiction + '"   # metadata: default --jurisdiction, not part of the dossier hash', '');
+  for (const sp of SITE_SPEC) { const v = s[sp.k]; if (v === null || v === undefined) continue; lines.push(sp.k + ' = ' + (sp.kind === 'bool' ? (v ? 'true' : 'false') : JSON.stringify(qz(v)))); }
+  return lines.join('\n') + '\n';
+}
+
+// B2B scenarios (mirrors scenarios/*.toml exactly)
+const B2B_SCENARIOS = {
+  'ercot-sb6-100mw-compliant': {
+    label: 'Compliant 100 MW campus', jurisdiction: 'ercot-sb6', expected: 'BankablePass',
+    params: { targetMW: 100, interimMW: 60, ceilingMW: 60, queueMonths: 40, interimMonth: 6, bessLead: 8, horizon: 72, bessMW: 45, bessH: 2, maxThrottleH: 12, deferShare: 0.4, genMW: 0, safetyMargin: 0.5, socWindow: 0.9, bessDerate: 0.95, deferCost: 25 },
+    site: { reliability_service_mw: 0, participates_in_reliability_service: false, price_responsive_lmp_curtailment: true, firm_shed_telemetry: true, ride_through_certified: true, backup_gen_mw: 40, backup_disclosed: true, sla_slack_hours: 3 }
+  },
+  'ercot-sb6-illegal-stack': {
+    label: 'Illegal revenue stack (demo blocker)', jurisdiction: 'ercot-sb6', expected: 'StatutoryBlocker',
+    params: { targetMW: 100, interimMW: 60, ceilingMW: 60, queueMonths: 40, interimMonth: 6, bessLead: 8, horizon: 72, bessMW: 30, bessH: 2, maxThrottleH: 12, deferShare: 0.4, genMW: 10, genCapH: 50, safetyMargin: 0.5, socWindow: 0.9, bessDerate: 0.95, deferCost: 25 },
+    site: { reliability_service_mw: 40, reliability_service_usd_per_mw_year: 40000, participates_in_reliability_service: true, price_responsive_lmp_curtailment: true, firm_shed_telemetry: true, ride_through_certified: true, backup_gen_mw: 60, backup_disclosed: true, sla_slack_hours: 1 }
+  },
+  'ferc-rm26-4-colocated': {
+    label: 'Co-located 120 MW (FERC)', jurisdiction: 'ferc-rm26-4', expected: 'BankablePass',
+    params: { targetMW: 120, interimMW: 80, ceilingMW: 80, queueMonths: 36, interimMonth: 4, bessLead: 6, horizon: 60, bessMW: 40, bessH: 2, maxThrottleH: 12, deferShare: 0.35, genMW: 0, safetyMargin: 0.5, socWindow: 0.9, bessDerate: 0.95, deferCost: 25 },
+    site: { poi_import_limit_mw: 120, max_ramp_mw_per_min: 10, power_factor: 0.97, pf_floor: 0.95, milestone_energize_month: 12, backup_gen_mw: 30 }
+  }
+};
+function b2bParams(id) { const sc = B2B_SCENARIOS[id]; return sanitizeParams(Object.assign({}, CASE_STATED, sc.params)).p; }
+
+
+// ===================== firmgap 0.4: international rulepacks + jurisdiction comparison (pure, DOM-free) =====================
+// Rust port: src/rulepacks_intl.rs and src/portfolio.rs (golden-tested via tests/golden_audit.json).
+function mkRem(id, rule_id, title, action, changes, value, pv, delta, capex, recommended, resolves) {
+  return { id, rule_id, title, action, changes, value_usd_per_year: value, pv_5y_usd: pv, delta_vs_other_usd_per_year: delta, capex_usd: capex, recommended, resolves };
+}
+function finish(jur, checks, fin, remediations) { return { rulepack_id: RULEPACKS[jur].id, jurisdiction: jur, verdict: verdictFor(checks), checks, financial_drag: fin, remediations }; }
+
+function reportVa(s, p, r) {
+  const f = r.sims.flex, checks = [], rem = [], g = s.gross_peak_mw;
+  const app = g >= 25 && s.va_dominion_territory;
+  checks.push(mkCheck('VA_APPLICABILITY', 'Info', true, g, 25, 'MW', app
+    ? 'Peak demand ' + fx(g, 1) + ' MW in Dominion territory: SB 253 high-load cost allocation can apply once the SCC approves it.'
+    : 'Below 25 MW or outside Dominion territory: SB 253 cost allocation does not apply.'));
+  const exposure = app ? f.energyCost * s.va_rate_uplift_share : 0;
+  checks.push(mkCheck('VA_COST_ALLOCATION', 'Info', true, exposure, null, '$/yr', app
+    ? 'If the SCC approves the shift, a ' + fx(s.va_rate_uplift_share * 100, 1) + '% uplift on ' + usdTxt(f.energyCost) + '/yr of energy cost adds about ' + usdTxt(exposure) + '/yr.'
+    : 'No SB 253 cost-allocation exposure.'));
+  const hasGen = s.backup_gen_mw > 0 || p.genMW > 0;
+  checks.push(mkCheck('VA_TIER4_BACKUP', 'Blocker', !hasGen || s.backup_tier4, s.backup_tier4 ? 1 : 0, hasGen ? 1 : 0, 'flag', !hasGen
+    ? 'No backup generators: no Tier IV air-permit requirement.'
+    : s.backup_tier4 ? 'Backup generators are Tier IV or equivalent.' : 'Backup generators are not Tier IV: DEQ must deny new data-centre generator air permits submitted after July 2026.'));
+  if (hasGen && !s.backup_tier4) rem.push(mkRem('VA_SPECIFY_TIER4', 'VA_TIER4_BACKUP', 'Specify Tier IV (or equivalent) backup generators', 'Procure Tier IV units or equivalent after-treatment before filing the air-permit application.', [{ key: 'backup_tier4', value: true }], 0, 0, 0, 0, true, true));
+  const shed1 = shedAtDuration(s, 1);
+  checks.push(mkCheck('VA_DEMAND_FLEX', 'Info', true, shed1, null, 'MW', 'Certified 1-hour shed of ' + fx(shed1, 2) + ' MW is the volume to offer into the voluntary demand-flexibility programs Dominion and APCo must develop.'));
+  return finish('va-sb253', checks, complianceFinancials(s, p, r, noTerms()), rem);
+}
+
+function reportUk(s, p, r) {
+  const checks = [], rem = [], g = s.gross_peak_mw;
+  checks.push(mkCheck('UK_GATE2', 'Blocker', s.uk_gate2_ready, s.uk_gate2_ready ? 1 : 0, 1, 'flag', s.uk_gate2_ready
+    ? 'Meets NESO Gate 2 readiness and strategic-alignment criteria: eligible for a Gate 2 offer.'
+    : 'Does not meet Gate 2 readiness: no firm connection date until land-rights and planning evidence is in place.'));
+  if (!s.uk_gate2_ready) rem.push(mkRem('UK_SECURE_GATE2', 'UK_GATE2', 'Secure Gate 2 readiness evidence', 'Secure land rights (or an option) and the planning evidence NESO requires, then re-apply for a Gate 2 offer.', [{ key: 'uk_gate2_ready', value: true }], 0, 0, 0, 0, true, true));
+  const ms = [['UK_END_USER', 'uk_end_user_evidence', 'Credible end-user evidence is on file (proposed queue milestone).', 'No credible end-user evidence: under the proposed milestones the network operator could penalise or remove the project.'],
+    ['UK_LONG_LEAD', 'uk_long_lead_procured', 'Long-lead electrical equipment is procured (proposed milestone).', 'Long-lead equipment (e.g. switchgear) is not procured: proposed milestone open.'],
+    ['UK_CAPABILITY', 'uk_capability_evidence', 'Financial and technical capability evidence is on file (proposed milestone).', 'Financial and technical capability evidence is missing (proposed milestone).']];
+  const missing = [];
+  for (const [id, k, ok, bad] of ms) { checks.push(mkCheck(id, 'Warning', s[k], s[k] ? 1 : 0, 1, 'flag', s[k] ? ok : bad)); if (!s[k]) missing.push(k); }
+  if (missing.length) rem.push(mkRem('UK_FILE_MILESTONES', ms.find(m => !s[m[1]])[0], 'File the missing queue-milestone evidence', 'Prepare evidence for: ' + missing.join(', ') + '. Each item is a proposed Ofgem milestone the network operator can check.', missing.map(k => ({ key: k, value: true })), 0, 0, 0, 0, true, true));
+  const fee = s.uk_commitment_fee_usd_per_mw * g;
+  checks.push(mkCheck('UK_COMMITMENT_FEE', 'Info', true, fee, null, '$', 'Proposed commitment fee ' + usdTxt(fee) + ' (' + usdTxt(s.uk_commitment_fee_usd_per_mw) + '/MW x ' + fx(g, 1) + ' MW, assumed rate) is secured from offer acceptance to connection and is not returned if milestones are missed.'));
+  return finish('uk-neso', checks, complianceFinancials(s, p, r, { security: fee, studyFee: 0, forfeitShare: 1, tranches: false, show: true }), rem);
+}
+
+function reportIe(s, p, r) {
+  const checks = [], rem = [], g = s.gross_peak_mw;
+  const mic = g / s.power_factor, tier = mic < 1 ? 0 : mic < 10 ? 1 : 2;
+  checks.push(mkCheck('IE_APPLICABILITY', 'Info', true, mic, 1, 'MVA', tier === 0
+    ? 'MIC ' + fx(mic, 2) + ' MVA is below 1 MVA: the LEU connection policy does not apply.'
+    : tier === 1 ? 'MIC ' + fx(mic, 2) + ' MVA is between 1 and 10 MVA: an autoproducer unit must cover 100% of MIC (de-rated) and trade in the SEM.'
+      : 'MIC ' + fx(mic, 2) + ' MVA is at least 10 MVA: dispatchable on-site or proximate generation and/or storage must match MIC (de-rated) and trade in the SEM.'));
+  if (tier > 0) {
+    const k = effective(p), credit = Math.min(s.ie_renewable_derated_mw, 0.8 * mic), required = mic - credit;
+    const genPart = s.backup_gen_mw * s.ie_gen_derate, avail = genPart + k.bessMW * s.ie_storage_derate, ok = avail >= required - 1e-9;
+    checks.push(mkCheck('IE_DISPATCHABLE_MATCH', 'Blocker', ok, avail, required, 'MW', (ok ? 'Covered: ' : 'Short: ') + 'de-rated dispatchable capacity ' + fx(avail, 2) + ' MW (' + fx(s.backup_gen_mw, 1) + ' MW generation x ' + fx(s.ie_gen_derate, 2) + ' + ' + fx(k.bessMW, 2) + ' MW storage x ' + fx(s.ie_storage_derate, 2) + ') vs requirement ' + fx(required, 2) + ' MW (MIC ' + fx(mic, 2) + ' MVA less ' + fx(credit, 2) + ' MW renewable credit).'));
+    if (!ok && s.ie_storage_derate > 0) {
+      const need = (required - genPart) / (s.ie_storage_derate * p.bessDerate);
+      const mwApply = Math.min(REM_MAX_BESS_MW, roundUp(need, 0.1)), dMW = Math.max(0, mwApply - p.bessMW);
+      rem.push(mkRem('IE_ADD_STORAGE', 'IE_DISPATCHABLE_MATCH', 'Add de-rated storage to match MIC', 'Raise BESS to ' + fx(mwApply, 1) + ' MW (+' + fx(dMW, 1) + ' MW / +' + fx(dMW * p.bessH, 1) + ' MWh) so de-rated capacity covers the MIC requirement.', [{ key: 'bess_mw', value: qz(mwApply) }], 0, 0, 0, capexPE(p, dMW, dMW * p.bessH), true, need <= REM_MAX_BESS_MW));
+    }
+    const runOk = !(s.backup_gen_mw > 0) || p.genCapH >= 8000;
+    checks.push(mkCheck('IE_RUN_HOURS', 'Warning', runOk, p.genCapH, 8000, 'h/yr', !(s.backup_gen_mw > 0)
+      ? 'No generation counted toward MIC: no run-hour restriction.'
+      : runOk ? 'Generation may run ' + fx(p.genCapH, 0) + ' h/yr: not bound by limited run hours.'
+        : 'Generation is capped at ' + fx(p.genCapH, 0) + ' h/yr: units must not be bound by limited run hours (firmgap threshold 8,000 h/yr), so it may not count toward MIC.'));
+    checks.push(mkCheck('IE_RENEWABLE_80', 'Warning', s.renewable_share >= 0.8 - 1e-12, s.renewable_share, 0.8, 'fraction', 'Annual additional Irish renewables ' + fx(s.renewable_share * 100, 1) + '% vs 80% (six-year glide path from energisation).'));
+  }
+  return finish('ie-cru', checks, complianceFinancials(s, p, r, noTerms()), rem);
+}
+
+function reportEs(s, p, r) {
+  const checks = [], rem = [], g = s.gross_peak_mw, app = g >= 10, sev = app ? 'Blocker' : 'Info';
+  checks.push(mkCheck('ES_APPLICABILITY', 'Info', true, g, 10, 'MW', app
+    ? 'Access capacity ' + fx(g, 1) + ' MW is at least 10 MW: RD 1032/2026 connection conditions apply (in force 2026-11-22).'
+    : 'Below 10 MW: RD 1032/2026 efficiency and hourly-renewable conditions do not apply.'));
+  checks.push(mkCheck('ES_PUE', sev, !app || s.pue <= 1.25 + 1e-12, s.pue, 1.25, '-', 'PUE ' + fx(s.pue, 2) + ' vs the 1.25 cap (enforced two years after start of operation, until the EU rating label applies).'));
+  checks.push(mkCheck('ES_WUE', sev, !app || s.wue_m3_per_mwh <= 0.1 + 1e-12, s.wue_m3_per_mwh, 0.1, 'm3/MWh', 'WUE ' + fx(s.wue_m3_per_mwh, 3) + ' m3/MWh vs the 0.1 cap (about 100 litres per MWh of IT energy; enforced one year after start).'));
+  const m = s.hourly_renewable_match, t = s.es_hourly_target, ok = !app || m >= t - 1e-12;
+  checks.push(mkCheck('ES_HOURLY_RENEWABLE', app ? (s.es_interruptible_opt_in ? 'Warning' : 'Blocker') : 'Info', ok, m, t, 'fraction', 'Hourly new-renewable match ' + fx(m * 100, 1) + '% vs ' + fx(t * 100, 1) + '% target' + (ok ? '.'
+    : s.es_interruptible_opt_in ? ': covered for up to five years by the interruptible path (first to disconnect when the grid needs it).'
+      : ': the shortfall triggers automatic compensation charges; sanctions can suspend connection rights for up to three years.')));
+  if (!ok) {
+    rem.push(mkRem('ES_CONTRACT_HOURLY', 'ES_HOURLY_RENEWABLE', 'Contract new renewables and storage for hourly matching', 'Raise hourly matching from ' + fx(m * 100, 1) + '% to ' + fx(t * 100, 1) + '% with new plants (connected at most 36 months before start), storage or PPAs longer than six years.', [{ key: 'hourly_renewable_match', value: qz(t) }], 0, 0, 0, 0, true, true));
+    if (!s.es_interruptible_opt_in) rem.push(mkRem('ES_INTERRUPTIBLE_PATH', 'ES_HOURLY_RENEWABLE', 'Take the five-year interruptible path', 'Accept being first to disconnect when the grid needs it; certified 30-minute shed of ' + fx(shedAtDuration(s, 0.5), 2) + ' MW backs the commitment. Downgrades the blocker to a warning for up to five years.', [{ key: 'es_interruptible_opt_in', value: true }], 0, 0, 0, 0, false, false));
+  }
+  checks.push(mkCheck('ES_REPORTING', 'Info', true, s.it_power_kw, 500, 'kW', s.it_power_kw > 500 ? 'IT power ' + fx(s.it_power_kw, 0) + ' kW: annual efficiency report to MITECO' + (s.it_power_kw > 1000 ? ' and EU Code of Conduct declaration.' : '.') : 'IT power at or below 500 kW: no MITECO efficiency report.'));
+  return finish('es-rd', checks, complianceFinancials(s, p, r, noTerms()), rem);
+}
+
+function reportSg(s, p, r) {
+  const checks = [], rem = [];
+  checks.push(mkCheck('SG_PUE_GDCR', 'Blocker', s.pue <= 1.3 + 1e-12, s.pue, 1.3, '-', 'PUE ' + fx(s.pue, 2) + ' vs the Green Data Centre Roadmap target of 1.3 for new builds.'));
+  checks.push(mkCheck('SG_PUE_CFA', 'Warning', s.pue <= 1.25 + 1e-12, s.pue, 1.25, '-', 'PUE ' + fx(s.pue, 2) + ' vs 1.25 at full load reported for DC-CFA allocations (competitive threshold).'));
+  const gs = s.green_energy_share, gok = gs >= 0.5 - 1e-12;
+  checks.push(mkCheck('SG_GREEN_50', 'Blocker', gok, gs, 0.5, 'fraction', 'Green-energy pathways supply ' + fx(gs * 100, 1) + '% of power vs at least 50% required for DC-CFA2.'));
+  if (!gok) rem.push(mkRem('SG_GREEN_PATHWAY', 'SG_GREEN_50', 'Contract approved green-energy pathways to 50%', 'Raise approved green-energy supply (imports, biomethane, low-carbon ammonia, hydrogen, on-site solar) from ' + fx(gs * 100, 1) + '% to 50%.', [{ key: 'green_energy_share', value: 0.5 }], 0, 0, 0, 0, true, true));
+  checks.push(mkCheck('SG_CFA_WINDOW', 'Info', true, null, null, '', 'DC-CFA2 (at least 200 MW) closed 2026-03-31; new capacity needs a future allocation call.'));
+  return finish('sg-gdc', checks, complianceFinancials(s, p, r, noTerms()), rem);
+}
+const INTL_REPORTS = { 'va-sb253': reportVa, 'uk-neso': reportUk, 'ie-cru': reportIe, 'es-rd': reportEs, 'sg-gdc': reportSg };
+
+// ---------- global bankability matrix (one simulation, every rulepack) ----------
+const VERDICT_RANK = { BankablePass: 0, ConditionalWarning: 1, StatutoryBlocker: 2 };
+function compareWith(s, p, r, scenarioPath) {
+  const rows = JUR_ORDER.map(j => {
+    const rep = complianceReport(j, s, p, r);
+    const fb = rep.checks.filter(c => !c.passed && c.severity === 'Blocker'), fw = rep.checks.filter(c => !c.passed && c.severity === 'Warning');
+    return { jurisdiction: j, rulepack_id: rep.rulepack_id, verdict: rep.verdict, blockers: fb.length, warnings: fw.length, failed_rules: fb.concat(fw).map(c => c.rule_id), security_locked_usd: rep.financial_drag.security_locked_usd, total_drag_usd: rep.financial_drag.total_drag_usd };
+  });
+  rows.sort((a, b) => (VERDICT_RANK[a.verdict] - VERDICT_RANK[b.verdict]) || (a.blockers - b.blockers) || (a.warnings - b.warnings) || (qz(a.total_drag_usd) - qz(b.total_drag_usd)) || (JUR_ORDER.indexOf(a.jurisdiction) - JUR_ORDER.indexOf(b.jurisdiction)));
+  rows.forEach((x, i) => { x.rank = i + 1; });
+  const inputs = canonicalInputs(p, s);
+  const body = canonValue({ schema: 'firmgap.compare.v1', engine_version: ENGINE_VERSION, scenario_sha256: sha256Text(canonicalJSON(inputs)), repro_command: 'firmgap compare-jurisdictions --scenario ' + asciiOnly(scenarioPath) + ' --format json', rows });
+  const digest = sha256Text(canonicalJSON(body));
+  const value = Object.assign({}, body, { matrix_sha256: digest });
+  return { value, text: canonicalJSON(value) + '\n', sha256: digest, rows: value.rows };
+}
+function compareJurisdictions(p0, site0, scenarioPath) {
+  const p = sanitizeParams(p0).p, s = resolveSite(sanitizeSite(site0).site, p), r = runAll(p, { trace: true });
+  return compareWith(s, p, r, scenarioPath);
+}
+
+
+// ===================== firmgap 0.4: shareable proof token (pure, DOM-free) =====================
+// Token = base64url(canonical JSON {v, f, j, p, s, h}). Rust: src/portfolio.rs (share_decode) and
+// `firmgap audit --share <token|url>`. Hostile-input rules (identical on both sides): at most 16 KiB
+// of token text, allowlisted keys only, typed values, path charset [A-Za-z0-9._/-] without "..".
+const SHARE_MAX_TOKEN = 16384;
+const B64U = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+function b64uEncode(str) {
+  const b = utf8Bytes(str);
+  let out = '';
+  for (let i = 0; i < b.length; i += 3) {
+    const n = (b[i] << 16) | ((i + 1 < b.length ? b[i + 1] : 0) << 8) | (i + 2 < b.length ? b[i + 2] : 0);
+    out += B64U[(n >> 18) & 63] + B64U[(n >> 12) & 63];
+    if (i + 1 < b.length) out += B64U[(n >> 6) & 63];
+    if (i + 2 < b.length) out += B64U[n & 63];
+  }
+  return out;
+}
+function b64uDecode(tok) {
+  if (typeof tok !== 'string' || tok.length > SHARE_MAX_TOKEN || !/^[A-Za-z0-9_-]*$/.test(tok) || tok.length % 4 === 1) return null;
+  const bytes = [];
+  for (let i = 0; i < tok.length; i += 4) {
+    const c = [0, 1, 2, 3].map(k => (i + k < tok.length ? B64U.indexOf(tok[i + k]) : -1));
+    const n = (c[0] << 18) | (c[1] << 12) | ((c[2] < 0 ? 0 : c[2]) << 6) | (c[3] < 0 ? 0 : c[3]);
+    bytes.push((n >> 16) & 255);
+    if (c[2] >= 0) bytes.push((n >> 8) & 255);
+    if (c[3] >= 0) bytes.push(n & 255);
+  }
+  for (const x of bytes) if (x > 126 || (x < 32)) return null; // canonical tokens are printable ASCII
+  return String.fromCharCode.apply(null, bytes);
+}
+function safeSharePath(f) { return typeof f === 'string' && f.length >= 1 && f.length <= 120 && /^[A-Za-z0-9._\/-]+$/.test(f) && f.indexOf('..') < 0 && f[0] !== '/'; }
+// Default file name for a scenario that is not one of the bundled files: derived from its inputs.
+function sharePath(p0, site0) {
+  const p = sanitizeParams(p0).p, s = resolveSite(sanitizeSite(site0).site, p);
+  return 'firmgap-' + sha256Text(canonicalJSON(canonicalInputs(p, s))).slice(0, 12) + '.toml';
+}
+function shareToken(jurisdiction, p0, site0, path) {
+  const d = buildDossier(jurisdiction, p0, site0, path);
+  const inputs = d.dossier.inputs;
+  const body = canonValue({ v: 1, f: path, j: jurisdiction, p: inputs.params, s: inputs.site, h: d.sha256 });
+  return { token: b64uEncode(canonicalJSON(body)), sha256: d.sha256, dossier: d };
+}
+// Parse a token (or a URL / hash containing "#s=<token>"). Never throws. Unknown keys are rejected.
+function shareDecode(input) {
+  const fail = reason => ({ ok: false, reason });
+  if (typeof input !== 'string') return fail('not text');
+  let tok = input.trim();
+  const at = tok.indexOf('#s=');
+  if (at >= 0) tok = tok.slice(at + 3); else if (tok.startsWith('s=')) tok = tok.slice(2);
+  if (tok.length === 0) return fail('empty token');
+  if (tok.length > SHARE_MAX_TOKEN) return fail('token larger than 16 KiB');
+  const json = b64uDecode(tok);
+  if (json === null) return fail('not valid base64url');
+  let raw;
+  try { raw = JSON.parse(json); } catch (e) { return fail('not valid JSON'); }
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return fail('not an object');
+  const TOP = ['v', 'f', 'j', 'p', 's', 'h'];
+  for (const k of Object.keys(raw)) if (TOP.indexOf(k) < 0) return fail('unknown key ' + asciiOnly(k).slice(0, 40));
+  if (raw.v !== 1) return fail('unsupported token version');
+  if (!safeSharePath(raw.f)) return fail('invalid scenario path');
+  if (typeof raw.j !== 'string' || JUR_ORDER.indexOf(raw.j) < 0) return fail('unknown jurisdiction');
+  if (raw.h !== undefined && !(typeof raw.h === 'string' && /^[0-9a-f]{64}$/.test(raw.h))) return fail('malformed hash');
+  if (!raw.p || typeof raw.p !== 'object' || Array.isArray(raw.p) || !raw.s || typeof raw.s !== 'object' || Array.isArray(raw.s)) return fail('missing inputs');
+  const pRaw = Object.create(null), sRaw = Object.create(null);
+  for (const k of Object.keys(raw.p)) {
+    const v = raw.p[k];
+    if (k === 'strategy') { if (v !== 'throttle' && v !== 'bess') return fail('invalid strategy'); pRaw.strategy = v; continue; }
+    if (k === 'seed') { if (!Number.isInteger(v) || v < 0 || v > 4294967295) return fail('invalid seed'); pRaw.seed = v; continue; }
+    const camel = PARAM_CAMEL[k];
+    if (!camel) return fail('unknown parameter ' + asciiOnly(k).slice(0, 40));
+    if (typeof v !== 'number' || !Number.isFinite(v)) return fail('non-numeric parameter ' + k);
+    pRaw[camel] = v;
+  }
+  for (const k of Object.keys(raw.s)) {
+    const sp = SITE_BY[k], v = raw.s[k];
+    if (!sp) return fail('unknown site key ' + asciiOnly(k).slice(0, 40));
+    if (sp.kind === 'bool' ? typeof v !== 'boolean' : (typeof v !== 'number' || !Number.isFinite(v))) return fail('wrong type for ' + k);
+    sRaw[k] = v;
+  }
+  const sp = sanitizeParams(Object.assign({}, CASE_STATED, pRaw)), ss = sanitizeSite(sRaw);
+  return { ok: true, path: raw.f, jurisdiction: raw.j, params: sp.p, site: ss.site, clamps: sp.clamps.length + ss.clamps.length, expected: raw.h || null };
+}
+
+
+// ---------- model 0.3 audit golden cases (shared by scripts/golden.mjs and the Rust tests) ----------
+function auditCases() {
+  const base = B2B_SCENARIOS['ercot-sb6-100mw-compliant'];
+  const cases = Object.keys(B2B_SCENARIOS).map(id => ({ id, path: 'scenarios/' + id + '.toml', jurisdiction: B2B_SCENARIOS[id].jurisdiction, params: B2B_SCENARIOS[id].params, site: B2B_SCENARIOS[id].site }));
+  const derive = (id, jurisdiction, pp, ss) => ({ id, path: 'golden/' + id + '.toml', jurisdiction, params: Object.assign({}, base.params, pp), site: Object.assign({}, base.site, ss) });
+  cases.push(derive('permit-and-disconnect-fail', 'ercot-sb6', { genMW: 15, bessMW: 10, genCapH: 50 }, { backup_gen_mw: 30 }));
+  cases.push(derive('sub-75mw', 'ercot-sb6', { targetMW: 70, interimMW: 50, ceilingMW: 50 }, {}));
+  cases.push(derive('eu-eed-pue-miss', 'eu-eed', {}, { pue: 1.45 }));
+  cases.push(derive('disconnect-sla-fix', 'ercot-sb6', {}, { sla_slack_hours: 0.1 }));
+  cases.push(derive('telemetry-missing', 'ercot-sb6', {}, { firm_shed_telemetry: false, ride_through_certified: false, sla_slack_hours: 0.25, u_min: 0.6 }));
+  // model 0.4 corridors
+  cases.push(derive('va-tier4-blocker', 'va-sb253', {}, {}));
+  cases.push(derive('va-tier4-ok', 'va-sb253', {}, { backup_tier4: true }));
+  cases.push(derive('uk-milestones-open', 'uk-neso', {}, {}));
+  cases.push(derive('uk-gate2-missing', 'uk-neso', {}, { uk_gate2_ready: false, uk_end_user_evidence: true, uk_long_lead_procured: true }));
+  cases.push(derive('ie-dispatchable-short', 'ie-cru', {}, {}));
+  cases.push(derive('ie-with-renewable-credit', 'ie-cru', {}, { ie_renewable_derated_mw: 40, renewable_share: 0.85 }));
+  cases.push(derive('ie-autoproducer-tier', 'ie-cru', { targetMW: 8, interimMW: 5, ceilingMW: 5 }, { backup_gen_mw: 0 }));
+  cases.push(derive('es-hourly-blocker', 'es-rd', {}, { pue: 1.3 }));
+  cases.push(derive('es-interruptible', 'es-rd', {}, { pue: 1.2, wue_m3_per_mwh: 0.08, es_interruptible_opt_in: true }));
+  cases.push(derive('sg-cfa-warning', 'sg-gdc', {}, {}));
+  cases.push(derive('sg-green-short', 'sg-gdc', {}, { pue: 1.2, green_energy_share: 0.3 }));
+  return cases;
+}
+function caseToml(c) {
+  const L = ['preset = "case"'];
+  for (const [k, v] of Object.entries(c.params)) L.push(PARAM_SNAKE[k] + ' = ' + JSON.stringify(v));
+  for (const [k, v] of Object.entries(c.site)) L.push(k + ' = ' + (typeof v === 'boolean' ? (v ? 'true' : 'false') : JSON.stringify(v)));
+  return L.join('\n') + '\n';
+}
+function generateAudit() {
+  const out = { schema: 'firmgap.golden.audit.v1', engine_version: ENGINE_VERSION, cases: [] };
+  for (const c of auditCases()) {
+    const p = sanitizeParams(Object.assign({}, CASE_STATED, c.params)).p;
+    const d = buildDossier(c.jurisdiction, p, c.site, c.path);
+    out.cases.push({
+      id: c.id, path: c.path, jurisdiction: c.jurisdiction, toml: caseToml(c),
+      dossier_sha256: d.sha256, scenario_sha256: d.dossier.scenario_sha256, verdict: d.report.verdict,
+      checks: d.report.checks.map(x => x.rule_id + ':' + (x.passed ? 'pass' : 'fail')),
+      remediations: d.report.remediations.map(x => x.id + (x.recommended ? '*' : '')),
+      shedding_curve_sha256: sha256Text(canonicalJSON(canonValue(d.curve))),
+      certified_shed_mw: d.curve.points.map(x => qz(x.certified_shed_mw)),
+      capex_avoided_usd: qz(d.curve.capex_avoided_usd),
+      text: d.text
+    });
+  }
+  out.compare = [];
+  for (const id of ['ercot-sb6-100mw-compliant', 'ercot-sb6-illegal-stack']) {
+    const sc = B2B_SCENARIOS[id], path = 'scenarios/' + id + '.toml';
+    const m = compareJurisdictions(Object.assign({}, CASE_STATED, sc.params), sc.site, path);
+    out.compare.push({ id, path, toml: caseToml({ params: sc.params, site: sc.site }), matrix_sha256: m.sha256, ranking: m.rows.map(x => x.rank + ':' + x.jurisdiction + ':' + x.verdict), text: m.text });
+  }
+  out.share = [];
+  const shareCases = [
+    { id: 'share-b2b-compliant', jurisdiction: 'ercot-sb6', params: B2B_SCENARIOS['ercot-sb6-100mw-compliant'].params, site: B2B_SCENARIOS['ercot-sb6-100mw-compliant'].site, path: 'scenarios/ercot-sb6-100mw-compliant.toml' },
+    { id: 'share-custom-spain', jurisdiction: 'es-rd', params: Object.assign({}, B2B_SCENARIOS['ercot-sb6-100mw-compliant'].params, { bessMW: 50 }), site: Object.assign({}, B2B_SCENARIOS['ercot-sb6-100mw-compliant'].site, { pue: 1.2, wue_m3_per_mwh: 0.05, hourly_renewable_match: 0.85 }), path: null },
+    { id: 'share-ireland-blocker', jurisdiction: 'ie-cru', params: B2B_SCENARIOS['ercot-sb6-illegal-stack'].params, site: B2B_SCENARIOS['ercot-sb6-illegal-stack'].site, path: null }
+  ];
+  for (const c of shareCases) {
+    const p = Object.assign({}, CASE_STATED, c.params), path = c.path || sharePath(p, c.site);
+    const t = shareToken(c.jurisdiction, p, c.site, path);
+    const back = shareDecode('https://example.invalid/web/index.html#s=' + t.token);
+    const d2 = buildDossier(back.jurisdiction, back.params, back.site, back.path);
+    out.share.push({ id: c.id, path, jurisdiction: c.jurisdiction, token: t.token, dossier_sha256: t.sha256, roundtrip_sha256: d2.sha256, text: t.dossier.text });
+  }
+  return out;
+}
 
 /*FIRMGAP-CORE-END*/
 </script>
@@ -1819,6 +2814,26 @@ async function selfTest() {
     const hostile = sanitizeParams({ util: 'abc', bessMW: 1e12, queueMonths: -1, strategy: '<img src=x onerror=alert(1)>', __proto__: { polluted: true }, wacc: Infinity });
     add('Guard: hostile input is clamped, finite and in range', SPEC.every(s => Number.isFinite(hostile.p[s.k]) && hostile.p[s.k] >= s.min && hostile.p[s.k] <= s.max) && hostile.p.strategy === 'throttle' && !({}).polluted, hostile.clamps.length + ' clamps');
     add('Guard: CSV formula injection neutralised', toCSV([{ name: '=cmd|calc', savedAt: '', fingerprint: '', modelVersion: '', params: state.p, kpis: {} }]).split('\r\n')[1].startsWith("'=cmd"), 'prefix applied');
+    await tick();
+    add('SHA-256: NIST vectors ("", "abc")', sha256Text('') === 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' && sha256Text('abc') === 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad', 'FIPS 180-4');
+    const dz = buildDossier('ercot-sb6', b2bParams('ercot-sb6-100mw-compliant'), B2B_SCENARIOS['ercot-sb6-100mw-compliant'].site, 'scenarios/ercot-sb6-100mw-compliant.toml');
+    add('Golden: compliant SB 6 dossier hash (Rust parity)', dz.sha256 === 'ec6bf71a694acbd4e75a1022c5ff052558ab41fa2231bd39107466c0f6c1662e' && dz.report.verdict === 'BankablePass', dz.sha256.slice(0, 16) + '… ' + dz.report.verdict);
+    const di = buildDossier('ercot-sb6', b2bParams('ercot-sb6-illegal-stack'), B2B_SCENARIOS['ercot-sb6-illegal-stack'].site, 'scenarios/ercot-sb6-illegal-stack.toml');
+    add('Golden: illegal-stack dossier hash + Path A/B', di.sha256 === '3527dc11f0064adcbcf59ef390b47b5597bdeb9a711d2fc7f45e9f183fc32e91' && di.report.verdict === 'StatutoryBlocker' && di.report.remediations.length === 2, di.sha256.slice(0, 16) + '… ' + di.report.verdict);
+    const tampered = dz.text.replace('"BankablePass"', '"BankablePasz"');
+    add('Dossier: verification detects tampering', verifyDossierText(dz.text).ok && !verifyDossierText(tampered).ok, 'intact OK, tampered rejected');
+    const cv = dz.curve.points.every((pt, i, a) => i === 0 || pt.certified_shed_mw <= a[i - 1].certified_shed_mw + 1e-12);
+    add('Invariant: shedding curve non-increasing in duration', cv, dz.curve.points.map(x => num(x.certified_shed_mw, 1)).join(' ≥ '));
+    const sec = [5, 200].map(mw => buildDossier('ercot-sb6', Object.assign({}, b2bParams('ercot-sb6-100mw-compliant'), { bessMW: mw }), B2B_SCENARIOS['ercot-sb6-100mw-compliant'].site, 'x.toml').report.financial_drag.security_locked_usd);
+    add('Invariant: SB 6 security uses gross MW (BESS-invariant)', sec[0] === sec[1] && sec[0] === 5e6, usd(sec[0]) + ' = ' + usd(sec[1]));
+    await tick();
+    const gm = compareJurisdictions(Object.assign({}, CASE_STATED, B2B_SCENARIOS['ercot-sb6-100mw-compliant'].params), B2B_SCENARIOS['ercot-sb6-100mw-compliant'].site, 'scenarios/ercot-sb6-100mw-compliant.toml');
+    add('Golden: global bankability matrix (8 corridors, Rust parity)', gm.rows.length === 8 && gm.sha256 === 'e7cd4f32a8a60f82019ef7402c1ca5134b2a11a49e4727a36a84bb43118d733c', gm.sha256.slice(0, 16) + '\u2026 top ' + gm.rows[0].jurisdiction);
+    const sd = shareDecode('#s=' + 'eyJmIjoiZmlybWdhcC1lMThlMWQxNmE3NjkudG9tbCIsImgiOiIxMDQyMmQ0MTExZjZkMGE3NTg1MjliZjExMGI3MWUyMzU3NDU3OTExN2RhMzM1OTY3OTg4MzViYTNiNmQ3OThkIiwiaiI6ImVzLXJkIiwicCI6eyJhdmdfZXZlbnRfaCI6My41LCJiYXNlX3ByaWNlIjo2OCwiYmVzc19jb3N0IjoyODUsImJlc3NfZGVyYXRlIjowLjk1LCJiZXNzX2giOjIsImJlc3NfbGVhZCI6OCwiYmVzc19tdyI6NTAsImJlc3NfcG93ZXJfY29zdCI6MjUwLCJjYXJyeSI6MTQ1MDAwLCJjZWlsaW5nX213Ijo2MCwiZGVmZXJfY29zdCI6MjUsImRlZmVyX3NoYXJlIjowLjQsImZhc3RfY2FwIjowLjEsImdlbl9jYXBfaCI6NTAsImdlbl9jb3N0IjoyOTAsImdlbl9tdyI6MCwiZ2VuX3JlbnRhbCI6NjUsImhvcml6b24iOjcyLCJpbnRlcmltX21vbnRoIjo2LCJpbnRlcmltX213Ijo2MCwibGlmZSI6MTAsIm1hcmdpbl9wcmVfZW5lcmd5IjozMjAsIm1heF90aHJvdHRsZV9oIjoxMiwibWNfc2VlZHMiOjI0LCJwZW5hbHR5Ijo0NTAsInF1ZXVlX21vbnRocyI6NDAsInJhbXBfbWluIjo0LCJydGUiOjAuODgsInNhZmV0eV9tYXJnaW4iOjAuNSwic2FsdmFnZSI6MCwic2VlZCI6MjAyNiwic2xhX3BlbmFsdHkiOjAsInNsYV90YXJnZXQiOjAuMDE1LCJzbGFfd2luZG93Ijo0LCJzb2Nfd2luZG93IjowLjksInN0cmF0ZWd5IjoidGhyb3R0bGUiLCJzdHJlc3NfaG91cnMiOjE4MCwic3RyZXNzX3ByaWNlIjozMTAsInN3X3ByaWNlX213X21vbnRoIjoxNTAwLCJzd19zZXR1cCI6MjUwMDAwLCJ0YXJnZXRfbXciOjEwMCwidXRpbCI6MC43OCwid2FjYyI6MC4wOX0sInMiOnsiYmFja3VwX2RlcGxveV9ob3Vyc19wZXJfeWVhciI6MjAsImJhY2t1cF9kaXNjbG9zZWQiOnRydWUsImJhY2t1cF9nZW5fbXciOjQwLCJiYWNrdXBfdGllcjQiOmZhbHNlLCJiYXRjaF92YWx1ZV91c2RfcGVyX213aCI6MjUwLCJiZXNzX2RlZ3JhZGF0aW9uX3VzZF9wZXJfbXdoIjoyMCwiYmV0YSI6MC43NSwiY29sbGF0ZXJhbF95aWVsZCI6MC4wNCwiY29tcHV0YXRpb25hbF9zaGFyZSI6MC45LCJjcml0aWNhbF92YWx1ZV91c2RfcGVyX213aCI6MjAwMCwiZGlzY29ubmVjdF90ZXN0X21pbnV0ZXMiOjMwLCJlZWRfbWV0ZXJpbmdfcmVhZHkiOnRydWUsImVzX2hvdXJseV90YXJnZXQiOjAuOCwiZXNfaW50ZXJydXB0aWJsZV9vcHRfaW4iOmZhbHNlLCJmaXJtX3NoZWRfdGVsZW1ldHJ5Ijp0cnVlLCJmbGV4X3JlYWRpbmVzc190YXJnZXQiOjAuMSwiZmxleGlibGVfc2hhcmUiOjAuNCwiZm9yZmVpdHVyZV9zaGFyZSI6MC4yLCJncmVlbl9lbmVyZ3lfc2hhcmUiOjAuNSwiZ3Jvc3NfcGVha19tdyI6MTAwLCJob3VybHlfcmVuZXdhYmxlX21hdGNoIjowLjg1LCJpZV9nZW5fZGVyYXRlIjowLjksImllX3JlbmV3YWJsZV9kZXJhdGVkX213IjowLCJpZV9zdG9yYWdlX2RlcmF0ZSI6MC41LCJpbnRlcmNvbm5lY3RlZF9hZnRlcl8yMDI1Ijp0cnVlLCJpdF9wb3dlcl9rdyI6MTAwMDAwLCJtYXhfcmFtcF9td19wZXJfbWluIjoxMCwibWlsZXN0b25lX2VuZXJnaXplX21vbnRoIjoxNCwibWlsZXN0b25lX2ludGVydmFsX21vbnRocyI6MTIsIm1vbnRoc190b19lbmVyZ2l6YXRpb24iOjI0LCJwYXJ0aWNpcGF0ZXNfaW5fcmVsaWFiaWxpdHlfc2VydmljZSI6ZmFsc2UsInBmX2Zsb29yIjowLjk1LCJwb2lfaW1wb3J0X2xpbWl0X213IjoxMDAsInBvd2VyX2ZhY3RvciI6MC45OCwicHJpY2VfcmVzcG9uc2l2ZV9sbXBfY3VydGFpbG1lbnQiOnRydWUsInB1ZSI6MS4yLCJwdWVfdGFyZ2V0IjoxLjMsInJlbGVhc2VfdHJhbmNoZV9zaGFyZSI6MC4yLCJyZWxpYWJpbGl0eV9zZXJ2aWNlX213IjowLCJyZWxpYWJpbGl0eV9zZXJ2aWNlX3VzZF9wZXJfbXdfeWVhciI6NDAwMDAsInJlbmV3YWJsZV9kaXNjbG9zZWQiOnRydWUsInJlbmV3YWJsZV9zaGFyZSI6MC41LCJyZXF1aXJlZF9zaGVkX213Ijo0MC41LCJyaWRlX3Rocm91Z2hfY2VydGlmaWVkIjp0cnVlLCJzZWN1cml0eV91c2RfcGVyX213Ijo1MDAwMCwic2xhX2xkX3VzZF9wZXJfbXdoIjo1MDAsInNsYV9zbGFja19ob3VycyI6Mywic3R1ZHlfZmVlX3VzZCI6MTAwMDAwLCJ0cmFpbmluZ19zaGFyZV9vZl9mbGV4aWJsZSI6MC41LCJ0cmFpbmluZ19zbGFja19tdWx0aXBsaWVyIjozLCJ0cmFpbmluZ192YWx1ZV91c2RfcGVyX213aCI6MTUwLCJ1X21pbiI6MC40LCJ1a19jYXBhYmlsaXR5X2V2aWRlbmNlIjp0cnVlLCJ1a19jb21taXRtZW50X2ZlZV91c2RfcGVyX213IjoyMDAwMCwidWtfZW5kX3VzZXJfZXZpZGVuY2UiOmZhbHNlLCJ1a19nYXRlMl9yZWFkeSI6dHJ1ZSwidWtfbG9uZ19sZWFkX3Byb2N1cmVkIjpmYWxzZSwidmFfZG9taW5pb25fdGVycml0b3J5Ijp0cnVlLCJ2YV9yYXRlX3VwbGlmdF9zaGFyZSI6MC4xNTgsIndpdGhkcmF3X3Byb2JhYmlsaXR5IjowLjEsInd1ZV9tM19wZXJfbXdoIjowLjA1fSwidiI6MX0');
+    const sdd = sd.ok ? buildDossier(sd.jurisdiction, sd.params, sd.site, sd.path) : null;
+    add('Golden: proof-link round trip reproduces the sender hash', !!sdd && sdd.sha256 === '10422d4111f6d0a758529bf110b71e23574579117da33596798835ba3b6d798d' && sd.expected === sdd.sha256, sdd ? sdd.sha256.slice(0, 16) + '\u2026' : sd.reason);
+    const hostileLinks = ['#s=@@', '#s=' + b64uEncode('{"v":1,"__proto__":{"polluted":1}}'), '#s=' + 'A'.repeat(17000)].map(x => shareDecode(x).ok);
+    add('Guard: hostile proof links rejected, no prototype pollution', hostileLinks.every(x => !x) && !({}).polluted, hostileLinks.length + ' rejected');
   } catch (e) { add('Self-test execution', false, e && e.message); }
   const pass = out.filter(x => x.ok).length;
   host.innerHTML = `<div class="row" style="margin-bottom:6px"><span class="badge ${pass === out.length ? 'b-good' : 'b-bad'}">${pass}/${out.length} passed</span><span class="small muted">${esc(MODEL_VERSION)} · ${new Date().toISOString().slice(0, 19).replace('T', ' ')} UTC</span></div>` +
@@ -1839,6 +2854,7 @@ function renderAll() {
   if (state.tab === 'inputs') renderInputs();
   if (state.tab === 'stress') renderStress();
   if (state.tab === 'dispatch') renderDispatch();
+  if (state.tab === 'compliance') scheduleCompliance(true);
   if (state.tab === 'audit') { renderScenarios(); renderAuditLog(); }
   if (state.tab === 'method') renderParamTable();
   renderOpt();
@@ -1911,12 +2927,673 @@ function sanitizeKpis(k) {
   return out;
 }
 
+
+// ---------------- Compliance & Bankability war room (model 0.4) ----------------
+// Hostile-input rule for this block: no innerHTML. Every node is built with createElement /
+// createElementNS and textContent (cwEl / cwSvg / cwFill), so share-link and dossier contents can
+// never become markup. verify.sh greps this block for innerHTML.
+const SVGNS = 'http://www.w3.org/2000/svg';
+function cwSet(el, a) {
+  if (!a) return el;
+  for (const k of Object.keys(a)) {
+    const v = a[k];
+    if (v === null || v === undefined || v === false) continue;
+    if (k === 'text') el.textContent = String(v);
+    else if (k.length > 2 && k.slice(0, 2) === 'on' && typeof v === 'function') el.addEventListener(k.slice(2), v);
+    else if (k === 'dataset') { for (const d of Object.keys(v)) el.dataset[d] = String(v[d]); }
+    else el.setAttribute(k, v === true ? '' : String(v));
+  }
+  return el;
+}
+function cwAdd(el, kids) {
+  for (const k of kids) {
+    if (k === null || k === undefined || k === false) continue;
+    if (Array.isArray(k)) { cwAdd(el, k); continue; }
+    el.appendChild(typeof k === 'object' ? k : document.createTextNode(String(k)));
+  }
+  return el;
+}
+function cwEl(tag, attrs, ...kids) { return cwAdd(cwSet(document.createElement(tag), attrs), kids); }
+function cwSvg(tag, attrs, ...kids) { return cwAdd(cwSet(document.createElementNS(SVGNS, tag), attrs), kids); }
+function cwFill(id, ...kids) { const el = typeof id === 'string' ? $(id) : id; if (!el) return null; el.replaceChildren(); return cwAdd(el, kids); }
+
+const JUR_PRIMARY = [
+  { id: 'sb6', label: 'ERCOT SB 6 (\u226575 MW)', jur: 'ercot-sb6' },
+  { id: 'sub75', label: 'ERCOT Sub-75 MW', jur: 'ercot-sb6', gross: 70 },
+  { id: 'ferc', label: 'FERC RM26-4 / PJM', jur: 'ferc-rm26-4' },
+  { id: 'eed', label: 'EU EED Art. 12', jur: 'eu-eed' }
+];
+const JUR_MORE = [['va-sb253', 'Virginia SB 253'], ['uk-neso', 'GB NESO / Ofgem'], ['ie-cru', 'Ireland CRU'], ['es-rd', 'Spain RD 1032/2026'], ['sg-gdc', 'Singapore GDCR']];
+const JUR_SHORT = { 'ercot-sb6': 'Texas SB 6', 'ferc-rm26-4': 'FERC RM26-4', 'va-sb253': 'Virginia SB 253', 'uk-neso': 'GB NESO', 'ie-cru': 'Ireland CRU', 'es-rd': 'Spain RD 1032', 'sg-gdc': 'Singapore GDCR', 'eu-eed': 'EU EED' };
+const ROLES = [['cfo', 'Executive / CFO'], ['gc', 'Legal / GC'], ['eng', 'Grid Engineer']];
+const VERDICT_TAG = { BankablePass: ['BANKABLE PASS', 'good'], ConditionalWarning: ['CONDITIONAL WARNING', 'warn'], StatutoryBlocker: ['STATUTORY BLOCKER', 'bad'] };
+const RULE_LABEL = {
+  SB6_APPLICABILITY: 'Large-load threshold', SB6_FINANCIAL_SECURITY: 'Security lockup', SB6_ILLEGAL_REVENUE_STACK: 'Illegal revenue stack', SB6_FIRM_SHED_TELEMETRY: 'Firm-shed telemetry',
+  SB6_DISCONNECT_30M: '30-min disconnect', ERCOT_NOGRR282: 'NOGRR 282 ride-through', SB6_BACKUP_DISCLOSURE: 'Backup disclosure', TCEQ_AIR_PERMIT_CAP: 'TCEQ air-permit cap',
+  FERC_DOCKET_STATUS: 'Docket status', FERC_POI_IMPORT: 'POI import ceiling', FERC_RAMP_RATE: 'Ramp-rate limit', FERC_POWER_FACTOR: 'Power-factor floor', FERC_STAGED_ENERGIZATION: 'Staged energization',
+  VA_APPLICABILITY: 'High-load class', VA_COST_ALLOCATION: 'Cost-allocation exposure', VA_TIER4_BACKUP: 'Tier IV backup', VA_DEMAND_FLEX: 'Demand-flexibility offer',
+  UK_GATE2: 'Gate 2 readiness', UK_END_USER: 'Credible end user', UK_LONG_LEAD: 'Long-lead equipment', UK_CAPABILITY: 'Capability evidence', UK_COMMITMENT_FEE: 'Commitment fee',
+  IE_APPLICABILITY: 'MIC tier', IE_DISPATCHABLE_MATCH: 'Dispatchable capacity match', IE_RUN_HOURS: 'Run-hour freedom', IE_RENEWABLE_80: '80% additional renewables',
+  ES_APPLICABILITY: '10 MW threshold', ES_PUE: 'PUE cap 1.25', ES_WUE: 'WUE cap 0.1', ES_HOURLY_RENEWABLE: 'Hourly renewable match', ES_REPORTING: 'MITECO reporting',
+  SG_PUE_GDCR: 'PUE 1.3 roadmap', SG_PUE_CFA: 'PUE 1.25 allocation bar', SG_GREEN_50: '50% green energy', SG_CFA_WINDOW: 'Allocation window',
+  EED_APPLICABILITY: '500 kW threshold', EED_REPORTING_READINESS: 'KPI reporting readiness', EED_PUE: 'PUE vs target', EED_RENEWABLE_DISCLOSURE: 'Renewable disclosure', EED_FLEX_READINESS: 'Grid-flexibility readiness'
+};
+const RULE_WHY = {
+  SB6_APPLICABILITY: 'Texas applies its large-load standards to sites big enough to change transmission plans; the test uses requested demand so on-site assets cannot shrink it.',
+  SB6_FINANCIAL_SECURITY: 'Security and study fees screen out speculative requests that clog the queue and strand transmission built for loads that never arrive.',
+  SB6_ILLEGAL_REVENUE_STACK: 'ERCOT pays the reliability service to curtail in emergencies only; a load already curtailing on price would be paid twice for the same megawatts.',
+  SB6_FIRM_SHED_TELEMETRY: 'Operators must be able to drop new large loads remotely during firm load shed instead of cutting homes and hospitals first.',
+  SB6_DISCONNECT_30M: 'A planning stress test: if the utility disconnects the campus, certified shedding, backup and storage must carry critical load without breaching SLAs.',
+  ERCOT_NOGRR282: 'Power-electronic loads that trip together during faults have caused multi-hundred-MW losses; ride-through keeps them online through disturbances.',
+  SB6_BACKUP_DISCLOSURE: 'ERCOT can direct large backup fleets to run or curtail in an emergency, so it needs to know they exist.',
+  TCEQ_AIR_PERMIT_CAP: 'Air permits cap generator run hours; curtailment plans that rely on diesel beyond the cap are not legally executable.',
+  FERC_DOCKET_STATUS: 'FERC has asked RTOs to create services for flexible large loads, but there is no final rule yet.',
+  FERC_POI_IMPORT: 'A flexible interconnection is sized to a point-of-interconnection limit; exceeding it voids the agreement.',
+  FERC_RAMP_RATE: 'Fast swings of large loads stress frequency control, so agreements cap how quickly demand can change.',
+  FERC_POWER_FACTOR: 'Poor power factor draws reactive power the network must supply; agreements set a floor.',
+  FERC_STAGED_ENERGIZATION: 'Staged energization lets a site connect in blocks tied to milestones; missing one delays the next block.',
+  VA_APPLICABILITY: 'Virginia now lets the regulator assign capacity and distribution costs caused by data centers to the high-load class.',
+  VA_COST_ALLOCATION: 'Shifting capacity-auction and distribution costs to large loads protects residential bills and raises the campus energy cost.',
+  VA_TIER4_BACKUP: 'Diesel backup near homes is a health issue; new data-center generator permits require cleaner Tier IV engines.',
+  VA_DEMAND_FLEX: 'Utilities must offer voluntary demand-flexibility programs, a new revenue line for certified shedding.',
+  UK_GATE2: 'GB connection reform gives firm dates only to projects that are ready and strategically aligned, clearing zombie projects from the queue.',
+  UK_END_USER: 'Proposed milestone: without a credible end user a data-centre project can be removed from the queue.',
+  UK_LONG_LEAD: 'Proposed milestone: ordering switchgear and transformers shows the project is real.',
+  UK_CAPABILITY: 'Proposed milestone: evidence that the developer can fund and build the project.',
+  UK_COMMITMENT_FEE: 'Proposed fee that is lost if the project fails its milestones, so speculative requests cost money.',
+  IE_APPLICABILITY: 'Ireland ties data-centre connections to size: above 1 MVA the site must bring its own dispatchable capacity.',
+  IE_DISPATCHABLE_MATCH: 'Dublin\u2019s grid is constrained; new data centres must match their import capacity with de-rated dispatchable generation or storage.',
+  IE_RUN_HOURS: 'Capacity that can only run a few hours a year cannot back the grid; units must be available outside maintenance.',
+  IE_RENEWABLE_80: 'Data centres must fund new Irish renewables equal to at least 80% of their annual demand.',
+  ES_APPLICABILITY: 'Spain\u2019s decree applies to data centres with 10 MW or more of grid access capacity.',
+  ES_PUE: 'Spain caps energy overhead so connection capacity goes to efficient sites.',
+  ES_WUE: 'Spain caps cooling water per MWh because data centres compete with agriculture for water.',
+  ES_HOURLY_RENEWABLE: 'Hour-by-hour matching with new renewables stops flat data-centre load from raising gas burn and prices for everyone.',
+  ES_REPORTING: 'Efficiency data feeds a public register and the EU rating scheme.',
+  SG_PUE_GDCR: 'Singapore rations data-centre power and reserves it for efficient designs.',
+  SG_PUE_CFA: 'Capacity calls are competitive; reported winners hit about 1.25 PUE.',
+  SG_GREEN_50: 'New allocations require at least half the power from approved green-energy pathways.',
+  SG_CFA_WINDOW: 'Capacity is allocated in calls; outside a call there is no route to new power.',
+  EED_APPLICABILITY: 'The EU requires annual efficiency reporting from data centres of 500 kW IT power or more.',
+  EED_REPORTING_READINESS: 'Missing the 15 May reporting deadline is a compliance breach in every member state.',
+  EED_PUE: 'PUE is reported, not capped, by the Directive; national schemes and contracts may set targets.',
+  EED_RENEWABLE_DISCLOSURE: 'The renewable share must be disclosed and is published in the EU database.',
+  EED_FLEX_READINESS: 'A firmgap readiness score: how much load the site can certify as sheddable for one hour.'
+};
+const CAPTION = {
+  gross_peak_mw: 'Requested peak demand at the meter. Regulators use this gross figure; batteries and backup do not reduce it.',
+  bess_mw: 'Battery power. Usable power and energy are derated by availability and the state-of-charge window.',
+  backup_gen_mw: 'On-site backup generators that cannot export to the grid.',
+  reliability_service_mw: 'Megawatts offered to ERCOT\u2019s emergency demand-reduction service.',
+  computational_share: 'Share of load that is GPUs and servers (power electronics) rather than cooling and offices.',
+  u_min: 'Lowest power % GPUs can throttle to during a grid emergency without stalling jobs.',
+  sla_slack_hours: 'How long batch jobs can be slowed before they miss their service-level deadline.',
+  flexible_share: 'Share of the campus running batch or training work that can be slowed; the rest is latency-critical inference.',
+  training_slack_multiplier: 'Training runs checkpoint and tolerate longer slowdowns than batch; this multiplies the batch slack.',
+  beta: 'How strongly job speed falls with a power cap (1 = linear; lower means caps cost less speed).'
+};
+const RAIL_RANGE = {
+  gross_peak_mw: [1, 300, 1], bess_mw: [0, 60, 0.5], backup_gen_mw: [0, 200, 1], reliability_service_mw: [0, 200, 1], computational_share: [0, 1, 0.01],
+  u_min: [0, 1, 0.01], sla_slack_hours: [0, 24, 0.25], flexible_share: [0, 0.95, 0.01], training_slack_multiplier: [1, 12, 0.5], beta: [0.3, 1, 0.01],
+  pue: [1, 2, 0.01], wue_m3_per_mwh: [0, 1, 0.01], hourly_renewable_match: [0, 1, 0.01], es_hourly_target: [0.6, 1, 0.1], green_energy_share: [0, 1, 0.01],
+  renewable_share: [0, 1, 0.01], ie_renewable_derated_mw: [0, 200, 1], ie_storage_derate: [0, 1, 0.01], poi_import_limit_mw: [1, 300, 1], max_ramp_mw_per_min: [0.5, 50, 0.5],
+  power_factor: [0.8, 1, 0.005], milestone_energize_month: [0, 60, 1], va_rate_uplift_share: [0, 0.5, 0.005], uk_commitment_fee_usd_per_mw: [0, 200000, 1000],
+  disconnect_test_minutes: [5, 240, 5], it_power_kw: [0, 300000, 500], pue_target: [1, 2, 0.01]
+};
+const JUR_NUMS = {
+  'ercot-sb6': ['reliability_service_mw', 'computational_share', 'disconnect_test_minutes'], 'ferc-rm26-4': ['poi_import_limit_mw', 'max_ramp_mw_per_min', 'power_factor', 'milestone_energize_month'],
+  'va-sb253': ['va_rate_uplift_share'], 'uk-neso': ['uk_commitment_fee_usd_per_mw'], 'ie-cru': ['ie_renewable_derated_mw', 'ie_storage_derate', 'renewable_share', 'power_factor'],
+  'es-rd': ['pue', 'wue_m3_per_mwh', 'hourly_renewable_match', 'es_hourly_target'], 'sg-gdc': ['pue', 'green_energy_share'], 'eu-eed': ['it_power_kw', 'pue', 'pue_target', 'renewable_share']
+};
+const JUR_FLAGS = {
+  'ercot-sb6': ['participates_in_reliability_service', 'price_responsive_lmp_curtailment', 'firm_shed_telemetry', 'ride_through_certified', 'backup_disclosed', 'interconnected_after_2025'],
+  'ferc-rm26-4': [], 'va-sb253': ['backup_tier4', 'va_dominion_territory'], 'uk-neso': ['uk_gate2_ready', 'uk_end_user_evidence', 'uk_long_lead_procured', 'uk_capability_evidence'],
+  'ie-cru': [], 'es-rd': ['es_interruptible_opt_in'], 'sg-gdc': [], 'eu-eed': ['eed_metering_ready', 'renewable_disclosed']
+};
+const FLAG_LABEL = {
+  participates_in_reliability_service: 'Enrolled in ERCOT reliability service', price_responsive_lmp_curtailment: 'Curtails on wholesale price (LMP)', firm_shed_telemetry: 'Remote firm-shed equipment installed',
+  ride_through_certified: 'Ride-through demonstrated', backup_disclosed: 'Backup generation disclosed', interconnected_after_2025: 'Interconnected after 2025', backup_tier4: 'Backup is Tier IV or equivalent',
+  va_dominion_territory: 'In Dominion Energy territory', uk_gate2_ready: 'Meets NESO Gate 2 criteria', uk_end_user_evidence: 'Credible end-user evidence', uk_long_lead_procured: 'Long-lead equipment procured',
+  uk_capability_evidence: 'Capability evidence on file', es_interruptible_opt_in: 'Accepts first-to-disconnect path', eed_metering_ready: 'EED KPI metering ready', renewable_disclosed: 'Renewable share disclosure ready'
+};
+const KEY_RULES = {
+  gross_peak_mw: ['SB6_APPLICABILITY', 'VA_APPLICABILITY', 'IE_APPLICABILITY', 'ES_APPLICABILITY', 'UK_COMMITMENT_FEE'], backup_gen_mw: ['SB6_BACKUP_DISCLOSURE', 'TCEQ_AIR_PERMIT_CAP', 'VA_TIER4_BACKUP', 'IE_DISPATCHABLE_MATCH'],
+  bess_mw: ['SB6_DISCONNECT_30M', 'IE_DISPATCHABLE_MATCH', 'TCEQ_AIR_PERMIT_CAP'], reliability_service_mw: ['SB6_ILLEGAL_REVENUE_STACK'], computational_share: ['ERCOT_NOGRR282'], disconnect_test_minutes: ['SB6_DISCONNECT_30M'],
+  poi_import_limit_mw: ['FERC_POI_IMPORT'], max_ramp_mw_per_min: ['FERC_RAMP_RATE'], power_factor: ['FERC_POWER_FACTOR', 'IE_APPLICABILITY'], milestone_energize_month: ['FERC_STAGED_ENERGIZATION'],
+  va_rate_uplift_share: ['VA_COST_ALLOCATION'], uk_commitment_fee_usd_per_mw: ['UK_COMMITMENT_FEE'], ie_renewable_derated_mw: ['IE_DISPATCHABLE_MATCH'], ie_storage_derate: ['IE_DISPATCHABLE_MATCH'],
+  renewable_share: ['IE_RENEWABLE_80', 'EED_RENEWABLE_DISCLOSURE'], pue: ['ES_PUE', 'SG_PUE_GDCR', 'SG_PUE_CFA', 'EED_PUE'], pue_target: ['EED_PUE'], wue_m3_per_mwh: ['ES_WUE'],
+  hourly_renewable_match: ['ES_HOURLY_RENEWABLE'], es_hourly_target: ['ES_HOURLY_RENEWABLE'], green_energy_share: ['SG_GREEN_50'], it_power_kw: ['EED_APPLICABILITY', 'ES_REPORTING'],
+  participates_in_reliability_service: ['SB6_ILLEGAL_REVENUE_STACK'], price_responsive_lmp_curtailment: ['SB6_ILLEGAL_REVENUE_STACK'], firm_shed_telemetry: ['SB6_FIRM_SHED_TELEMETRY'],
+  ride_through_certified: ['ERCOT_NOGRR282'], backup_disclosed: ['SB6_BACKUP_DISCLOSURE'], interconnected_after_2025: ['SB6_FIRM_SHED_TELEMETRY'], backup_tier4: ['VA_TIER4_BACKUP'], va_dominion_territory: ['VA_APPLICABILITY'],
+  uk_gate2_ready: ['UK_GATE2'], uk_end_user_evidence: ['UK_END_USER'], uk_long_lead_procured: ['UK_LONG_LEAD'], uk_capability_evidence: ['UK_CAPABILITY'], es_interruptible_opt_in: ['ES_HOURLY_RENEWABLE'],
+  eed_metering_ready: ['EED_REPORTING_READINESS']
+};
+const EXPLAIN = [
+  ['1. Pick law', 'Choose the rulepack and a sample campus. The role lens changes how every takeaway is phrased, never the numbers.'],
+  ['2. Read verdict', 'One badge, three numbers, one sentence: is this campus bankable under this law, and why.'],
+  ['3. Fix blockers', 'Left: the levers. Right: each rule with its citation, the cheapest legal fix, and how much load the campus can shed.'],
+  ['4. Export proof', 'Download the hash-stamped dossier, copy a proof link or print the filing memo. The CLI reproduces the same bytes.']
+];
+const DOSSIER_MAX_BYTES = 1024 * 1024;
+
+state.comp = { jurisdiction: 'ercot-sb6', site: {}, scenarioId: null, snapshot: null, sharedPath: null, sharedSnap: null, sharedExpect: null, result: null, matrix: null, err: null, timer: null, verify: null, share: null, role: 'cfo', explain: false, dismissed: new Set(), open: new Set(), railJur: null, rail: {} };
+
+function quantParams(p) { const q = Object.assign({}, p); for (const k of Object.keys(PARAM_SNAKE)) q[k] = qz(q[k]); return q; }
+function quantSite(s0) { const s = {}; for (const sp of SITE_SPEC) { const v = s0[sp.k]; if (v === undefined || v === null) continue; s[sp.k] = sp.kind === 'bool' ? !!v : qz(v); } return s; }
+function compSnapshot() { return canonicalJSON(canonValue({ p: quantParams(state.p), s: quantSite(state.comp.site), j: state.comp.jurisdiction })); }
+function compPath() {
+  const c = state.comp, snap = compSnapshot();
+  if (c.sharedPath && c.sharedSnap === snap) return c.sharedPath;
+  if (c.scenarioId && c.snapshot === snap && B2B_SCENARIOS[c.scenarioId].jurisdiction === c.jurisdiction) return 'scenarios/' + c.scenarioId + '.toml';
+  return sharePath(quantParams(state.p), quantSite(c.site));
+}
+function computeCompliance() {
+  const c = state.comp;
+  try {
+    const p = quantParams(state.p);
+    c.result = buildDossier(c.jurisdiction, p, quantSite(c.site), compPath());
+    c.matrix = compareWith(c.result.site, c.result.params, c.result.run, compPath());
+    c.err = null;
+  } catch (e) { c.err = e && e.message ? String(e.message) : String(e); }
+}
+function scheduleCompliance(fast) { clearTimeout(state.comp.timer); state.comp.timer = setTimeout(() => { computeCompliance(); renderCompliance(); }, fast ? 30 : 160); }
+
+// ---------- live deductions (role lens) ----------
+function failed(rep, sev) { return rep.checks.filter(x => !x.passed && (!sev || x.severity === sev)); }
+function remFor(rep, rule) { return rep.remediations.filter(r => r.rule_id === rule); }
+function remCost(r) { return r.capex_usd > 0 ? usd(r.capex_usd, 2) + ' CapEx' : r.value_usd_per_year ? usd(r.value_usd_per_year) + '/yr of value' : 'no CapEx'; }
+function citeShort(ch) { const t = ch.citation || ''; const i = t.indexOf(':'); return i > 0 && i < 90 ? t.slice(0, i) : t.slice(0, 90); }
+function bindingHorizon(curve) {
+  const labels = ['15 min', '30 min', '1 h', '2 h', '4 h'];
+  let last = -1;
+  curve.points.forEach((p, i) => { if (p.certified_shed_mw >= curve.required_shed_mw - 1e-9) last = i; });
+  return { last, label: last >= 0 ? labels[last] : null, labels };
+}
+function heroDeduction(d, role) {
+  const rep = d.report, fd = rep.financial_drag, cv = d.curve, fb = failed(rep, 'Blocker'), fw = failed(rep, 'Warning');
+  const rec = rep.remediations.find(r => r.recommended) || rep.remediations[0];
+  const npvNet = d.run.inv.npv - fd.working_capital_carry_usd - fd.expected_forfeiture_usd;
+  const shed1 = cv.points[2].certified_shed_mw, shed30 = cv.points[1].certified_shed_mw;
+  const names = list => list.map(x => RULE_LABEL[x.rule_id] || x.rule_id).join(', ');
+  if (role === 'gc') {
+    if (fb.length) return fb.length + ' blocking provision' + (fb.length > 1 ? 's fail' : ' fails') + ' under ' + JUR_SHORT[rep.jurisdiction] + ': ' + names(fb) + ' (' + citeShort(fb[0]) + '). ' + (rec ? 'Cure: ' + rec.action : 'No automatic cure; obtain counsel advice before filing.');
+    if (fw.length) return 'No statutory blocker, but ' + fw.length + ' diligence item' + (fw.length > 1 ? 's' : '') + ' must be disclosed: ' + names(fw) + '. ' + (fd.forfeiture_exposure_usd > 0 ? usd(fd.forfeiture_exposure_usd, 2) + ' of posted security is forfeitable on withdrawal.' : '');
+    return 'No provision in ' + rep.rulepack_id + ' fails on these inputs. ' + (fd.security_locked_usd > 0 ? usd(fd.security_locked_usd, 2) + ' of security is posted; ' + usd(fd.forfeiture_exposure_usd, 2) + ' is forfeitable if the request is withdrawn after allocation.' : 'No financial security is required by this rulepack.');
+  }
+  if (role === 'eng') {
+    if (fb.length) return fb[0].summary + (rec ? ' Engineering fix: ' + rec.action : '');
+    return 'The campus can shed ' + num(shed30, 1) + ' MW for 30 minutes and ' + num(shed1, 1) + ' MW for 1 hour without breaking any SLA, against ' + num(cv.required_shed_mw, 1) + ' MW required; ' + (fw.length ? 'open engineering items: ' + names(fw) + '.' : 'every engineering check in this rulepack passes.');
+  }
+  if (fb.length) return 'Not financeable yet: ' + fb.length + ' statutory blocker' + (fb.length > 1 ? 's' : '') + ' (' + names(fb) + '). ' + (rec ? 'Cheapest path: ' + rec.title + ' (' + remCost(rec) + ').' : 'No automatic fix; budget legal and engineering time before close.');
+  if (fw.length) return 'Financeable with conditions: ' + fw.length + ' open item' + (fw.length > 1 ? 's' : '') + ' (' + names(fw) + ') that lenders will price. Investor NPV after compliance drag: ' + usd(npvNet) + '.';
+  return 'Bankable as modelled. ' + (fd.security_locked_usd > 0 ? usd(fd.security_locked_usd, 2) + ' of security is tied up (carry ' + usd(fd.working_capital_carry_usd, 2) + '); certified' : 'Certified') + ' shedding avoids ' + usd(cv.capex_avoided_usd, 2) + ' of BESS CapEx, and investor NPV after compliance drag is ' + usd(npvNet) + '.';
+}
+function ruleDeduction(ch, rep, role) {
+  const rems = remFor(rep, ch.rule_id), fd = rep.financial_drag;
+  if (role === 'cfo') {
+    if (ch.rule_id === 'SB6_FINANCIAL_SECURITY' || ch.rule_id === 'UK_COMMITMENT_FEE') return usd(fd.security_locked_usd, 2) + ' is trapped until release; carry ' + usd(fd.working_capital_carry_usd, 2) + ', expected forfeiture ' + usd(fd.expected_forfeiture_usd, 2) + '.';
+    if (ch.rule_id === 'VA_COST_ALLOCATION') return 'Budget about ' + usd(ch.observed) + '/yr of extra energy cost if the SCC approves the shift.';
+    if (ch.passed) return 'Passes: no budget impact under current inputs.';
+    if (rems.length) return 'Cheapest fix: ' + rems[0].title + ' (' + remCost(rems[0]) + ').' + (rems.length > 1 ? ' Alternative: ' + rems[1].title + ' (' + remCost(rems[1]) + ').' : '');
+    return 'Open item with no automatic fix; budget advisory time before financial close.';
+  }
+  if (role === 'gc') {
+    const state_ = ch.passed ? 'Compliant' : ch.severity === 'Blocker' ? 'Non-compliant and blocking' : ch.severity === 'Warning' ? 'Open diligence item' : 'Informational';
+    return state_ + ' under ' + citeShort(ch) + '.' + (!ch.passed && ch.severity === 'Blocker' ? ' Bankability is blocked until cured.' : '') + (ch.citation && /Planning stress test|anticipated|proposed|ASSUMPTION|not an EED/i.test(ch.citation) ? ' Note: this is not a codified requirement; treat it as a planning or anticipated term.' : '');
+  }
+  if (typeof ch.observed === 'number' && typeof ch.limit === 'number' && ch.unit !== 'flag') {
+    const gap = Math.abs(ch.observed - ch.limit);
+    return 'Observed ' + num(ch.observed, 2) + ' ' + ch.unit + ' vs limit ' + num(ch.limit, 2) + ' ' + ch.unit + ': ' + (ch.passed ? 'within limit' : 'outside limit') + ' by ' + num(gap, 2) + ' ' + ch.unit + '.';
+  }
+  return ch.passed ? 'Condition met on current inputs.' : 'Condition not met; see the summary for the engineering gap.';
+}
+function curveDeduction(d, role) {
+  const cv = d.curve, b = bindingHorizon(cv), R = cv.required_shed_mw, p = cv.points;
+  const meets = b.last >= 0 ? 'meets the ' + num(R, 1) + ' MW flexibility requirement for events up to ' + b.label : 'falls short of the ' + num(R, 1) + ' MW flexibility requirement at every duration, so storage or backup must cover the gap';
+  if (R <= 0) return 'The campus fits under its ceiling, so no shed is required; the curve is spare flexibility worth offering to the utility.';
+  if (role === 'cfo') return 'Certified shedding displaces ' + usd(cv.capex_avoided_usd, 2) + ' of BESS CapEx: storage sized ' + num(cv.bess_mw_with_shed, 1) + ' MW / ' + num(cv.bess_mwh_with_shed, 1) + ' MWh instead of ' + num(cv.bess_mw_without_shed, 1) + ' MW / ' + num(cv.bess_mwh_without_shed, 1) + ' MWh, plus ' + usd(cv.cycling_cost_avoided_usd_per_year) + '/yr of avoided cycling. The curve ' + meets + '.';
+  if (role === 'gc') return 'This curve is the evidence for a flexible-interconnection or curtailment commitment: ' + num(p[1].certified_shed_mw, 1) + ' MW for 30 minutes and ' + num(p[4].certified_shed_mw, 1) + ' MW for 4 hours, each without breaching a customer SLA. It ' + meets + '.';
+  return 'Binding horizon: ' + (b.last >= 0 && b.last < 4 ? b.labels[b.last + 1] + ' (shed falls to ' + num(p[b.last + 1].certified_shed_mw, 1) + ' MW)' : b.last === 4 ? 'none up to 4 h' : '15 min') + '. Marginal value of lost throughput at 1 h: $' + num(p[2].marginal_shadow_price_per_mwh, 0) + '/MWh. The curve ' + meets + '.';
+}
+function matrixDeduction(m, role) {
+  const rows = m.rows, pass = rows.filter(r => r.verdict === 'BankablePass'), block = rows.filter(r => r.verdict === 'StatutoryBlocker');
+  const nm = r => JUR_SHORT[r.jurisdiction];
+  const head = pass.length ? 'Bankable today in ' + pass.map(nm).join(', ') + '.' : 'Not bankable in any corridor on current inputs.';
+  if (role === 'cfo') { const d = rows.slice().sort((a, b) => b.total_drag_usd - a.total_drag_usd)[0]; return head + (d && d.total_drag_usd > 0 ? ' Highest compliance drag: ' + nm(d) + ' (' + usd(d.total_drag_usd, 2) + ').' : ''); }
+  if (role === 'gc') return head + (block.length ? ' Blocked in ' + block.map(r => nm(r) + ' (' + r.failed_rules[0] + ')').join(', ') + '. FERC and GB rows are anticipated or proposed terms.' : ' No corridor reports a statutory blocker.');
+  return head + (block.length ? ' Engineering gaps: ' + block.map(r => nm(r) + ': ' + r.failed_rules.join(', ')).join('; ') + '.' : '');
+}
+function controlLive(k, d) {
+  const s = d.site, cv = d.curve, p = d.params, rep = d.report;
+  switch (k) {
+    case 'gross_peak_mw': return s.gross_peak_mw >= 75 ? 'At or above 75 MW: Texas large-load rules apply; SB 6 security would be ' + usd(s.gross_peak_mw * s.security_usd_per_mw, 2) + '.' : 'Below 75 MW: outside the Texas large-load rules; other corridors use their own thresholds.';
+    case 'bess_mw': { const k2 = effective(p); return 'Usable ' + num(k2.bessMW, 1) + ' MW / ' + num(k2.bessMWh, 1) + ' MWh after derates.'; }
+    case 'backup_gen_mw': return pct(s.gross_peak_mw > 0 ? s.backup_gen_mw / s.gross_peak_mw : 0, 0) + ' of peak; ' + (s.backup_gen_mw >= 0.5 * s.gross_peak_mw ? 'at or above the 50% SB 6 disclosure trigger.' : 'below the 50% SB 6 disclosure trigger.');
+    case 'reliability_service_mw': return 'Worth about ' + usd(s.reliability_service_mw * s.reliability_service_usd_per_mw_year) + '/yr at the assumed ' + usd(s.reliability_service_usd_per_mw_year) + '/MW-yr.';
+    case 'computational_share': return s.computational_share >= 0.5 ? 'Large Electronic Load if 75 MW or more: NOGRR 282 ride-through applies.' : 'Below 50%: not a Large Electronic Load.';
+    case 'u_min': return 'Batch and training can shed at most ' + num(s.gross_peak_mw * s.flexible_share * (1 - s.u_min), 1) + ' MW in short events.';
+    case 'sla_slack_hours': return 'Certified shed: ' + num(cv.points[2].certified_shed_mw, 1) + ' MW at 1 h, ' + num(cv.points[4].certified_shed_mw, 1) + ' MW at 4 h.';
+    case 'flexible_share': return num(s.gross_peak_mw * s.flexible_share, 1) + ' MW of the campus is batch or training work.';
+    case 'training_slack_multiplier': return 'Training tolerates ' + num(s.sla_slack_hours * s.training_slack_multiplier, 2) + ' h of slowdown.';
+    case 'beta': return 'At the floor, jobs run at ' + pct(Math.pow(Math.max(s.u_min, 1e-9), s.beta), 0) + ' of normal speed.';
+    default: {
+      const rules = (KEY_RULES[k] || []).map(id => rep.checks.find(c => c.rule_id === id)).filter(Boolean);
+      if (!rules.length) return 'Not used by the ' + JUR_SHORT[rep.jurisdiction] + ' rulepack.';
+      return rules.map(c => (RULE_LABEL[c.rule_id] || c.rule_id) + ': ' + (c.passed ? 'pass' : 'FAIL')).join(' \u00b7 ');
+    }
+  }
+}
+function fmtVal(k, v) {
+  const sp = SITE_BY[k];
+  if (k === 'bess_mw') return num(v, 1) + ' MW';
+  if (!sp) return String(v);
+  if (sp.unit === 'fraction') return pct(v, v < 0.1 && v > 0 ? 1 : 0);
+  if (sp.unit === '$/MW' || sp.unit === '$/MW-yr' || sp.unit === '$') return usd(v);
+  return num(v, RAIL_RANGE[k] && RAIL_RANGE[k][2] < 1 ? (RAIL_RANGE[k][2] < 0.01 ? 3 : 2) : 0) + (sp.unit && sp.unit !== '-' ? ' ' + sp.unit : '');
+}
+
+// ---------- rendering ----------
+function buildRail() {
+  const c = state.comp, d = c.result;
+  const control = (k, label, isParam) => {
+    const r = RAIL_RANGE[k] || [0, 1, 0.01], v = isParam ? state.p.bessMW : d.site[k];
+    const id = 'cr_' + k;
+    const input = cwEl('input', { type: 'range', id, min: r[0], max: r[1], step: r[2], value: String(v), 'aria-describedby': id + '_cap ' + id + '_live', dataset: { rk: k } });
+    const val = cwEl('span', { class: 'mono small cw-val', id: id + '_val' });
+    const live = cwEl('div', { class: 'cw-live', id: id + '_live', 'aria-live': 'polite' });
+    c.rail[k] = { input, val, live, isParam };
+    return cwEl('div', { class: 'cw-ctl' }, cwEl('div', { class: 'top' }, cwEl('label', { for: id, text: label }), val), input,
+      cwEl('div', { class: 'cw-cap', id: id + '_cap', text: CAPTION[k] || (SITE_BY[k] ? SITE_BY[k].help : '') }), live);
+  };
+  const flag = k => {
+    const id = 'cf_' + k, input = cwEl('input', { type: 'checkbox', id, dataset: { rf: k } });
+    const live = cwEl('div', { class: 'cw-live', id: id + '_live', 'aria-live': 'polite' });
+    c.rail[k] = { input, live, flag: true };
+    return cwEl('div', { class: 'cw-ctl' }, cwEl('label', { class: 'cw-flag', for: id }, input, cwEl('span', { text: FLAG_LABEL[k] || k })), cwEl('div', { class: 'cw-cap', text: SITE_BY[k].help }), live);
+  };
+  c.rail = {};
+  const envelope = [control('gross_peak_mw', 'Gross peak demand'), control('bess_mw', 'BESS power', true), control('backup_gen_mw', 'Backup generation')]
+    .concat((JUR_NUMS[c.jurisdiction] || []).map(k => control(k, k.replace(/_/g, ' ').replace(/^./, x => x.toUpperCase()))))
+    .concat((JUR_FLAGS[c.jurisdiction] || []).map(flag));
+  const levers = ['u_min', 'sla_slack_hours', 'flexible_share', 'training_slack_multiplier', 'beta'].map(k => control(k, { u_min: 'GPU power-cap floor', sla_slack_hours: 'Batch SLA slack', flexible_share: 'Flexible batch share', training_slack_multiplier: 'Training slack multiple', beta: 'Speed-power exponent' }[k]));
+  cwFill('rail',
+    cwEl('section', { class: 'cw-sec', 'aria-labelledby': 'cwSiteH' }, cwEl('h3', { id: 'cwSiteH', text: 'Site & regulatory envelope' }), cwEl('p', { class: 'cw-cap', text: 'What the regulator sees: size, storage, backup and the declarations this rulepack checks.' }), envelope),
+    cwEl('section', { class: 'cw-sec', 'aria-labelledby': 'cwLevH' }, cwEl('h3', { id: 'cwLevH', text: 'Flexible AI workload levers' }), cwEl('p', { class: 'cw-cap', text: 'How much compute can slow down, and for how long, without breaking a customer SLA.' }), levers));
+  c.railJur = c.jurisdiction;
+}
+function updateRail() {
+  const c = state.comp, d = c.result;
+  for (const k of Object.keys(c.rail)) {
+    const r = c.rail[k];
+    if (r.flag) { r.input.checked = !!d.site[k]; }
+    else {
+      const v = r.isParam ? state.p.bessMW : d.site[k];
+      if (document.activeElement !== r.input) r.input.value = String(v);
+      r.val.textContent = fmtVal(k, v);
+    }
+    r.live.textContent = controlLive(k, d);
+  }
+}
+function renderCompliance() {
+  const c = state.comp;
+  if (!$('cwHero')) return;
+  cwFill('compJurBar', JUR_PRIMARY.map(pr => {
+    const on = pr.jur === c.jurisdiction && (pr.gross ? c.site.gross_peak_mw === pr.gross : !(pr.jur === 'ercot-sb6' && c.site.gross_peak_mw === 70));
+    return cwEl('button', { class: 'btn sm cw-seg', 'aria-pressed': String(on), dataset: { cj: pr.id }, text: pr.label });
+  }));
+  const more = $('jurMore'); if (more) more.value = JUR_MORE.some(j => j[0] === c.jurisdiction) ? c.jurisdiction : '';
+  cwFill('compScenBar', ['ercot-sb6-100mw-compliant', 'ercot-sb6-illegal-stack'].map(id => cwEl('button', { class: 'btn sm cw-seg', 'aria-pressed': String(c.scenarioId === id && c.snapshot === compSnapshot()), dataset: { cs: id }, text: B2B_SCENARIOS[id].label })));
+  cwFill('roleLens', ROLES.map(([id, label]) => cwEl('button', { class: 'btn sm cw-seg', 'aria-pressed': String(c.role === id), dataset: { role: id }, text: label })));
+  const ex = $('btnExplain'); if (ex) { ex.setAttribute('aria-pressed', String(c.explain)); ex.textContent = c.explain ? 'Hide explanations' : 'Explain this screen'; }
+  renderExplain();
+  if (c.err) { cwFill('cwHero', cwEl('div', { class: 'err', role: 'alert', text: 'Compliance engine error: ' + c.err })); return; }
+  if (!c.result) { cwFill('cwHero', cwEl('div', { class: 'muted', text: 'Computing\u2026' })); return; }
+  const d = c.result, rep = d.report, fd = rep.financial_drag, cv = d.curve;
+  if (c.railJur !== c.jurisdiction || !Object.keys(c.rail).length) buildRail();
+  updateRail();
+  const [tag, tone] = VERDICT_TAG[rep.verdict];
+  cwFill('cwHero',
+    cwEl('div', { class: 'verdict v-' + tone + ' cw-hero' },
+      cwEl('span', { class: 'tag', role: 'status', text: tag }),
+      cwEl('div', { class: 'grow' },
+        cwEl('div', { class: 'bold', text: RULEPACKS[c.jurisdiction].name }),
+        cwEl('div', { class: 'small muted', text: rep.rulepack_id + ' \u00b7 gross peak ' + num(d.site.gross_peak_mw, 1) + ' MW \u00b7 ' + compPath() }),
+        cwEl('p', { class: 'cw-deduce cw-exec', id: 'heroDeduce', 'aria-live': 'polite', text: heroDeduction(d, c.role) })),
+      cwEl('div', { class: 'cw-kpis' },
+        kpi('Mandatory security trapped', usd(fd.security_locked_usd, 2), 'Posted on gross MW; returned in tranches'),
+        kpi('Certified 1-hr shed', num(cv.points[2].certified_shed_mw, 1) + ' MW', 'Sheddable for an hour without SLA breach'),
+        kpi('BESS CapEx avoided', usd(cv.capex_avoided_usd, 2), 'Storage the shedding curve displaces'))));
+  renderChecklist(d);
+  renderPath(d);
+  drawShedCurve();
+  renderMatrix();
+  renderTrust(d);
+  renderVerifyResult();
+  renderShareResult();
+}
+function kpi(label, value, cap) { return cwEl('div', { class: 'cw-kpi' }, cwEl('div', { class: 'tiny muted', text: label }), cwEl('div', { class: 'cw-kpi-v num', text: value }), cwEl('div', { class: 'tiny muted', text: cap })); }
+function statusPill(ch) {
+  if (!ch.passed && ch.severity === 'Blocker') return cwEl('span', { class: 'badge b-bad', text: 'BLOCKER' });
+  if (!ch.passed && ch.severity === 'Warning') return cwEl('span', { class: 'badge b-warn', text: 'WARNING' });
+  if (ch.severity === 'Info') return cwEl('span', { class: 'badge b-mute', text: /not apply|Not applicable|Not required|Not a Large|No SB 253|No backup|No generation|no MITECO/.test(ch.summary) ? 'N/A' : 'INFO' });
+  return cwEl('span', { class: 'badge b-good', text: 'PASS' });
+}
+function obsText(ch) {
+  if (ch.unit === 'flag') return ch.passed ? 'met' : 'not met';
+  if (typeof ch.observed !== 'number') return '';
+  const f = v => ch.unit === '$' || ch.unit === '$/yr' ? usd(v, 2) : num(v, Math.abs(v) < 10 ? 2 : 1) + (ch.unit && ch.unit !== '-' ? ' ' + ch.unit : '');
+  return f(ch.observed) + (typeof ch.limit === 'number' ? ' vs ' + f(ch.limit) : '');
+}
+function renderChecklist(d) {
+  const c = state.comp, rep = d.report;
+  cwFill('checklist', rep.checks.map(ch => {
+    const det = cwEl('details', { class: 'cw-rule' + (!ch.passed && ch.severity === 'Blocker' ? ' sev-v' : !ch.passed && ch.severity === 'Warning' ? ' sev-w' : ''), dataset: { rule: ch.rule_id } },
+      cwEl('summary', null, statusPill(ch), cwEl('span', { class: 'cw-rule-n', text: RULE_LABEL[ch.rule_id] || ch.rule_id }), cwEl('span', { class: 'cw-rule-o mono small', text: obsText(ch) })),
+      cwEl('div', { class: 'cw-drawer' },
+        cwEl('div', { class: 'cw-dt', text: 'Legal citation' }), cwEl('div', { class: 'small', text: ch.citation }),
+        cwEl('div', { class: 'cw-dt', text: 'Why this rule exists' }), cwEl('div', { class: 'small', text: RULE_WHY[ch.rule_id] || '' }),
+        cwEl('div', { class: 'cw-dt', text: 'What you can deduce right now' }), cwEl('div', { class: 'small cw-deduce', text: ruleDeduction(ch, rep, c.role) }),
+        cwEl('div', { class: 'tiny muted', text: ch.summary })));
+    if (c.open.has(ch.rule_id)) det.setAttribute('open', '');
+    det.addEventListener('toggle', () => { if (det.open) c.open.add(ch.rule_id); else c.open.delete(ch.rule_id); });
+    return det;
+  }));
+}
+function renderPath(d) {
+  const c = state.comp, rep = d.report, bad = failed(rep).filter(x => x.severity !== 'Info');
+  const box = $('pathCard'); if (!box) return;
+  box.hidden = !bad.length;
+  if (!bad.length) { box.replaceChildren(); return; }
+  const top = bad.find(x => x.severity === 'Blocker') || bad[0];
+  const rems = rep.remediations;
+  const lead = rems.length
+    ? (c.role === 'gc' ? 'Curing ' + (RULE_LABEL[top.rule_id] || top.rule_id) + ' (' + citeShort(top) + '): ' : c.role === 'eng' ? 'Engineering options for ' + (RULE_LABEL[top.rule_id] || top.rule_id) + ': ' : 'Cheapest legal fix first: ')
+      + rems.map(r => r.title + (r.recommended ? ' (recommended)' : '')).join(' vs ') + '.'
+    : 'No automatic remediation exists for ' + bad.map(x => RULE_LABEL[x.rule_id] || x.rule_id).join(', ') + '; these need a contract, permit or filing change.';
+  cwFill(box,
+    cwEl('div', { class: 'row between' }, cwEl('h2', { text: 'Path to compliance' }), cwEl('span', { class: 'tiny muted', text: bad.length + ' open rule' + (bad.length > 1 ? 's' : '') })),
+    cwEl('p', { class: 'cw-cap', text: 'Counterfactual fixes computed by the engine. Apply one to move the inputs to the compliant state and re-run every rule.' }),
+    cwEl('p', { class: 'cw-deduce', 'aria-live': 'polite', text: lead }),
+    cwEl('div', { class: 'cw-paths' }, rems.map((r, i) => cwEl('div', { class: 'cw-path' + (r.recommended ? ' rec' : '') },
+      cwEl('div', { class: 'small bold', text: r.title }),
+      cwEl('div', { class: 'tiny muted', text: (RULE_LABEL[r.rule_id] || r.rule_id) + (r.recommended ? ' \u00b7 recommended' : '') }),
+      cwEl('div', { class: 'small', text: r.action }),
+      r.value_usd_per_year ? cwEl('div', { class: 'cw-num', text: usd(r.value_usd_per_year) + '/yr \u00b7 5-yr PV ' + usd(r.pv_5y_usd) + ' \u00b7 ' + (r.delta_vs_other_usd_per_year >= 0 ? '+' : '\u2212') + usd(Math.abs(r.delta_vs_other_usd_per_year)) + '/yr vs the other path' }) : null,
+      r.capex_usd > 0 ? cwEl('div', { class: 'cw-num', text: 'Additional BESS CapEx ' + usd(r.capex_usd, 2) }) : null,
+      !r.resolves ? cwEl('div', { class: 'tiny muted', text: 'Does not fully resolve the rule on its own.' }) : null,
+      r.changes.length ? cwEl('button', { class: 'btn sm', dataset: { rem: i }, text: 'Apply remediation' }) : null))));
+}
+function drawShedCurve() {
+  const c = state.comp; if (!c.result || !$('shedSvg')) return;
+  const site = Object.assign({}, c.result.site);
+  for (const k of ['u_min', 'sla_slack_hours', 'flexible_share', 'training_slack_multiplier', 'beta']) { const v = c.site[k]; if (typeof v === 'number' && Number.isFinite(v)) site[k] = v; }
+  const curve = shedCurve(site, quantParams(state.p));
+  const W = 560, H = 230, L = 46, R = 14, T = 16, B = 36, iw = W - L - R, ih = H - T - B;
+  const pts = curve.points, ymax = Math.max(1, curve.required_shed_mw, ...pts.map(p => p.certified_shed_mw)) * 1.15;
+  const X = i => L + iw * i / (pts.length - 1), Y = v => T + ih - ih * v / ymax;
+  const labels = ['15m', '30m', '1h', '2h', '4h'];
+  const grid = [0, 0.5, 1].map(f => [cwSvg('line', { x1: L, x2: W - R, y1: Y(ymax * f), y2: Y(ymax * f), stroke: 'var(--border)' }), cwSvg('text', { x: L - 6, y: Y(ymax * f) + 4, 'text-anchor': 'end', 'font-size': 10, fill: 'var(--muted)', text: num(ymax * f, 0) })]);
+  const line = pts.map((p, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(p.certified_shed_mw).toFixed(1)).join(' ');
+  const readout = $('curveReadout');
+  const say = (i) => { if (readout) readout.textContent = labels[i] + ': ' + num(pts[i].certified_shed_mw, 2) + ' MW certified \u00b7 shadow price $' + num(pts[i].marginal_shadow_price_per_mwh, 1) + '/MWh \u00b7 displaces ' + num(pts[i].bess_mwh_displaced, 1) + ' MWh of BESS'; };
+  const dots = pts.map((p, i) => cwSvg('g', { tabindex: 0, role: 'img', 'aria-label': labels[i] + ' ' + num(p.certified_shed_mw, 1) + ' MW', onfocus: () => say(i), onmouseenter: () => say(i) },
+    cwSvg('circle', { cx: X(i), cy: Y(p.certified_shed_mw), r: 9, fill: 'transparent' }),
+    cwSvg('circle', { cx: X(i), cy: Y(p.certified_shed_mw), r: 4, fill: 'var(--text)' }),
+    cwSvg('title', { text: labels[i] + ': ' + num(p.certified_shed_mw, 2) + ' MW certified' }),
+    cwSvg('text', { x: X(i), y: Y(p.certified_shed_mw) - 9, 'text-anchor': 'middle', 'font-size': 10, fill: 'var(--text)', text: num(p.certified_shed_mw, 1) }),
+    cwSvg('text', { x: X(i), y: H - 16, 'text-anchor': 'middle', 'font-size': 11, fill: 'var(--muted)', text: labels[i] })));
+  const req = curve.required_shed_mw > 0 ? [cwSvg('line', { x1: L, x2: W - R, y1: Y(curve.required_shed_mw), y2: Y(curve.required_shed_mw), stroke: 'var(--muted)', 'stroke-dasharray': '5 4' }),
+    cwSvg('text', { x: W - R, y: Y(curve.required_shed_mw) - 5, 'text-anchor': 'end', 'font-size': 10, fill: 'var(--muted)', text: 'required shed ' + num(curve.required_shed_mw, 1) + ' MW' })] : [];
+  cwFill('shedSvg', cwSvg('svg', { viewBox: '0 0 ' + W + ' ' + H, width: '100%', role: 'group', 'aria-label': 'Certified shedding capability by event duration' },
+    grid, cwSvg('path', { d: line, fill: 'none', stroke: 'var(--text)', 'stroke-width': 2 }), req, dots,
+    cwSvg('text', { x: L, y: H - 2, 'font-size': 10, fill: 'var(--muted)', text: 'event duration \u2192   MW sheddable without breaking any SLA' })));
+  const cap = $('capexBadge'); if (cap) cap.textContent = 'BESS CapEx avoided ' + usd(curve.capex_avoided_usd, 2);
+  const dd = Object.assign({}, c.result, { curve });
+  const cd = $('curveDeduce'); if (cd) cd.textContent = curveDeduction(dd, c.role);
+  for (const k of ['u_min', 'sla_slack_hours', 'flexible_share', 'training_slack_multiplier', 'beta']) {
+    const r = c.rail[k]; if (!r) continue;
+    const v = site[k]; r.val.textContent = fmtVal(k, v); r.live.textContent = controlLive(k, Object.assign({}, c.result, { site, curve }));
+  }
+}
+function renderMatrix() {
+  const c = state.comp, m = c.matrix; if (!m || !$('matrixBody')) return;
+  const tone = v => v === 'BankablePass' ? 'b-good' : v === 'ConditionalWarning' ? 'b-warn' : 'b-bad';
+  cwFill('matrixBody', cwEl('table', null,
+    cwEl('thead', null, cwEl('tr', null, ['Rank', 'Corridor', 'Rulepack', 'Verdict', 'Blockers', 'Warnings', 'Drag', 'First failed rule'].map((t, i) => cwEl('th', { class: i === 0 || (i >= 4 && i <= 6) ? '' : 'l', scope: 'col', text: t })))),
+    cwEl('tbody', null, m.rows.map(r => cwEl('tr', { class: r.jurisdiction === c.jurisdiction ? 'cw-cur' : '' },
+      cwEl('td', { text: String(r.rank) }),
+      cwEl('td', { class: 'l' }, cwEl('button', { class: 'btn sm', dataset: { mj: r.jurisdiction }, text: JUR_SHORT[r.jurisdiction] })),
+      cwEl('td', { class: 'l mono small', text: r.rulepack_id }),
+      cwEl('td', { class: 'l' }, cwEl('span', { class: 'badge ' + tone(r.verdict), text: VERDICT_TAG[r.verdict][0] })),
+      cwEl('td', { text: String(r.blockers) }), cwEl('td', { text: String(r.warnings) }), cwEl('td', { text: usd(r.total_drag_usd, 2) }),
+      cwEl('td', { class: 'l small', text: r.failed_rules.length ? (RULE_LABEL[r.failed_rules[0]] || r.failed_rules[0]) : '\u2014' }))))));
+  const md = $('matrixDeduce'); if (md) md.textContent = matrixDeduction(m, c.role);
+  const ms = $('matrixSha'); if (ms) ms.textContent = 'matrix_sha256 ' + m.sha256 + ' \u00b7 firmgap compare-jurisdictions --scenario ' + compPath() + ' --format json';
+}
+function renderTrust(d) {
+  const t = $('trustSha'); if (t) t.textContent = d.sha256;
+  const s = $('trustScenario'); if (s) s.textContent = d.dossier.scenario_sha256;
+  const r = $('trustRepro'); if (r) r.textContent = d.dossier.repro_command;
+  const td = $('trustDeduce');
+  if (td) td.textContent = state.comp.role === 'gc' ? 'The hash proves the file is unchanged since it was generated; it does not prove who generated it. Record it in IC minutes or sign the file before filing.'
+    : state.comp.role === 'eng' ? 'Anyone can recompute this digest with the CLI or three lines of Node; a single changed byte produces a different hash.'
+      : 'Attach the dossier and quote this hash in the lender data room; reviewers verify it in seconds without trusting this browser.';
+}
+function renderExplain() {
+  const c = state.comp;
+  for (let i = 0; i < 4; i++) {
+    const z = $('cwZ' + (i + 1)), tip = $('cwTip' + (i + 1));
+    if (z) z.classList.toggle('cw-explain', c.explain && !c.dismissed.has(i));
+    if (!tip) continue;
+    tip.hidden = !(c.explain && !c.dismissed.has(i));
+    cwFill(tip, cwEl('span', { class: 'cw-tip-n', text: EXPLAIN[i][0] }), cwEl('span', { text: EXPLAIN[i][1] }),
+      cwEl('button', { class: 'btn sm', 'aria-label': 'Dismiss ' + EXPLAIN[i][0], dataset: { dismiss: i }, text: 'Got it' }));
+  }
+}
+
+// ---------- actions ----------
+function setSiteValue(k, v) {
+  const sp = SITE_BY[k];
+  if (k === 'bess_mw') { applyParams(Object.assign({}, state.p, { bessMW: v }), { silent: true }); return; }
+  if (!sp) return;
+  if (sp.kind === 'bool') { state.comp.site[k] = !!v; return; }
+  if (typeof v !== 'number' || !Number.isFinite(v)) return;
+  state.comp.site[k] = Math.min(sp.max, Math.max(sp.min, v));
+}
+function commit(msg) { if (msg) log('compliance input', msg); recalc(); computeCompliance(); renderCompliance(); }
+function animateTo(changes, done) {
+  const reduce = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const numeric = changes.filter(ch => typeof ch.value === 'number' && state.comp.rail[ch.key] && !state.comp.rail[ch.key].flag);
+  if (reduce || typeof requestAnimationFrame !== 'function' || !numeric.length) { done(); return; }
+  const from = numeric.map(ch => Number(state.comp.rail[ch.key].input.value)), t0 = Date.now(), dur = 450;
+  const step = () => {
+    const f = Math.min(1, (Date.now() - t0) / dur), e = 1 - Math.pow(1 - f, 3);
+    numeric.forEach((ch, i) => { const r = state.comp.rail[ch.key]; const v = from[i] + (ch.value - from[i]) * e; r.input.value = String(v); r.val.textContent = fmtVal(ch.key, v); });
+    if (f < 1) requestAnimationFrame(step); else done();
+  };
+  requestAnimationFrame(step);
+}
+function applyRemediation(i) {
+  const c = state.comp, r = c.result && c.result.report.remediations[i]; if (!r) return;
+  animateTo(r.changes, () => {
+    const pPatch = {};
+    for (const ch of r.changes) { if (PARAM_CAMEL[ch.key]) pPatch[PARAM_CAMEL[ch.key]] = ch.value; else setSiteValue(ch.key, ch.value); }
+    if (Object.keys(pPatch).length) applyParams(Object.assign({}, state.p, pPatch), { silent: true });
+    log('remediation applied', r.id + ': ' + r.changes.map(x => x.key + '=' + x.value).join(', '));
+    commit();
+    const v = c.result ? c.result.report.verdict : 'n/a';
+    toast('Applied "' + r.title + '": verdict now ' + v, v === 'BankablePass' ? 'good' : 'warn');
+  });
+}
+function loadB2B(id) {
+  const sc = B2B_SCENARIOS[id]; if (!sc) return;
+  applyParams(Object.assign({}, CASE_STATED, sc.params), { silent: true });
+  state.comp.site = Object.assign({}, sc.site); state.comp.jurisdiction = sc.jurisdiction; state.comp.scenarioId = id; state.comp.sharedPath = null;
+  recalc(); state.comp.snapshot = compSnapshot();
+  log('compliance scenario', sc.label); computeCompliance(); renderCompliance();
+}
+function setJurisdiction(jur, gross) {
+  const c = state.comp; c.jurisdiction = jur;
+  if (gross) c.site.gross_peak_mw = gross; else if (c.site.gross_peak_mw === 70 && jur === 'ercot-sb6') delete c.site.gross_peak_mw;
+  log('jurisdiction', jur); computeCompliance(); renderCompliance();
+}
+async function digestHex(text) {
+  try { if (window.crypto && crypto.subtle && window.isSecureContext) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); } } catch (e) { /* fall back to the pure-JS hash */ }
+  return null;
+}
+async function verifyDossierFile(text) {
+  if (typeof text !== 'string' || !text.length || text.length > DOSSIER_MAX_BYTES) { state.comp.verify = { ok: false, reason: 'file is empty or larger than 1 MB' }; renderVerifyResult(); return; }
+  const v = verifyDossierText(text);
+  if (v.actual) {
+    let body = null;
+    try { body = JSON.parse(text); delete body.dossier_sha256; } catch (e) { body = null; }
+    const wc = body ? await digestHex(canonicalJSON(body)) : null;
+    v.webcrypto = wc === null ? 'WebCrypto unavailable here; pure-JS SHA-256 used' : (wc === v.actual ? 'WebCrypto SHA-256 agrees' : 'WebCrypto DISAGREES');
+  }
+  state.comp.verify = v; log('dossier verified', (v.ok ? 'OK ' : 'FAILED ') + (v.actual || v.reason)); renderVerifyResult();
+}
+function renderVerifyResult() {
+  const v = state.comp.verify; if (!$('verifyOut')) return;
+  if (!v) { cwFill('verifyOut'); return; }
+  const hex = x => (typeof x === 'string' && /^[0-9a-f]{64}$/.test(x)) ? x : '(not a SHA-256)';
+  cwFill('verifyOut', v.ok
+    ? cwEl('div', { class: 'gitem cw-ok', role: 'status' }, cwEl('div', { class: 'ic', text: '\u2713' }), cwEl('div', null,
+      cwEl('div', { class: 't', text: 'Verified: SHA-256 matches the canonical body' }),
+      cwEl('div', { class: 'd mono', text: hex(v.actual) + ' \u00b7 engine ' + asciiOnly(String(v.engine_version)).slice(0, 20) + ' \u00b7 ' + (v.webcrypto || '') })))
+    : cwEl('div', { class: 'gitem sev-v', role: 'alert' }, cwEl('div', { class: 'ic', text: '\u2715' }), cwEl('div', null,
+      cwEl('div', { class: 't', text: 'Tampered or invalid: ' + v.reason }),
+      v.claimed ? cwEl('div', { class: 'd mono', text: 'claimed ' + hex(v.claimed) }) : null,
+      v.actual ? cwEl('div', { class: 'd mono', text: 'actual  ' + hex(v.actual) }) : null)));
+}
+function proofLink() {
+  const c = state.comp; if (!c.result) return null;
+  const t = shareToken(c.jurisdiction, quantParams(state.p), quantSite(c.site), compPath());
+  let base = '';
+  try { base = String(location.href).split('#')[0]; } catch (e) { base = ''; }
+  return { url: base + '#s=' + t.token, token: t.token, sha256: t.sha256 };
+}
+function renderShareResult() {
+  const s = state.comp.share; if (!$('shareOut')) return;
+  if (!s) { cwFill('shareOut'); return; }
+  cwFill('shareOut', cwEl('div', { class: 'gitem' + (s.ok ? ' cw-ok' : ' sev-v'), role: s.ok ? 'status' : 'alert' }, cwEl('div', { class: 'ic', text: s.ok ? '\u2713' : '\u2715' }),
+    cwEl('div', null, cwEl('div', { class: 't', text: s.title }), cwEl('div', { class: 'd mono cw-break', text: s.detail }))));
+}
+function loadFromHash(h) {
+  if (typeof h !== 'string' || h.indexOf('#s=') !== 0) return false;
+  const r = shareDecode(h);
+  const c = state.comp;
+  if (!r.ok) { c.share = { ok: false, title: 'Proof link rejected', detail: r.reason }; return true; }
+  applyParams(r.params, { silent: true });
+  c.site = Object.assign(Object.create(null), r.site);
+  c.site = Object.assign({}, c.site);
+  c.jurisdiction = r.jurisdiction; c.scenarioId = null; recalc();
+  c.sharedPath = r.path; c.sharedSnap = compSnapshot(); c.sharedExpect = r.expected;
+  computeCompliance();
+  const got = c.result ? c.result.sha256 : '';
+  c.share = r.expected && got === r.expected
+    ? { ok: true, title: 'Proof link verified: this browser reproduces the sender\u2019s dossier hash', detail: got + (r.clamps ? ' (' + r.clamps + ' inputs clamped)' : '') }
+    : { ok: false, title: r.expected ? 'Proof link does not reproduce its hash: inputs were altered or an engine version differs' : 'Proof link carries no hash to check', detail: 'expected ' + (r.expected || 'none') + ' \u00b7 got ' + got };
+  log('proof link opened', c.share.title);
+  return true;
+}
+function buildPrintMemo() {
+  const c = state.comp, d = c.result; if (!d || !$('printMemo')) return;
+  const rep = d.report, fd = rep.financial_drag, cv = d.curve, m = c.matrix;
+  cwFill('printMemo',
+    cwEl('h1', { text: 'Compliance & bankability filing memo' }),
+    cwEl('p', { class: 'pm-meta', text: 'firmgap ' + ENGINE_VERSION + ' \u00b7 generated ' + new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC \u00b7 scenario ' + compPath() }),
+    cwEl('h2', { text: RULEPACKS[c.jurisdiction].name + ' (' + rep.rulepack_id + ')' }),
+    cwEl('p', { class: 'pm-verdict', text: 'Verdict: ' + VERDICT_TAG[rep.verdict][0] }),
+    cwEl('p', { text: heroDeduction(d, c.role) }),
+    cwEl('table', null, cwEl('tbody', null,
+      cwEl('tr', null, cwEl('th', { text: 'Mandatory security trapped' }), cwEl('td', { text: usd(fd.security_locked_usd, 2) })),
+      cwEl('tr', null, cwEl('th', { text: 'Certified 1-hr shed' }), cwEl('td', { text: num(cv.points[2].certified_shed_mw, 1) + ' MW' })),
+      cwEl('tr', null, cwEl('th', { text: 'BESS CapEx avoided' }), cwEl('td', { text: usd(cv.capex_avoided_usd, 2) })),
+      cwEl('tr', null, cwEl('th', { text: 'Working-capital carry / expected forfeiture' }), cwEl('td', { text: usd(fd.working_capital_carry_usd, 2) + ' / ' + usd(fd.expected_forfeiture_usd, 2) })))),
+    cwEl('h3', { text: 'Statutory checks' }),
+    cwEl('table', null, cwEl('thead', null, cwEl('tr', null, ['Rule', 'Status', 'Observed vs limit', 'Citation'].map(t => cwEl('th', { text: t })))),
+      cwEl('tbody', null, rep.checks.map(ch => cwEl('tr', null, cwEl('td', { text: RULE_LABEL[ch.rule_id] || ch.rule_id }), cwEl('td', { text: ch.passed ? 'pass' : ch.severity.toUpperCase() }), cwEl('td', { text: obsText(ch) }), cwEl('td', { class: 'pm-cite', text: ch.citation }))))),
+    rep.remediations.length ? [cwEl('h3', { text: 'Path to compliance' }), cwEl('ul', null, rep.remediations.map(r => cwEl('li', { text: (r.recommended ? 'Recommended: ' : '') + r.title + '. ' + r.action })))] : null,
+    cwEl('h3', { text: 'Certified shedding capability' }),
+    cwEl('p', { text: cv.points.map((p, i) => ['15 min', '30 min', '1 h', '2 h', '4 h'][i] + ' ' + num(p.certified_shed_mw, 1) + ' MW').join(' \u00b7 ') + '. ' + curveDeduction(d, c.role) }),
+    m ? [cwEl('h3', { class: 'pm-break', text: 'Global bankability matrix' }), cwEl('table', null, cwEl('tbody', null, m.rows.map(r => cwEl('tr', null, cwEl('td', { text: String(r.rank) }), cwEl('td', { text: JUR_SHORT[r.jurisdiction] }), cwEl('td', { text: r.verdict }), cwEl('td', { text: r.failed_rules.join(', ') || '\u2014' })))))] : null,
+    cwEl('div', { class: 'pm-stamp' },
+      cwEl('div', { text: 'dossier_sha256 ' + d.sha256 }),
+      cwEl('div', { text: 'scenario_sha256 ' + d.dossier.scenario_sha256 }),
+      cwEl('div', { text: 'Reproduce: ' + d.dossier.repro_command }),
+      cwEl('div', { text: 'Verify: firmgap audit --verify <dossier.json> --expect ' + d.sha256 })),
+    cwEl('p', { class: 'pm-meta', text: 'Screening tool, not legal advice. Citations name the provision each check relies on; confirm current text with counsel before filing.' }));
+}
+function wireCompliance() {
+  const panel = document.querySelector('[data-panel="compliance"]'); if (!panel) return;
+  panel.addEventListener('click', ev => {
+    const t = ev.target && ev.target.closest ? ev.target.closest('[data-cj],[data-cs],[data-rem],[data-role],[data-mj],[data-dismiss],#btnExplain,#btnDossier,#btnScenToml,#btnRepro,#btnShare,#btnPrint,#btnVerifyPick,#dropZone') : null;
+    if (!t) return;
+    const ds = t.dataset || {};
+    if (ds.cj) { const pr = JUR_PRIMARY.find(x => x.id === ds.cj); if (pr) setJurisdiction(pr.jur, pr.gross); return; }
+    if (ds.mj) { if (RULEPACKS[ds.mj]) setJurisdiction(ds.mj); return; }
+    if (ds.cs) { loadB2B(ds.cs); return; }
+    if (ds.role) { if (ROLES.some(r => r[0] === ds.role)) { state.comp.role = ds.role; renderCompliance(); } return; }
+    if (ds.dismiss !== undefined) { state.comp.dismissed.add(Number(ds.dismiss)); renderExplain(); return; }
+    if (ds.rem !== undefined) { applyRemediation(parseInt(ds.rem, 10)); return; }
+    const d = state.comp.result;
+    if (t.id === 'btnExplain') { state.comp.explain = !state.comp.explain; if (state.comp.explain) state.comp.dismissed.clear(); renderCompliance(); return; }
+    if (t.id === 'btnDossier' && d) { log('dossier exported', d.sha256); offerDownload('firmgap-dossier-' + d.sha256.slice(0, 12) + '.json', 'application/json', d.text, 'Audit dossier (canonical JSON)', 'dossier_sha256 ' + d.sha256 + '. Verify anywhere with: firmgap audit --verify <file>'); return; }
+    if (t.id === 'btnScenToml' && d) { const path = compPath(), name = path.split('/').pop(); offerDownload(name, 'text/plain', scenarioToml(quantParams(state.p), quantSite(state.comp.site), name, state.comp.jurisdiction), 'Scenario (TOML)', 'Save as ' + path + ' relative to where you run the CLI, then: ' + d.dossier.repro_command); return; }
+    if (t.id === 'btnRepro' && d) { copyText(d.dossier.repro_command); return; }
+    if (t.id === 'btnShare' && d) {
+      const link = proofLink();
+      if (link) {
+        state.comp.share = { ok: true, title: 'Proof link ready (' + link.token.length + ' characters). Anyone opening it recomputes dossier ' + link.sha256.slice(0, 16) + '\u2026', detail: link.url };
+        try { if (history && history.replaceState) history.replaceState(null, '', '#s=' + link.token); } catch (e) { /* sandboxed frames may forbid history edits */ }
+        copyText(link.url); log('proof link created', link.sha256); renderShareResult();
+      }
+      return;
+    }
+    if (t.id === 'btnPrint') { buildPrintMemo(); try { window.print(); } catch (e) { /* printing unavailable */ } return; }
+    if (t.id === 'btnVerifyPick' || t.id === 'dropZone') { const f = $('dossierFile'); if (f) f.click(); }
+  });
+  panel.addEventListener('keydown', ev => { if (ev.target && ev.target.id === 'dropZone' && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); const f = $('dossierFile'); if (f) f.click(); } });
+  panel.addEventListener('input', ev => {
+    const t = ev.target, ds = (t && t.dataset) || {};
+    if (ds.rk && ['u_min', 'sla_slack_hours', 'flexible_share', 'training_slack_multiplier', 'beta'].indexOf(ds.rk) >= 0) { setSiteValue(ds.rk, Number(t.value)); drawShedCurve(); }
+    else if (ds.rk) { const r = state.comp.rail[ds.rk]; if (r && r.val) r.val.textContent = fmtVal(ds.rk, Number(t.value)); }
+  });
+  panel.addEventListener('change', ev => {
+    const t = ev.target, ds = (t && t.dataset) || {};
+    if (ds.rk) { setSiteValue(ds.rk, Number(t.value)); commit(ds.rk + '=' + t.value); return; }
+    if (ds.rf) { setSiteValue(ds.rf, !!t.checked); commit(ds.rf + '=' + !!t.checked); return; }
+    if (t.id === 'jurMore') { if (t.value && RULEPACKS[t.value]) setJurisdiction(t.value); return; }
+    if (t.id === 'dossierFile') { const f = t.files && t.files[0]; t.value = ''; if (!f) return; if (f.size > DOSSIER_MAX_BYTES) { state.comp.verify = { ok: false, reason: 'file larger than 1 MB' }; renderVerifyResult(); return; } const rd = new FileReader(); rd.onload = () => verifyDossierFile(String(rd.result)); rd.readAsText(f); }
+  });
+  panel.addEventListener('dragover', ev => { if (ev.target && ev.target.closest && ev.target.closest('#dropZone')) ev.preventDefault(); });
+  panel.addEventListener('drop', ev => {
+    if (!(ev.target && ev.target.closest && ev.target.closest('#dropZone'))) return;
+    ev.preventDefault(); const f = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0]; if (!f) return;
+    if (f.size > DOSSIER_MAX_BYTES) { state.comp.verify = { ok: false, reason: 'file larger than 1 MB' }; renderVerifyResult(); return; }
+    const rd = new FileReader(); rd.onload = () => verifyDossierFile(String(rd.result)); rd.readAsText(f);
+  });
+  if (typeof window !== 'undefined' && window.addEventListener) {
+    window.addEventListener('beforeprint', buildPrintMemo);
+    window.addEventListener('hashchange', () => { let h = ''; try { h = String(location.hash); } catch (e) { h = ''; } if (loadFromHash(h)) { setTab('compliance'); renderCompliance(); } });
+  }
+}
+function openSharedLinkOnStart() {
+  let h = '';
+  try { h = String(location.hash || ''); } catch (e) { h = ''; }
+  if (h.length > SHARE_MAX_TOKEN + 3) { state.comp.share = { ok: false, title: 'Proof link rejected', detail: 'link larger than 16 KiB' }; setTab('compliance'); return true; }
+  if (loadFromHash(h)) { setTab('compliance'); renderCompliance(); return true; }
+  return false;
+}
+
 const restored = restore();
 wire();
+wireCompliance();
 state.fp = fingerprint(state.p);
 log('session start', (restored ? 'restored saved inputs' : 'Base Case + robust design') + ' · storage ' + Store.mode);
 recalc();
 setTab('overview');
+openSharedLinkOnStart();
 })();
 
 </script>

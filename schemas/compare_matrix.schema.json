@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kakashi3lite/firmgap/schemas/compare_matrix.schema.json",
+  "title": "firmgap global bankability matrix",
+  "description": "Output of `firmgap compare-jurisdictions --format json` and of the web Global site comparison. Canonical JSON; matrix_sha256 = SHA-256 of the canonical object without matrix_sha256.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "engine_version",
+    "scenario_sha256",
+    "repro_command",
+    "rows",
+    "matrix_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "firmgap.compare.v1"
+    },
+    "engine_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "scenario_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "repro_command": {
+      "type": "string",
+      "maxLength": 600
+    },
+    "matrix_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "jurisdiction",
+          "rulepack_id",
+          "verdict",
+          "blockers",
+          "warnings",
+          "failed_rules",
+          "security_locked_usd",
+          "total_drag_usd",
+          "rank"
+        ],
+        "properties": {
+          "jurisdiction": {
+            "enum": [
+              "ercot-sb6",
+              "ferc-rm26-4",
+              "va-sb253",
+              "uk-neso",
+              "ie-cru",
+              "es-rd",
+              "sg-gdc",
+              "eu-eed"
+            ]
+          },
+          "rulepack_id": {
+            "enum": [
+              "TX-SB6-16TAC25.194-2026.10",
+              "US-FERC-RM26-4-2026.01",
+              "US-VA-SB253-2026.06",
+              "GB-NESO-OFGEM-DC-2026.09",
+              "IE-CRU-2025-236-2026.05",
+              "ES-RD-1032-2026.11",
+              "SG-IMDA-GDCR-DCCFA2-2026.03",
+              "EU-EED-ART12-2026.01"
+            ]
+          },
+          "verdict": {
+            "enum": [
+              "BankablePass",
+              "ConditionalWarning",
+              "StatutoryBlocker"
+            ]
+          },
+          "blockers": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "warnings": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "failed_rules": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z0-9_]{3,40}$"
+            }
+          },
+          "security_locked_usd": {
+            "type": "number",
+            "minimum": 0
+          },
+          "total_drag_usd": {
+            "type": "number",
+            "minimum": 0
+          },
+          "rank": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    }
+  }
+}

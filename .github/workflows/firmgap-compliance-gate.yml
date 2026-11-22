@@ -1,0 +1,88 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Compliance-as-code gate: every PR that touches a scenario (or the engine) re-audits the scenarios,
+# writes the verdicts and SHA-256 digests to the job summary, and fails on an undeclared
+# StatutoryBlocker or on a verdict that differs from the file's `expected_verdict`.
+# Runs on the plain `pull_request` event only: fork PRs get a read-only token and no secrets.
+# See docs/CI_COMPLIANCE_GATE.md.
+name: firmgap-compliance-gate
+
+on:
+  pull_request:
+    paths:
+      - "scenarios/**.toml"
+      - "src/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/firmgap-compliance-gate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compliance-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  gate:
+    name: compliance-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Install stable Rust
+        run: rustup toolchain install stable --profile minimal && rustup default stable
+      - name: Build firmgap
+        run: cargo build --release --locked
+      - name: Audit scenarios and gate on statutory blockers
+        env:
+          # Commit SHAs only; no PR title, body or branch name is ever interpolated into the script.
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          bin="./target/release/firmgap"
+          list="$(mktemp)"
+          if [ -n "${BASE_SHA:-}" ] && [ -n "${HEAD_SHA:-}" ]; then
+            git diff --name-only --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA" -- 'scenarios/*.toml' > "$list"
+          fi
+          if [ ! -s "$list" ]; then
+            # engine-only change: re-audit every scenario that declares its rulepack
+            grep -lE '^[[:space:]]*jurisdiction[[:space:]]*=' scenarios/*.toml > "$list" || true
+          fi
+          {
+            echo "# firmgap compliance gate"
+            echo
+            echo "Engine: \`$("$bin" --version)\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          status=0
+          while IFS= read -r f; do
+            case "$f" in
+              scenarios/*.toml) ;;
+              *) echo "skipping unexpected path"; continue ;;
+            esac
+            if ! printf '%s' "$f" | grep -Eq '^scenarios/[A-Za-z0-9._-]+\.toml$'; then
+              echo "::error::scenario file names must match [A-Za-z0-9._-]+.toml"
+              status=1
+              continue
+            fi
+            echo >> "$GITHUB_STEP_SUMMARY"
+            if grep -Eq '^[[:space:]]*jurisdiction[[:space:]]*=' "$f"; then
+              rc=0
+              "$bin" audit --scenario "$f" --format markdown --fail-on-blocker >> "$GITHUB_STEP_SUMMARY" || rc=$?
+              if [ "$rc" -ne 0 ]; then
+                echo "::error file=$f::compliance gate failed (exit $rc)"
+                status=1
+              fi
+            else
+              echo "> \`$f\` declares no \`jurisdiction\`; informational matrix only." >> "$GITHUB_STEP_SUMMARY"
+              "$bin" compare-jurisdictions --scenario "$f" --format markdown >> "$GITHUB_STEP_SUMMARY" || status=1
+            fi
+          done < "$list"
+          exit "$status"

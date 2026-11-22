@@ -26,6 +26,17 @@ graph TD
   report --> calendar[calendar.rs]
   report --> sim
   error[error.rs<br/>sanitized Display]
+  main --> audit[audit_bundle.rs<br/>SHA-256, dossier]
+  audit --> canon[canon.rs<br/>canonical JSON + parser]
+  audit --> compliance[compliance.rs<br/>rulepacks + remediation]
+  audit --> shed[shed_curve.rs<br/>KKT shedding curve]
+  compliance --> sim
+  compliance --> shed
+  shed --> economics
+  main --> portfolio[portfolio.rs<br/>matrix, batch, proof links]
+  portfolio --> audit
+  portfolio --> compliance
+  compliance --> intl[rulepacks_intl.rs<br/>VA, GB, IE, ES, SG]
 ```
 
 There are no cycles, and every arrow points toward leaf modules with no I/O. Only `main.rs` and

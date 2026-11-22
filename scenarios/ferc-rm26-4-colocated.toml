@@ -1,0 +1,34 @@
+# firmgap scenario: 120 MW campus with co-located backup, checked against anticipated
+# FERC RM26-4 flexible large-load interconnection terms (no final rule exists yet).
+
+preset = "case"
+
+# metadata (not part of the dossier hash): default rulepack and the verdict CI expects
+jurisdiction = "ferc-rm26-4"
+expected_verdict = "BankablePass"
+
+# simulation parameters (override the case study)
+target_mw = 120
+interim_mw = 80
+ceiling_mw = 80
+queue_months = 36
+interim_month = 4
+bess_lead = 6
+horizon = 60
+bess_mw = 40
+bess_h = 2
+max_throttle_h = 12
+defer_share = 0.35
+gen_mw = 0
+safety_margin = 0.5
+soc_window = 0.9
+bess_derate = 0.95
+defer_cost = 25
+
+# compliance site profile
+poi_import_limit_mw = 120
+max_ramp_mw_per_min = 10
+power_factor = 0.97
+pf_floor = 0.95
+milestone_energize_month = 12
+backup_gen_mw = 30

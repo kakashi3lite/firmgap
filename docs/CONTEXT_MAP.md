@@ -8,6 +8,13 @@ that moves a concept without updating this file is incomplete.
 
 | Concept | Code | Protected by | Explained in |
 |---|---|---|---|
+| International rulepacks (0.4) | `src/rulepacks_intl.rs`, web `INTL_REPORTS` | `golden_audit.rs::every_rulepack_has_golden_coverage`, `invariants.rs::every_rulepack_evaluates_every_listed_rule_and_nothing_else`, `applying_a_resolving_remediation_turns_its_rule_green` | COMPLIANCE §1.4–1.8, JURISDICTIONS_2026 |
+| Bankability matrix, batch audit, proof links (0.4) | `src/portfolio.rs`, web `compareWith`, `shareToken`, `shareDecode` | `golden_audit.rs::bankability_matrix_is_byte_identical_to_the_web_reference`, `share_tokens_roundtrip_bit_exact`, `invariants.rs::batch_audit_is_deterministic_and_bounded`, fuzz `share`, `scripts/bench.sh` | COMPLIANCE §5, THREAT_MODEL T2d/T2e |
+| Compliance gate and releases (0.4) | `.github/workflows/firmgap-compliance-gate.yml`, `release.yml`, `scripts/hygiene.sh` | `cli.rs::fail_on_blocker_respects_expected_verdict`, CI smoke | CI_COMPLIANCE_GATE, THREAT_MODEL T8/T9 |
+| Compliance war room UI (0.4) | web Compliance & Bankability block (DOM built with `textContent`) | functional suite (35 checks), built-in self-test, `hygiene.sh` | USER_GUIDE §1–2 |
+| Compliance rulepacks & remediation (0.3) | `src/compliance.rs` (`SITE_SPECS`, `compliance_report`) | `tests/golden_audit.rs`, `compliance::tests`, `cli.rs::audit_*` | COMPLIANCE §1-2 |
+| Shedding capability curve (0.3) | `src/shed_curve.rs` | `invariants.rs::shedding_curve_is_monotonically_non_increasing_in_duration`, golden curve hash | COMPLIANCE §3 |
+| Audit dossier, SHA-256, canonical JSON (0.3) | `src/audit_bundle.rs`, `src/canon.rs` | NIST vectors, `tampering_any_single_byte_fails_verification`, fuzz `dossier`, `golden.mjs` node:crypto cross-check | COMPLIANCE §4, THREAT_MODEL T2a/T2b |
 | Case-study defaults & input domain | `src/params.rs` (`numeric_params!`, `SPECS`) | `params::tests`, `cli.rs::rejects_bad_input_*` | MODEL §1, `firmgap params` |
 | Input validation & cross-checks | `Params::set`, `Params::validate` | `params::tests`, fuzz target `scenario` | THREAT_MODEL T1 |
 | Deterministic randomness | `src/rng.rs` | `rng::tests` (bit-exact vs JS) | MODEL §1.2 |

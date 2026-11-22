@@ -1,4 +1,8 @@
-# Investor diligence audit (firmgap v0.2)
+# Investor diligence audit (firmgap v0.2, status updated for v0.4)
+
+> v0.3 and v0.4 do not change any v0.2 number (`tests/golden_v2.json` is unchanged). They add eight-corridor
+> compliance screening, a shedding-capability curve, a hash-verified audit dossier, a global bankability matrix,
+> portfolio sweeps, proof links and a CI compliance gate; see [COMPLIANCE.md](COMPLIANCE.md).
 
 This audit stress-tests the v0.1 diagnosis and MVP from an infrastructure-IC point of view. Every number
 below is reproducible in `web/index.html` (world presets, design presets and the stress suite).
@@ -148,7 +152,7 @@ The NPV of each design under each world scenario ($M; ✓ compliant · ~ certifi
 
 ## 5. MVP-to-production gap map
 
-| # | Prototype shortcut | Production requirement | v0.2 status |
+| # | Prototype shortcut | Production requirement | Status (v0.4) |
 |---|---|---|---|
 | 1 | Browser-side math is the only engine | Deterministic, versioned engine service (Rust kernel), with the browser as a viewer; WASM build for offline parity | **Rust 0.2 port done** (`firmgap diligence / robust / stress`), golden-pinned to the web reference; server API and WASM build pending |
 | 2 | One synthetic year | Historical nodal LMP / congestion replay + Monte Carlo | Monte Carlo added; replay pending |
@@ -163,4 +167,8 @@ The NPV of each design under each world scenario ($M; ✓ compliant · ~ certifi
 | 11 | No auth / RBAC / multi-user | OIDC SSO, RBAC, tenant isolation | Spec (PRODUCTION_SPEC §3) |
 | 12 | No telemetry ingestion | Contracts in `schemas/`, freshness state machine | Spec |
 | 13 | CDN runtime code (v0.1 used the Tailwind CDN) | Zero third-party runtime code, CSP | Done (v0.2 has no external code) |
-| 14 | Rust never compiled | Green CI on three operating systems | Pending: run `scripts/verify.sh` (now covers model 0.2) |
+| 14 | Rust never compiled | Green CI on three operating systems | v0.2: done (`verify.sh` green locally; `ci`, `codeql`, `scorecard` green on commit `8c8c24a`). v0.3 and v0.4: written without a local Rust toolchain; run `scripts/verify.sh` (format, clippy, tests, release smoke, performance gate) before merging |
+| 15 | No regulatory screening | Versioned rulepacks with citations, legal basis and counterfactual remediation | v0.4: eight rulepacks (Texas SB 6, FERC RM26-4 anticipated, Virginia SB 253, GB NESO / Ofgem proposed, Ireland CRU, Spain RD 1032/2026, Singapore GDCR, EU EED), global matrix and portfolio sweeps. Sources in [JURISDICTIONS_2026.md](JURISDICTIONS_2026.md) |
+| 16 | Results not tamper-evident | Hashed, reproducible dossier; signature or out-of-band hash for filings | v0.3: SHA-256 dossier, `--verify`, `--expect`. v0.4: proof links that reproduce the hash, release `SHA256SUMS`. Signing (cosign / minisign) is an owner action |
+| 17 | Rules go stale | Re-verification before each IC use, rulepack version bump on rule change | Process documented in [COMPLIANCE.md](COMPLIANCE.md) and [AGENTS.md](../AGENTS.md); no automated monitoring yet. Two rulepacks rest on proposals (FERC RM26-4, Ofgem) and one on press reports of a decree published the day before (Spain) |
+| 18 | No buyer-ready distribution | Signed binaries, hosted demo, CI integration | v0.4: release workflow (5 static targets + checksums + Pages), compliance gate workflow, print-ready filing memo |
